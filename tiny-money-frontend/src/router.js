@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from './views/Home.vue';
 
+import Dashboard from './home/Dashboard.vue';
 import TransactionsIndex from './transactions/TransactionsIndex.vue';
 import BudgetsIndex from './budgets/BudgetsIndex.vue';
 import TagsIndex from './tags/TagsIndex.vue';
@@ -16,8 +16,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: Home,
+      name: 'dashboard',
+      component: Dashboard,
     },
     {
       path: '/transactions',
@@ -44,14 +44,5 @@ export default new Router({
       name: 'categories',
       component: CategoriesIndex,
     },
-    // sorry what?
-    // {
-    //   path: '/about',
-    //   name: 'about',
-    //   // route level code-splitting
-    //   // this generates a separate chunk (about.[hash].js) for this route
-    //   // which is lazy-loaded when the route is visited.
-    //   component: () => import(/* webpackChunkName: "about" */ './views/About.vue'),
-    // },
   ],
 });
