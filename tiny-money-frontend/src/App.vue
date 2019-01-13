@@ -12,14 +12,13 @@
 
       <v-list dense class="pt-0">
         <v-list-tile v-for="item in items" :key="item.title" :to="item.route">
-            <v-list-tile-action>
-              <v-icon>{{ item.icon }}</v-icon>
-            </v-list-tile-action>
+          <v-list-tile-action>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-tile-action>
 
-            <v-list-tile-content>
-              <v-list-tile-title>{{ item.title }}</v-list-tile-title>
-            </v-list-tile-content>
-          </router-link>
+          <v-list-tile-content>
+            <v-list-tile-title>{{ item.title }}</v-list-tile-title>
+          </v-list-tile-content>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
@@ -33,7 +32,7 @@
       <!-- <v-btn flat href="https://github.com/vuetifyjs/vuetify/releases/latest" target="_blank">
         <span class="mr-2">Latest Release</span>
         <v-icon>open_in_new</v-icon>
-      </v-btn> -->
+      </v-btn>-->
     </v-toolbar>
 
     <v-content>
@@ -50,7 +49,7 @@ export default {
   name: 'App',
   data() {
     return {
-      drawer: true,
+      drawer: false,
       items: [
         { title: 'Home', icon: 'dashboard', route: '/' },
         { title: 'Transactions', icon: 'attach_money', route: '/transactions' },
