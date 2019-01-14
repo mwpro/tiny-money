@@ -1,28 +1,24 @@
 <template>
-  <v-dialog v-model="isOpen" persistent max-width="600px">
-    <v-card>
-      <v-card-title>
-        <span class="headline">
-          {{ subcategory.id ? `Edytuj podkategorię` : "Dodaj podkategorię" }}
-        </span>
-      </v-card-title>
-      <v-card-text>
-        <v-container grid-list-md>
-          <v-layout wrap>
-            <v-flex xs12>
-              <v-text-field label="Nazwa*" v-model="subcategory.name" required></v-text-field>
-            </v-flex>
-          </v-layout>
-        </v-container>
-        <small>*indicates required field</small>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" flat @click="close()">Zamknij</v-btn>
-        <v-btn color="blue darken-1" flat @click="save()">Zapisz</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <v-card>
+    <v-card-title>
+      <span class="headline">{{ subcategory.id ? `Edytuj podkategorię` : "Dodaj podkategorię" }}</span>
+    </v-card-title>
+    <v-card-text>
+      <v-container grid-list-md>
+        <v-layout wrap>
+          <v-flex xs12>
+            <v-text-field label="Nazwa*" v-model="subcategory.name" required></v-text-field>
+          </v-flex>
+        </v-layout>
+      </v-container>
+      <small>*indicates required field</small>
+    </v-card-text>
+    <v-card-actions>
+      <v-spacer></v-spacer>
+      <v-btn color="blue darken-1" flat @click="close()">Zamknij</v-btn>
+      <v-btn color="blue darken-1" flat @click="save()">Zapisz</v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
@@ -36,38 +32,42 @@ export default {
     };
   },
   props: {
-    isOpen: {
-      type: Boolean,
+    categoryId: {
+      // TODO type: Number,
       required: true,
     },
-    cat: {
-      type: Object,
-    },
-    subcat: {
-      type: Object,
+    subcategoryId: {
+      // TODO type: Number,
+      required: false,
     },
   },
-  watch: {
-    subcat() {
-      if (this.subcat && this.subcat.id) {
-        this.category = this.cat;
-        this.subcategory = this.subcat;
-        this.isEditing = true;
-      } else {
-        this.category = this.cat;
-        this.subcategory = { name: '', parentCategoryId: this.cat.id };
-        this.isEditing = false;
-      }
-    },
+  created() {
+    this.getCategory();
+    this.getSubategory();
   },
   methods: {
+    getCategory() {
+      this.category = {
+        ...this.$store.state.categories.list.filter(c => c.id == this.categoryId)[0],
+      };
+    },
+    getSubategory() {
+      if (this.subcategoryId) {
+        this.subcategory = {
+          ...this.$store.state.categories.list
+            .filter(c => c.id == this.categoryId)[0].subcategories
+            .filter(s => s.id == this.subcategoryId)[0],
+        };
+      } else {
+        this.subcategory = { name: '', parentCategoryId: this.category.id };
+      }
+    },
     save() {
       this.$store.dispatch('categories/saveSubcategory', this.subcategory);
       this.close();
     },
     close() {
-      this.isDialogVisible = false;
-      this.$emit('done');
+      this.$router.push({ name: 'categories' });
     },
   },
 };

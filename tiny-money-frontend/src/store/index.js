@@ -6,6 +6,7 @@ import categoriesModule from './categories';
 Vue.use(Vuex);
 
 export default new Vuex.Store({
+  strict: true,
   modules: {
     categories: categoriesModule,
   },

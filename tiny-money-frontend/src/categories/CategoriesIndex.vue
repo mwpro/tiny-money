@@ -1,13 +1,8 @@
 <template>
   <v-layout>
-    <v-btn color="green" dark absolute bottom right fab @click="openAddCategory()">
+    <v-btn color="green" dark absolute bottom right fab :to="{ name: 'addCategory'}">
       <v-icon>add</v-icon>
     </v-btn>
-
-    <EditCategory :isOpen="isEditCategoryDialogOpen"
-      :cat="categoryToEdit" @done="isEditCategoryDialogOpen = false" />
-    <EditSubcategory :isOpen="isEditSubcategoryDialogOpen" :cat="categoryToEdit"
-      :subcat="subcategoryToEdit" @done="isEditSubcategoryDialogOpen = false" />
 
     <v-container grid-list-xl="true">
       <v-layout row wrap>
@@ -25,7 +20,9 @@
                     </v-list-tile-content>
 
                     <v-list-tile-action>
-                      <v-btn icon ripple @click="openEditSubcategory(subcategory, category)">
+                      <v-btn icon ripple
+                        :to="{ name: 'editSubcategory', params: { categoryId: category.id, subcategoryId: subcategory.id} }
+                      ">
                         <v-icon color="grey lighten-1">create</v-icon>
                       </v-btn>
                     </v-list-tile-action>
@@ -40,10 +37,14 @@
             </v-card-title>
 
             <v-card-actions>
-              <v-btn flat color="orange" @click="openAddSubcategory(category)">
+              <v-btn flat color="orange"
+                :to="{ name: 'addSubcategory', params: { categoryId: category.id} }">
                 Dodaj podkategorię
               </v-btn>
-              <v-btn flat color="orange" @click="openEditCategory(category)">Edytuj</v-btn>
+              <v-btn flat color="orange"
+                :to="{ name: 'editCategory', params: { categoryId: category.id} }">
+                Edytuj
+              </v-btn>
               <v-btn flat color="orange" @click="deleteCategory(category)">Usuń</v-btn>
             </v-card-actions>
           </v-card>
@@ -53,24 +54,12 @@
   </v-layout>
 </template>
 <script>
-import EditSubcategory from './EditSubcategory.vue';
-import EditCategory from './EditCategory.vue';
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'CategoriesIndex',
-  components: { EditCategory, EditSubcategory },
-  data() {
-    return {
-      isEditCategoryDialogOpen: false,
-      isEditSubcategoryDialogOpen: false,
-      categoryToEdit: {},
-      subcategoryToEdit: {},
-    };
-  },
   computed: {
-    categories() {
-      return this.$store.state.categories.list;
-    },
+    ...mapGetters('categories', { categories: 'categories' }),
   },
   methods: {
     deleteSubcategory(subcategory) {
@@ -78,24 +67,6 @@ export default {
     },
     deleteCategory(category) {
       this.$store.dispatch('categories/removeCategory', category);
-    },
-    openAddCategory() {
-      this.categoryToEdit = {};
-      this.isEditCategoryDialogOpen = true;
-    },
-    openAddSubcategory(category) {
-      this.subcategoryToEdit = {};
-      this.categoryToEdit = category;
-      this.isEditSubcategoryDialogOpen = true;
-    },
-    openEditCategory(category) {
-      this.categoryToEdit = category;
-      this.isEditCategoryDialogOpen = true;
-    },
-    openEditSubcategory(subcategory, category) {
-      this.subcategoryToEdit = subcategory;
-      this.categoryToEdit = category;
-      this.isEditSubcategoryDialogOpen = true;
     },
   },
 };
