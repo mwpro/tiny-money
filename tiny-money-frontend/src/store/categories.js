@@ -63,9 +63,6 @@ export default {
       });
     },
   },
-  getters: {
-    categories: state => state.list,
-  },
   actions: {
     saveCategory({ commit }, category) {
       // todo http

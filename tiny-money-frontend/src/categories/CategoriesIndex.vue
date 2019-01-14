@@ -54,12 +54,17 @@
   </v-layout>
 </template>
 <script>
-import { mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 
 export default {
   name: 'CategoriesIndex',
+  data() {
+    return {
+    };
+  },
   computed: {
-    ...mapGetters('categories', { categories: 'categories' }),
+
+    ...mapState('categories', { categories: 'list' }),
   },
   methods: {
     deleteSubcategory(subcategory) {
