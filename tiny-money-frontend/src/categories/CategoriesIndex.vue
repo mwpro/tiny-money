@@ -1,6 +1,6 @@
 <template>
   <v-layout>
-    <v-btn color="green" dark absolute bottom right fab :to="{ name: 'addCategory'}">
+    <v-btn color="green" fab bottom right dark fixed :to="{ name: 'addCategory'}">
       <v-icon>add</v-icon>
     </v-btn>
 
