@@ -33,4 +33,6 @@ public class TransactionsController {
     // TODO get single
 
     // TODO advanced get list
+
+    // TODO jpa auditing
 }

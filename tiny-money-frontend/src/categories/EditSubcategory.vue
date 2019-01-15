@@ -48,13 +48,13 @@ export default {
   methods: {
     getCategory() {
       this.category = {
-        ...this.$store.state.categories.list.filter(c => c.id == this.categoryId)[0],
+        ...this.$store.state.categories.categoriesList.filter(c => c.id == this.categoryId)[0],
       };
     },
     getSubategory() {
       if (this.subcategoryId) {
         this.subcategory = {
-          ...this.$store.state.categories.list
+          ...this.$store.state.categories.categoriesList
             .filter(c => c.id == this.categoryId)[0].subcategories
             .filter(s => s.id == this.subcategoryId)[0],
         };

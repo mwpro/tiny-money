@@ -63,8 +63,10 @@ export default {
     };
   },
   computed: {
-
-    ...mapState('categories', { categories: 'list' }),
+    ...mapState('categories', { categories: 'categoriesList' }),
+  },
+  created() {
+    this.$store.dispatch('categories/getCategories');
   },
   methods: {
     deleteSubcategory(subcategory) {

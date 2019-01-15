@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -12,16 +13,22 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    private Date date;
+    @NotNull
+    private Date transactionDate;
+    @NotNull
     private String category;
+    @NotNull
     private BigDecimal amount;
+
+    // TODO created/updatedAt
+    // TODO notes
 
     public Transaction() {
     }
 
     public Transaction(Integer id, Date date, String category, BigDecimal amount) {
         this.id = id;
-        this.date = date;
+        this.transactionDate = date;
         this.category = category;
         this.amount = amount;
     }
@@ -34,12 +41,12 @@ public class Transaction {
         this.id = id;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getTransactionDate() {
+        return transactionDate;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setTransactionDate(Date transactionDate) {
+        this.transactionDate = transactionDate;
     }
 
     public String getCategory() {
