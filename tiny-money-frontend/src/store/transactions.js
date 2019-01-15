@@ -11,6 +11,9 @@ export default {
     getTransactions(state, transactions) {
       state.transactionsList = transactions;
     },
+    addTransaction(state, transaction) {
+      state.transactionsList.unshift(transaction);
+    },
   },
   actions: {
     getTransactionsAction({ commit }) {
@@ -27,6 +30,18 @@ export default {
           return transactions;
         });
       // .catch(captains.error)
+    },
+
+    addTransactionAction({ commit }, transaction) {
+      return axios.post('/api/transaction', transaction).then((response) => {
+        if (response.status !== 201) throw Error(response.message);
+        let addedTransaction = response.data;
+        if (typeof addedTransaction !== 'object') {
+          addedTransaction = undefined;
+        }
+        commit('addTransaction', addedTransaction);
+        return addedTransaction;
+      });
     },
   },
 };

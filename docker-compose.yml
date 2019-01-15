@@ -1,0 +1,20 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql:5
+    restart: always
+    # volumes:
+    #   - ./db-schema:/var/lib/tpodata
+    # command: --init-file /var/lib/tpodata/database.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: tinymoney
+    ports:
+      - 3306:3306
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8082:8080

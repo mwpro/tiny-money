@@ -1,5 +1,9 @@
 <template>
   <v-layout row wrap>
+    <edit-transaction :isOpen="isEditTransactionActive" @closed="isEditTransactionActive=false" />
+    <v-btn color="green" fab bottom right dark fixed @click="openAddTransaction()">
+      <v-icon>add</v-icon>
+    </v-btn>
     <v-flex>
       <v-data-table :headers="headers" :items="transactions" class="elevation-1">
         <template slot="items" slot-scope="props">
@@ -12,9 +16,14 @@
   </v-layout>
 </template>
 <script>
+import EditTransaction from './EditTransaction.vue';
+
+
 export default {
+  components: { EditTransaction },
   data() {
     return {
+      isEditTransactionActive: false,
       headers: [
         {
           text: 'Data',
@@ -39,6 +48,11 @@ export default {
   },
   created() {
     this.$store.dispatch('transactions/getTransactionsAction');
+  },
+  methods: {
+    openAddTransaction() {
+      this.isEditTransactionActive = true;
+    },
   },
 };
 </script>

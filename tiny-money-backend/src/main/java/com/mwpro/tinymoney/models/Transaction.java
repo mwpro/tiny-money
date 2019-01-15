@@ -1,14 +1,23 @@
 package com.mwpro.tinymoney.models;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.math.BigDecimal;
 import java.util.Date;
 
-//@Entity
+@Entity
 public class Transaction {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private Date date;
     private String category;
     private BigDecimal amount;
+
+    public Transaction() {
+    }
 
     public Transaction(Integer id, Date date, String category, BigDecimal amount) {
         this.id = id;
