@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
+
 @Controller
 @RequestMapping(path="/api/transaction")
 public class TransactionsController {
@@ -20,7 +22,7 @@ public class TransactionsController {
 
     @GetMapping(path="")
     public @ResponseBody Iterable<Transaction> getTransactions() {
-        return transactionsRepository.findAll();
+        return transactionsRepository.findAllByOrderByTransactionDateDescCreatedDateDesc();
     }
 
     @PostMapping(path="")
