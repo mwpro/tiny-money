@@ -1,10 +1,13 @@
 package com.mwpro.tinymoney.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Subcategory {
@@ -15,10 +18,19 @@ public class Subcategory {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn
+    @JoinColumn(nullable = false)
     //@OnDelete
-    @JsonIgnore
+    //@JsonIgnore
     private Category parentCategory;
+
+
+    @OneToMany(fetch = FetchType.LAZY,
+            mappedBy = "subcategory")
+    // cascade
+    // fetch
+    // mappedby
+    @JsonIgnoreProperties("subcategory")
+    private Set<Transaction> transactions = new HashSet<>();
 
     public Integer getId() {
         return id;
@@ -42,5 +54,13 @@ public class Subcategory {
 
     public void setParentCategory(Category parentCategory) {
         this.parentCategory = parentCategory;
+    }
+
+    public Set<Transaction> getTransactions() {
+        return transactions;
+    }
+
+    public void setTransactions(Set<Transaction> transactions) {
+        this.transactions = transactions;
     }
 }

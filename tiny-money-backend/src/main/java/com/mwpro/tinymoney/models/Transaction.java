@@ -1,9 +1,6 @@
 package com.mwpro.tinymoney.models;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -16,22 +13,15 @@ public class Transaction {
     @NotNull
     private Date transactionDate;
     @NotNull
-    private String category;
-    @NotNull
     private BigDecimal amount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    @NotNull
+    private Subcategory subcategory;
 
     // TODO created/updatedAt
     // TODO notes
-
-    public Transaction() {
-    }
-
-    public Transaction(Integer id, Date date, String category, BigDecimal amount) {
-        this.id = id;
-        this.transactionDate = date;
-        this.category = category;
-        this.amount = amount;
-    }
 
     public Integer getId() {
         return id;
@@ -49,19 +39,19 @@ public class Transaction {
         this.transactionDate = transactionDate;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
     public BigDecimal getAmount() {
         return amount;
     }
 
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public Subcategory getSubcategory() {
+        return subcategory;
+    }
+
+    public void setSubcategory(Subcategory subcategory) {
+        this.subcategory = subcategory;
     }
 }

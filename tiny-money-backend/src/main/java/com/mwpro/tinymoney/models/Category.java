@@ -1,6 +1,7 @@
 package com.mwpro.tinymoney.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -20,6 +21,7 @@ public class Category {
     // cascade
     // fetch
     // mappedby
+    @JsonIgnoreProperties("parentCategory")
     private Set<Subcategory> subcategories = new HashSet<>();
 
     public Integer getId() {

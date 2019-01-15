@@ -5,31 +5,13 @@ export default {
   state: {
     mockIdGenerator: 100,
     categoriesList: [
-      // {
-      //   id: 1,
-      //   name: 'Jedzenie',
-      //   subcategories:
-      //               [
-      //                 { id: 2, name: 'Dom', parentCategoryId: 1 },
-      //                 { id: 3, name: 'Miasto', parentCategoryId: 1 },
-      //                 { id: 4, name: 'Praca', parentCategoryId: 1 },
-      //               ],
-      // },
-      // {
-      //   id: 5,
-      //   name: 'Mieszkanie/dom',
-      //   subcategories:
-      //               [
-      //                 { id: 6, name: 'Czynsz', parentCategoryId: 5 },
-      //                 { id: 7, name: 'Woda', parentCategoryId: 5 },
-      //                 { id: 8, name: 'Prąd', parentCategoryId: 5 },
-      //                 { id: 9, name: 'Gaz', parentCategoryId: 5 },
-      //                 { id: 10, name: 'Ogrzewanie', parentCategoryId: 5 },
-      //                 { id: 11, name: 'Konserwacje i naprawy', parentCategoryId: 5 },
-      //                 { id: 12, name: 'Wyposażenie', parentCategoryId: 5 },
-      //               ],
-      // },
     ],
+  },
+  getters: {
+    subcategories: state => [].concat(...state.categoriesList.map(c => c.subcategories.map((s) => {
+      s.fullName = `${c.name} / ${s.name}`;
+      return s;
+    }))),
   },
   mutations: {
     getCategories(state, categories) {
@@ -39,24 +21,27 @@ export default {
       state.categoriesList.push(category);
     },
     removeSubcategory(state, subcategory) {
-      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId).forEach((category) => {
-        category.subcategories = [...category.subcategories.filter(p => p.id !== subcategory.id)];
-      });
+      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
+        .forEach((category) => {
+          category.subcategories = [...category.subcategories.filter(p => p.id !== subcategory.id)];
+        });
     },
     removeCategory(state, category) {
       state.categoriesList = [...state.categoriesList.filter(p => p.id !== category.id)];
     },
     addSubcategory(state, subcategory) {
-      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId).forEach((category) => {
-        category.subcategories.push(subcategory);
-      });
+      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
+        .forEach((category) => {
+          category.subcategories.push(subcategory);
+        });
     },
     updateSubcategory(state, subcategory) {
-      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId).forEach((category) => {
-        category.subcategories.filter(s => s.id === subcategory.id).forEach((s) => {
-          s.name = subcategory.name; // todo what about moving between categories?
+      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
+        .forEach((category) => {
+          category.subcategories.filter(s => s.id === subcategory.id).forEach((s) => {
+            s.name = subcategory.name; // todo what about moving between categories?
+          });
         });
-      });
     },
     updateCategory(state, category) {
       state.categoriesList.filter(c => c.id === category.id).forEach((c) => {
