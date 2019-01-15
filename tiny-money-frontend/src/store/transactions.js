@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export default {
   namespaced: true,
   state: {
@@ -12,169 +14,19 @@ export default {
   },
   actions: {
     getTransactionsAction({ commit }) {
-      // todo api
-      const transactions = [{
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      },
-      {
-        date: '2018-01-01',
-        category: 'Zwierzęta / Niczko',
-        amount: -150,
-      },
-      {
-        date: '2018-01-30',
-        category: 'Przychody / Pensja',
-        amount: 8000,
-      }];
+      return axios
+        .get('/api/transaction')
+        .then((response) => {
+          if (response.status !== 200) throw Error(response.message);
+          let transactions = response.data;
+          if (typeof transactions !== 'object') {
+            transactions = [];
+          }
 
-      commit('getTransactions', transactions);
+          commit('getTransactions', transactions);
+          return transactions;
+        });
+      // .catch(captains.error)
     },
   },
 };

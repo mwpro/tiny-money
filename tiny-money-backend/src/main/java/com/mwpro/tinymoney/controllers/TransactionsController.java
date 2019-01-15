@@ -21,11 +21,11 @@ public class TransactionsController {
 
         int transactionId = 1;
 
-        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Jedzenie / Dom", BigDecimal.valueOf(125.21)));
+        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Jedzenie / Dom", BigDecimal.valueOf(-125.21)));
         result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Przychody / Pensja", BigDecimal.valueOf(8000)));
-        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Jedzenie / Dom", BigDecimal.valueOf(54.91)));
-        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Zwierzęta / Niczko", BigDecimal.valueOf(120)));
-        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Zwierzęta / Króliki", BigDecimal.valueOf(144)));
+        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Jedzenie / Dom", BigDecimal.valueOf(-54.91)));
+        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Zwierzęta / Niczko", BigDecimal.valueOf(-120)));
+        result.add(new Transaction(transactionId++, Date.from(Instant.now()), "Zwierzęta / Króliki", BigDecimal.valueOf(-144)));
 
         return result;
     }
