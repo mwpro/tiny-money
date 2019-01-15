@@ -8,6 +8,9 @@ Vue.config.productionTip = false;
 
 Vue.filter('currency', value => `${value} PLN`);
 
+Vue.filter('toFixed', (price, limit) => price.toFixed(limit));
+
+
 new Vue({
   router,
   store,
