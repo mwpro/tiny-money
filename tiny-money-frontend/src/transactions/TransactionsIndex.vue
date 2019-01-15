@@ -11,7 +11,7 @@
           <td class="text-xs-left">
             {{ props.item.subcategory.parentCategory.name }} / {{ props.item.subcategory.name }}
           </td>
-          <td class="text-xs-left" :class="props.item.amount > 0 ? 'green--text' : 'red--text'" >
+          <td class="text-xs-left" :class="props.item.isExpense ? 'red--text' : 'green--text'" >
             {{ props.item.amount | toFixed(2) | currency }}
           </td>
         </template>

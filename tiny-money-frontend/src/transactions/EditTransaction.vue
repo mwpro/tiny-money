@@ -1,8 +1,10 @@
 <template>
-  <v-dialog v-model="isOpen" width="500">
+  <v-dialog v-model="isOpen" width="500" persistent>
     <v-card tile>
       <v-toolbar card dark color="primary">
-        <v-toolbar-title>{{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}</v-toolbar-title>
+        <v-toolbar-title>
+          {{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}
+        </v-toolbar-title>
         <v-spacer></v-spacer>
         <v-toolbar-items>
           <v-btn icon dark @click="close()">
@@ -65,11 +67,21 @@
                 </v-slide-x-reverse-transition>
               </v-autocomplete>
             </v-flex>
-            <v-flex xs12>
+            <v-flex xs2>
+              <v-btn :color="transaction.isExpense ? 'red' : 'green'" fab small @click="transaction.isExpense = !transaction.isExpense">
+                <v-icon>{{ transaction.isExpense ? 'remove' : 'add' }}</v-icon>
+              </v-btn>
+              <!-- <v-switch :color="transaction.isExpense ? 'red' : 'green'"
+              :label="transaction.isExpense ? 'wydatek' : 'przychód'"
+               v-model="transaction.isExpense">
+              </v-switch> -->
+            </v-flex>
+            <v-flex xs10>
               <v-text-field
-                label="Kwota*"
-                v-model="transaction.amount"
+                :label="`Kwota ${ transaction.isExpense ? 'wydatku' : 'przychodu' }*`"
                 prepend-icon="attach_money"
+                :color="transaction.isExpense ? 'red' : 'green'"
+                v-model="transaction.amount"
                 required
                 suffix="PLN"
               ></v-text-field>
@@ -78,6 +90,7 @@
         </v-container>
         <!-- <small>*indicates required field</small> -->
       </v-card-text>
+      <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="blue darken-1" flat @click="save()">Zapisz</v-btn>
@@ -101,8 +114,10 @@ export default {
       transaction: {
         transactionDate: new Date().toISOString().substr(0, 10),
         subcategoryId: null,
+        isExpense: true,
         amount: null,
       },
+      valid: true,
       isEditing: false,
       datePickerOpen: false,
     };
@@ -128,6 +143,9 @@ export default {
       );
       this.transaction = {
         transactionDate: new Date().toISOString().substr(0, 10),
+        subcategoryId: null,
+        isExpense: true,
+        amount: null,
       };
     },
     save() {
@@ -135,6 +153,12 @@ export default {
         'transactions/addTransactionAction',
         this.transaction,
       );
+      this.transaction = {
+        transactionDate: new Date().toISOString().substr(0, 10),
+        subcategoryId: null,
+        isExpense: true,
+        amount: null,
+      };
       this.close();
     },
     close() {

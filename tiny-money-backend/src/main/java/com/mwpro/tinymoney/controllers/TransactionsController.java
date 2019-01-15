@@ -34,7 +34,8 @@ public class TransactionsController {
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());
-        transaction.setTransactionDate(addTransactionDto.getTransactionDate() );
+        transaction.setTransactionDate(addTransactionDto.getTransactionDate());
+        transaction.setIsExpense(addTransactionDto.getIsExpense());
 
         transactionsRepository.save(transaction);
         return transaction;
