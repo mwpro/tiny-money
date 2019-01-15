@@ -1,5 +1,5 @@
 <template>
-<v-app id="inspire">
+<v-app id="inspire" :dark="darkMode">
     <v-navigation-drawer
       :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer"
@@ -42,6 +42,9 @@
         class="hidden-sm-and-down"
       ></v-text-field>
       <v-spacer></v-spacer>
+      <v-btn icon @click="darkMode = !darkMode">
+        <v-icon>{{ darkMode ? 'brightness_low' : 'brightness_high'}}</v-icon>
+      </v-btn>
       <v-btn icon large>
         <v-avatar size="32px">
           <img
@@ -66,6 +69,7 @@ export default {
   data() {
     return {
       drawer: true,
+      darkMode: false,
       items: [
         { title: 'Home', icon: 'dashboard', route: '/' },
         { title: 'Transakcje', icon: 'attach_money', route: '/transactions' },

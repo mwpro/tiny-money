@@ -25,4 +25,12 @@ public class TransactionsController {
         transactionsRepository.save(transaction);
         return transaction;
     }
+
+    // TODO update
+
+    // TODO delete
+
+    // TODO get single
+
+    // TODO advanced get list
 }

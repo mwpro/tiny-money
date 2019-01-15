@@ -1,9 +1,19 @@
 <template>
   <v-dialog v-model="isOpen" width="500">
-    <v-card>
-      <v-card-title>
-        <span class="headline">{{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}</span>
-      </v-card-title>
+    <v-card tile>
+      <v-toolbar card dark color="primary">
+
+        <v-toolbar-title>
+          {{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-toolbar-items>
+          <v-btn icon dark @click="close()">
+            <v-icon>close</v-icon>
+          </v-btn>
+        </v-toolbar-items>
+
+      </v-toolbar>
       <v-card-text>
         <v-container grid-list-md>
           <v-layout wrap>
@@ -35,12 +45,21 @@
               </v-menu>
             </v-flex>
             <v-flex xs12>
-              <v-text-field label="Kategoria*" v-model="transaction.category"
-                prepend-icon="format_list_bulleted" required></v-text-field>
+              <v-text-field
+                label="Kategoria*"
+                v-model="transaction.category"
+                prepend-icon="format_list_bulleted"
+                required
+              ></v-text-field>
             </v-flex>
             <v-flex xs12>
-              <v-text-field label="Kwota*" v-model="transaction.amount"
-                prepend-icon="attach_money" required></v-text-field>
+              <v-text-field
+                label="Kwota*"
+                v-model="transaction.amount"
+                prepend-icon="attach_money"
+                required
+                suffix="PLN"
+              ></v-text-field>
             </v-flex>
           </v-layout>
         </v-container>
@@ -48,8 +67,10 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" flat @click="close()">Zamknij</v-btn>
         <v-btn color="blue darken-1" flat @click="save()">Zapisz</v-btn>
+        <v-btn color="blue darken-1" v-if="!isEditing" flat @click="saveAndAddNext()">
+          Zapisz i dodaj następną
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -76,8 +97,20 @@ export default {
     // this.getCategory();
   },
   methods: {
+    saveAndAddNext() {
+      this.$store.dispatch(
+        'transactions/addTransactionAction',
+        this.transaction,
+      );
+      this.transaction = {
+        date: new Date().toISOString().substr(0, 10),
+      };
+    },
     save() {
-      this.$store.dispatch('transactions/addTransactionAction', this.transaction);
+      this.$store.dispatch(
+        'transactions/addTransactionAction',
+        this.transaction,
+      );
       this.close();
     },
     close() {

@@ -9,7 +9,7 @@
         <template slot="items" slot-scope="props">
           <td class="text-xs-left">{{ props.item.date }}</td>
           <td class="text-xs-left">{{ props.item.category }}</td>
-          <td class="text-xs-left">{{ props.item.amount }}</td>
+          <td class="text-xs-left" :class="props.item.amount > 0 ? 'green--text' : 'red--text'" >{{ props.item.amount | currency }}</td>
         </template>
       </v-data-table>
     </v-flex>
