@@ -10,6 +10,7 @@ Vue.filter('currency', value => `${value} PLN`);
 
 Vue.filter('toFixed', (price, limit) => price.toFixed(limit));
 
+Vue.filter('date', date => new Date(date).toLocaleDateString());
 
 new Vue({
   router,
