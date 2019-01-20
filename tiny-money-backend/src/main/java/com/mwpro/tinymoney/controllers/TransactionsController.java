@@ -83,4 +83,6 @@ public class TransactionsController {
 
     // TODO use java.time instead of Date...
 
+    // TODO configure /api prefix globally
+
 }
