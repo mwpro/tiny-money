@@ -16,9 +16,13 @@ export default {
     },
   },
   actions: {
-    getTransactionsAction({ commit }) {
+    getTransactionsAction({ commit }, selectedMonth) {
       return axios
-        .get('/api/transaction')
+        .get('/api/transaction', {
+          params: {
+            month: selectedMonth,
+          },
+        })
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let transactions = response.data;

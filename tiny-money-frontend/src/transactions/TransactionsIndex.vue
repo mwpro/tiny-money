@@ -31,10 +31,9 @@
           type="month"
           no-title
           scrollable
+          @input="selectMonth()"
         >
           <v-spacer></v-spacer>
-          <v-btn flat color="primary" @click="selectMonthPickeropen = false">Cancel</v-btn>
-          <v-btn flat color="primary" @click="$refs.menu.save(selectedMonth)">OK</v-btn>
         </v-date-picker>
       </v-menu>
     </v-flex>
@@ -76,8 +75,7 @@ export default {
   components: { EditTransaction },
   data() {
     return {
-      selectedMonth: new Date().toISOString().substr(0, 7),
-      selectMonthPickeropen: false,
+      selectedMonth: new Date().toISOString().substr(0, 10),
       isEditTransactionActive: false,
       headers: [
         {
@@ -102,11 +100,16 @@ export default {
     },
   },
   created() {
-    this.$store.dispatch('transactions/getTransactionsAction');
+    this.$store.dispatch('transactions/getTransactionsAction', this.selectedMonth);
   },
   methods: {
     openAddTransaction() {
       this.isEditTransactionActive = true;
+    },
+    selectMonth() {
+      this.$refs.menu.save(this.selectedMonth);
+      // TODO appending '-01' does not seem to be the best practice :)
+      this.$store.dispatch('transactions/getTransactionsAction', `${this.selectedMonth}-01`);
     },
   },
 };
