@@ -10,6 +10,8 @@ import CategoriesIndex from './categories/CategoriesIndex.vue';
 import EditCategory from './categories/EditCategory.vue';
 import EditSubcategory from './categories/EditSubcategory.vue';
 
+import InitializeBudget from './budgets/InitializeBudget.vue';
+
 Vue.use(Router);
 
 export default new Router({
@@ -29,7 +31,7 @@ export default new Router({
     {
       path: '/budgets',
       name: 'budgets',
-      component: BudgetsIndex,
+      component: InitializeBudget,//BudgetsIndex, // TODO revert
     },
     {
       path: '/tags',
