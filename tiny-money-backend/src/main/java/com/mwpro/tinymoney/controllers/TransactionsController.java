@@ -65,6 +65,8 @@ public class TransactionsController {
         return transaction;
     }
 
+    // TODO something sucks about primary keys in db - some weird hibernate_sequence table is created?
+
     // TODO update
 
     // TODO delete
