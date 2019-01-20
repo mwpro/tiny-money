@@ -9,7 +9,6 @@
       <v-menu
         ref="menu"
         :close-on-content-click="false"
-        v-model="selectMonthPickeropen"
         :nudge-right="40"
         :return-value.sync="selectedMonth"
         lazy
@@ -75,7 +74,7 @@ export default {
   components: { EditTransaction },
   data() {
     return {
-      selectedMonth: new Date().toISOString().substr(0, 10),
+      selectedMonth: new Date().toISOString().substr(0, 7),
       isEditTransactionActive: false,
       headers: [
         {
@@ -108,8 +107,7 @@ export default {
     },
     selectMonth() {
       this.$refs.menu.save(this.selectedMonth);
-      // TODO appending '-01' does not seem to be the best practice :)
-      this.$store.dispatch('transactions/getTransactionsAction', `${this.selectedMonth}-01`);
+      this.$store.dispatch('transactions/getTransactionsAction', this.selectedMonth);
     },
   },
 };

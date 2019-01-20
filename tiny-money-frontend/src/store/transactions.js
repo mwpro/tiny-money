@@ -17,10 +17,11 @@ export default {
   },
   actions: {
     getTransactionsAction({ commit }, selectedMonth) {
+      // TODO appending '-01' does not seem to be the best practice :)
       return axios
         .get('/api/transaction', {
           params: {
-            month: selectedMonth,
+            month: `${selectedMonth}-01`,
           },
         })
         .then((response) => {
