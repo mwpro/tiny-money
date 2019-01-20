@@ -1,5 +1,7 @@
 package com.mwpro.tinymoney.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -14,9 +16,8 @@ public class BudgetKey implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subcategory_id")
     @NotNull
+    @JsonIgnoreProperties({ "parentCategory", "transactions"}) // TODO use DTO!
     private Subcategory subcategory;
-
-
 
     public int getYear() {
         return year;

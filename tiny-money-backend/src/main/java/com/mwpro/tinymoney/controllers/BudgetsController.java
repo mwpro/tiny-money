@@ -2,6 +2,7 @@ package com.mwpro.tinymoney.controllers;
 
 import com.mwpro.tinymoney.models.Budget;
 import com.mwpro.tinymoney.repositories.BudgetsRepository;
+import com.mwpro.tinymoney.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -26,6 +28,8 @@ public class BudgetsController {
     @GetMapping(path="/{year}/{month}")
     public ResponseEntity<List<Budget>> getBudgetsForMonth(
             @PathVariable("year") Integer year, @PathVariable("month") Integer month) {
-        return new ResponseEntity<>(budgetsRepository.findAll(), HttpStatus.OK);
+        List<Budget> budgets = budgetsRepository.findAllForMonth(year, month);
+
+        return new ResponseEntity<>(budgets, HttpStatus.OK);
     }
 }
