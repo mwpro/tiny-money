@@ -16,7 +16,7 @@ public class BudgetKey implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subcategory_id")
     @NotNull
-    @JsonIgnoreProperties({ "parentCategory", "transactions"}) // TODO use DTO!
+    @JsonIgnoreProperties({ "transactions"}) // TODO use DTO!
     private Subcategory subcategory;
 
     public int getYear() {

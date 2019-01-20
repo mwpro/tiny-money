@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 
 import categoriesModule from './categories';
 import transactionsModule from './transactions';
+import budgetsModule from './budgets';
 
 Vue.use(Vuex);
 
@@ -11,6 +12,7 @@ export default new Vuex.Store({
   modules: {
     categories: categoriesModule,
     transactions: transactionsModule,
+    budgets: budgetsModule
   },
   state: {
   },

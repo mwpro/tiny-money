@@ -21,7 +21,7 @@ public class Category {
     // cascade
     // fetch
     // mappedby
-    @JsonIgnoreProperties("parentCategory")
+    @JsonIgnoreProperties({ "parentCategory", "transactions" })
     private Set<Subcategory> subcategories = new HashSet<>();
 
     public Integer getId() {
