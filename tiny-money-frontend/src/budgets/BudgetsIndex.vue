@@ -35,6 +35,14 @@
     <v-spacer></v-spacer>
   </v-layout>
   <v-layout row wrap>
+    <v-flex xs11 sm5>
+      Podsumowanie:<br />
+      Budżet: {{ budgets.map(x => x.subcategories.map(x => x.amount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}<br />
+      Rzeczywiste wydatki: {{ budgets.map(x => x.subcategories.map(x => x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}<br />
+      Różnica: {{ budgets.map(x => x.subcategories.map(x => x.amount - x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}<br />
+    </v-flex>
+  </v-layout>
+  <v-layout row wrap>
     <v-flex>
       <v-data-table :headers="headers" :items="budgets" class="elevation-1" pagination.rowsPerPage="10">
         <template slot="no-data">
@@ -46,6 +54,15 @@
           <tr>
             <th>
               {{ props.item.name }}
+            </th>
+            <th>
+              {{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}
+            </th>
+            <th>
+              {{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}
+            </th>
+            <th>
+              {{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}
             </th>
           </tr>
           <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
@@ -64,14 +81,6 @@
               :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : 'green--text'"
             >{{ (subcategory.amount - subcategory.usedAmount) | toFixed(2) | currency }}</td>
           </tr>
-        </template>
-        <template slot="expand" slot-scope="props">
-          <v-card flat>
-            <v-card-text>
-              Data dodania: {{ props.item.createdDate | date }}<br/>
-              Data aktualizacji: {{ props.item.modifiedDate | date }}
-            </v-card-text>
-          </v-card>
         </template>
       </v-data-table>
     </v-flex>
