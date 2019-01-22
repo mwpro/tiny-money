@@ -32,6 +32,15 @@ public class Subcategory {
     @JsonIgnoreProperties("subcategory")
     private Set<Transaction> transactions = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY,
+            mappedBy = "budgetKey.subcategory")
+    // cascade
+    // fetch
+    // mappedby
+    @JsonIgnore
+    private Set<Budget> budgets = new HashSet<>();
+
+
     public Integer getId() {
         return id;
     }
@@ -62,5 +71,13 @@ public class Subcategory {
 
     public void setTransactions(Set<Transaction> transactions) {
         this.transactions = transactions;
+    }
+
+    public Set<Budget> getBudgets() {
+        return budgets;
+    }
+
+    public void setBudgets(Set<Budget> budgets) {
+        this.budgets = budgets;
     }
 }

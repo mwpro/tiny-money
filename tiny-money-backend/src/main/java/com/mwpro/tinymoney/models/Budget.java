@@ -19,10 +19,6 @@ public class Budget {
     @NotNull
     private BigDecimal amount;
 
-    // todo this is mysql specific, meh
-    @Formula("(SELECT IFNULL(SUM(t.amount), 0) FROM transaction t WHERE YEAR(t.transaction_date) = year AND MONTH(t.transaction_date) = month AND t.subcategory_id = subcategory_id)")
-    private BigDecimal usedAmount;
-
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate
     private Date createdDate;
@@ -61,14 +57,6 @@ public class Budget {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
-    }
-
-    public BigDecimal getUsedAmount() {
-        return usedAmount;
-    }
-
-    public void setUsedAmount(BigDecimal usedAmount) {
-        this.usedAmount = usedAmount;
     }
 }
 

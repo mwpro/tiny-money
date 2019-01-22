@@ -31,7 +31,12 @@ export default new Router({
     {
       path: '/budgets',
       name: 'budgets',
-      component: InitializeBudget,//BudgetsIndex, // TODO revert
+      component: BudgetsIndex,
+    },
+    {
+      path: '/budgets/init',
+      name: 'initializeBudget',
+      component: InitializeBudget, // TODO temporary
     },
     {
       path: '/tags',
