@@ -44,7 +44,8 @@ public class BudgetsController {
             category.setSubcategories(c.getSubcategories().stream().map(s -> {
                 BudgetSubcategoryDto subcategory = new BudgetSubcategoryDto();
                 subcategory.setSubcategoryName(s.getName());
-                BigDecimal budget = s.getBudgets().stream().findFirst().map(x -> x.getAmount()).orElse(BigDecimal.ZERO);
+                BigDecimal budget = s.getBudgets().stream().filter(x -> x.getBudgetKey().getMonth() == month &&
+                        x.getBudgetKey().getYear() == year).findFirst().map(x -> x.getAmount()).orElse(BigDecimal.ZERO);
                 subcategory.setAmount(budget);
                 subcategory.setSubcategoryId(s.getId());
                 subcategory.setUsedAmount(budgetsRepository.sumTransactionsForMonth(year, month, s));

@@ -43,21 +43,26 @@
           </v-flex>
         </template>
         <template slot="items" slot-scope="props">
-          <tr @click="props.expanded = !props.expanded">
+          <tr>
+            <th>
+              {{ props.item.name }}
+            </th>
+          </tr>
+          <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
             <td
               class="text-xs-left"
-            >{{ props.item.budgetKey.subcategory.parentCategory.name }} / {{ props.item.budgetKey.subcategory.name }}</td>
+            >{{ subcategory.subcategoryName }}</td>
             <td
               class="text-xs-left"
-            >{{ props.item.amount | toFixed(2) | currency }}</td>
+            >{{ subcategory.amount | toFixed(2) | currency }}</td>
             <td
               class="text-xs-left"
-              :class="props.item.usedAmount > props.item.amount ? 'red--text' : 'green--text'"
-            >{{ props.item.usedAmount | toFixed(2) | currency }}</td>
+              :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : 'green--text'"
+            >{{ subcategory.usedAmount | toFixed(2) | currency }}</td>
             <td
               class="text-xs-left"
-              :class="props.item.usedAmount > props.item.amount ? 'red--text' : 'green--text'"
-            >{{ (props.item.amount - props.item.usedAmount) | toFixed(2) | currency }}</td>
+              :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : 'green--text'"
+            >{{ (subcategory.amount - subcategory.usedAmount) | toFixed(2) | currency }}</td>
           </tr>
         </template>
         <template slot="expand" slot-scope="props">

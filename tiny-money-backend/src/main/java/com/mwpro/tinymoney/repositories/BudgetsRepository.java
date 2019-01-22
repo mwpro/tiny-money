@@ -11,6 +11,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface BudgetsRepository extends JpaRepository<Budget, BudgetKey> {
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE YEAR(t.transactionDate) = :year AND MONTH(t.transactionDate) = :month AND t.subcategory = :subcategory")
+    @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE YEAR(t.transactionDate) = :year AND MONTH(t.transactionDate) = :month AND t.subcategory = :subcategory")
     BigDecimal sumTransactionsForMonth(@Param("year") Integer year, @Param("month") Integer month, @Param("subcategory") Subcategory subcategory);
 }
