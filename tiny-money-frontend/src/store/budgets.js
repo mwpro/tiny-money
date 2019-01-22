@@ -11,12 +11,21 @@ export default {
     getBudgets(state, budgets) {
       state.budgetsList = budgets;
     },
+    saveBudget(state, budget) {
+      for (let category of state.budgetsList) {
+        for (let subcategory of category.subcategories) {
+          if (subcategory.subcategoryId == budget.subcategoryId) {
+            subcategory.amount = budget.amount;
+          }
+        }
+      }
+    },
   },
   actions: {
     getBudgetsAction({ commit }, selectedMonth) {
       // TODO appending '-01' does not seem to be the best practice :)
       return axios
-        .get(`/api/budget/${selectedMonth.substr(0,4)}/${selectedMonth.substr(5, 7)}`)
+        .get(`/api/budget/${selectedMonth.substr(0, 4)}/${selectedMonth.substr(5, 7)}`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let budgets = response.data;
@@ -28,6 +37,10 @@ export default {
           return budgets;
         });
       // .catch(captains.error)
+    },
+    saveBudgetAction({ commit }, budget) {
+      // TODO api call
+      commit('saveBudget', budget);
     },
   },
 };
