@@ -36,14 +36,14 @@
       <v-spacer></v-spacer>
     </v-layout>
     <v-layout row wrap>
-      <v-flex xs11 sm5>Podsumowanie:
-        <br>
-        Budżet: {{ budgets.map(x => x.subcategories.map(x => x.amount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-        <br>
-        Rzeczywiste wydatki: {{ budgets.map(x => x.subcategories.map(x => x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-        <br>
-        Różnica: {{ budgets.map(x => x.subcategories.map(x => x.amount - x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-        <br>
+      <v-flex xs4>
+        Budżet:<br /> {{ budgets.map(x => x.subcategories.map(x => x.amount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
+      </v-flex>
+      <v-flex xs4>
+        Rzeczywiste wydatki:<br /> {{ budgets.map(x => x.subcategories.map(x => x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
+      </v-flex>
+      <v-flex xs4>
+        Różnica:<br /> {{ budgets.map(x => x.subcategories.map(x => x.amount - x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
       </v-flex>
     </v-layout>
     <v-layout row wrap>
@@ -59,7 +59,7 @@
               <th>{{ props.item.name }}</th>
               <th>{{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
               <th>{{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-              <th>{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              <th :class="props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''">{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
             </tr>
             <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
               <td class="text-xs-left">{{ subcategory.subcategoryName }}</td>
@@ -78,11 +78,10 @@
               </td>
               <td
                 class="text-xs-left"
-                :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : 'green--text'"
               >{{ subcategory.usedAmount | toFixed(2) | currency }}</td>
               <td
                 class="text-xs-left"
-                :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : 'green--text'"
+                :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : ''"
               >{{ (subcategory.amount - subcategory.usedAmount) | toFixed(2) | currency }}</td>
             </tr>
           </template>
@@ -107,7 +106,7 @@ export default {
   components: { InitializeBudget },
   data() {
     return {
-      selectedMonth: '2019-02', // new Date().toISOString().substr(0, 7),
+      selectedMonth: new Date().toISOString().substr(0, 7),
       headers: [
         {
           text: 'Kategoria',
