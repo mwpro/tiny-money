@@ -146,12 +146,13 @@ export default {
       this.$store.dispatch('budgets/saveBudgetAction', {
         amount: Number(this.editedBudgetAmount),
         subcategoryId: this.editedBudgetSubcategory,
-        year: 2019,
-        month: 1,
+        year: this.selectedMonth.substr(0, 4),
+        month: this.selectedMonth.substr(5, 7),
+      }).then(() => {
+        this.snackColor = 'success';
+        this.snackText = 'Zapisano budżet';
+        this.snack = true;
       });
-      this.snackColor = 'success';
-      this.snackText = 'Zapisano budżet';
-      this.snack = true;
     },
   },
 };

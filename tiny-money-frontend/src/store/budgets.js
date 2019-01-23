@@ -12,8 +12,8 @@ export default {
       state.budgetsList = budgets;
     },
     saveBudget(state, budget) {
-      for (let category of state.budgetsList) {
-        for (let subcategory of category.subcategories) {
+      for (const category of state.budgetsList) {
+        for (const subcategory of category.subcategories) {
           if (subcategory.subcategoryId == budget.subcategoryId) {
             subcategory.amount = budget.amount;
           }
@@ -39,8 +39,15 @@ export default {
       // .catch(captains.error)
     },
     saveBudgetAction({ commit }, budget) {
-      // TODO api call
-      commit('saveBudget', budget);
+      return axios
+        .post('/api/budget', budget)
+        .then((response) => {
+          if (response.status !== 200) throw Error(response.message);
+
+          commit('saveBudget', budget);
+          return budget;
+        });
+      // .catch(captains.error)
     },
   },
 };

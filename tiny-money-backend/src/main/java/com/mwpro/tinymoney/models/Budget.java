@@ -27,6 +27,13 @@ public class Budget {
     @LastModifiedDate
     private Date modifiedDate;
 
+    public Budget() {
+    }
+
+    public Budget(BudgetKey budgetKey) {
+        this.budgetKey = budgetKey;
+    }
+
     public BudgetKey getBudgetKey() {
         return budgetKey;
     }

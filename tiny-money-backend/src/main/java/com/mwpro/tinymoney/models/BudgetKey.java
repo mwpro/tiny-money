@@ -19,6 +19,15 @@ public class BudgetKey implements Serializable {
     @JsonIgnoreProperties({ "transactions"}) // TODO use DTO!
     private Subcategory subcategory;
 
+    public BudgetKey() {
+    }
+
+    public BudgetKey(@NotNull int year, @NotNull int month, @NotNull Subcategory subcategory) {
+        this.year = year;
+        this.month = month;
+        this.subcategory = subcategory;
+    }
+
     public int getYear() {
         return year;
     }

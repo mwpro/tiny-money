@@ -1,23 +1,26 @@
 package com.mwpro.tinymoney.controllers;
 
 import com.mwpro.tinymoney.models.Budget;
+import com.mwpro.tinymoney.models.BudgetKey;
 import com.mwpro.tinymoney.models.Category;
+import com.mwpro.tinymoney.models.Subcategory;
 import com.mwpro.tinymoney.models.dtos.BudgetCategoryDto;
 import com.mwpro.tinymoney.models.dtos.BudgetSubcategoryDto;
+import com.mwpro.tinymoney.models.dtos.SetBudgetDto;
 import com.mwpro.tinymoney.models.dtos.SubcategoryDto;
 import com.mwpro.tinymoney.repositories.BudgetsRepository;
 import com.mwpro.tinymoney.repositories.CategoriesRepository;
+import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
 import com.mwpro.tinymoney.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -27,6 +30,8 @@ public class BudgetsController {
     private BudgetsRepository budgetsRepository;
     @Autowired
     private CategoriesRepository categoriesRepository;
+    @Autowired
+    private SubcategoriesRepository subcategoriesRepository;
 
     @GetMapping(path="")
     public ResponseEntity<List<Budget>> getBudgets() {
@@ -54,5 +59,16 @@ public class BudgetsController {
             return category;
         }).collect(Collectors.toList());
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PostMapping(path="")
+    public ResponseEntity<SetBudgetDto> setBudget(
+            @RequestBody SetBudgetDto budgetDto) {
+        Optional<Subcategory> subcategory =  subcategoriesRepository.findById(budgetDto.getSubcategoryId());
+        BudgetKey budgetKey = new BudgetKey(budgetDto.getYear(), budgetDto.getMonth(), subcategory.get());
+        Budget budget = budgetsRepository.findById(budgetKey).orElse(new Budget(budgetKey));
+        budget.setAmount(budgetDto.getAmount());
+        budgetsRepository.save(budget);
+        return new ResponseEntity<>(budgetDto, HttpStatus.OK);
     }
 }
