@@ -3,10 +3,8 @@ package com.mwpro.tinymoney.controllers;
 
 import com.mwpro.tinymoney.models.Category;
 import com.mwpro.tinymoney.models.Subcategory;
-import com.mwpro.tinymoney.models.Transaction;
 import com.mwpro.tinymoney.repositories.CategoriesRepository;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
-import com.mwpro.tinymoney.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;

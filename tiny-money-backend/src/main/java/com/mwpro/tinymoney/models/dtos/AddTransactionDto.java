@@ -1,10 +1,9 @@
-package com.mwpro.tinymoney.models;
+package com.mwpro.tinymoney.models.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 public class AddTransactionDto {
     private LocalDate transactionDate;
