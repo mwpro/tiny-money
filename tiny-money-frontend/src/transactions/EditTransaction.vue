@@ -67,16 +67,12 @@
                 </v-slide-x-reverse-transition>
               </v-autocomplete>
             </v-flex>
-            <v-flex xs2>
+            <!-- <v-flex xs2>
               <v-btn :color="transaction.isExpense ? 'red' : 'green'" fab small @click="transaction.isExpense = !transaction.isExpense">
                 <v-icon>{{ transaction.isExpense ? 'remove' : 'add' }}</v-icon>
               </v-btn>
-              <!-- <v-switch :color="transaction.isExpense ? 'red' : 'green'"
-              :label="transaction.isExpense ? 'wydatek' : 'przychód'"
-               v-model="transaction.isExpense">
-              </v-switch> -->
-            </v-flex>
-            <v-flex xs10>
+            </v-flex> -->
+            <v-flex xs12>
               <v-text-field
                 :label="`Kwota ${ transaction.isExpense ? 'wydatku' : 'przychodu' }*`"
                 prepend-icon="attach_money"
