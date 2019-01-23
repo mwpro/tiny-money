@@ -13,6 +13,7 @@ import com.mwpro.tinymoney.repositories.CategoriesRepository;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
 import com.mwpro.tinymoney.repositories.TransactionsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -70,5 +71,26 @@ public class BudgetsController {
         budget.setAmount(budgetDto.getAmount());
         budgetsRepository.save(budget);
         return new ResponseEntity<>(budgetDto, HttpStatus.OK);
+    }
+
+    @PostMapping(path="/{yearFrom}/{monthFrom}/copy/{yearTo}/{monthTo}")
+    public ResponseEntity<String> copyBudget(
+            @PathVariable("yearFrom") Integer yearFrom, @PathVariable("monthFrom") Integer monthFrom,
+            @PathVariable("yearTo") Integer yearTo, @PathVariable("monthTo") Integer monthTo) {
+
+        List<Budget> sourceBudgets = budgetsRepository.findAllByBudgetKeyYearAndBudgetKeyMonth(yearFrom, monthFrom);
+        List<Budget> destinationBudgets = budgetsRepository.findAllByBudgetKeyYearAndBudgetKeyMonth(yearTo, monthTo);
+
+        List<Budget> budgetsToCopy = sourceBudgets.stream()
+                .filter(src -> destinationBudgets.stream().allMatch(dest -> dest.getBudgetKey().getSubcategory() != src.getBudgetKey().getSubcategory()))
+                .map(src -> {
+                    Budget result = new Budget(new BudgetKey(yearTo, monthTo, src.getBudgetKey().getSubcategory()));
+                    result.setAmount(src.getAmount());
+                    return result;
+                }).collect(Collectors.toList());
+
+        budgetsRepository.saveAll(budgetsToCopy);
+
+        return new ResponseEntity<>(yearFrom + " " + monthFrom + " " + yearTo + " " + monthTo, HttpStatus.OK);
     }
 }

@@ -83,7 +83,6 @@ export default {
           monthTo: this.targetMonth.substr(5, 7),
         })
         .then(() => {
-          alert('saved!');
           this.$emit('closed');
         });
     },

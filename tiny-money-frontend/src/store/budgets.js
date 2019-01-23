@@ -49,11 +49,14 @@ export default {
         });
       // .catch(captains.error)
     },
-    copyBudgetAction(_, budgetCopy) {
+    copyBudgetAction({ dispatch }, budgetCopy) {
       return axios
         .post(`/api/budget/${budgetCopy.yearFrom}/${budgetCopy.monthFrom}/copy/${budgetCopy.yearTo}/${budgetCopy.monthTo}`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
+
+
+          dispatch('getBudgetsAction', `${budgetCopy.yearTo}-${budgetCopy.monthTo}`);
         });
       // .catch(captains.error)
     },
