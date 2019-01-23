@@ -1,5 +1,6 @@
 <template>
   <v-container>
+    <initialize-budget :is-open="isInitializeBudgetOpen" :target-month="selectedMonth" @closed="isInitializeBudgetOpen=false"></initialize-budget>
     <v-layout row wrap>
       <v-flex xs11 sm5>
         <v-menu
@@ -53,11 +54,6 @@
           class="elevation-1"
           pagination.rowsPerPage="10"
         >
-          <template slot="no-data">
-            <v-flex class="no-data">
-              <v-btn color="info">Utwórz</v-btn>
-            </v-flex>
-          </template>
           <template slot="items" slot-scope="props">
             <tr>
               <th>{{ props.item.name }}</th>
@@ -68,10 +64,7 @@
             <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
               <td class="text-xs-left">{{ subcategory.subcategoryName }}</td>
               <td class="text-xs-left">
-                <v-edit-dialog
-                  @open="editBudget(subcategory)"
-                  @save="saveBudget()"
-                >
+                <v-edit-dialog @open="editBudget(subcategory)" @save="saveBudget()">
                   {{ subcategory.amount | toFixed(2) | currency }}
                   <v-text-field
                     slot="input"
@@ -96,6 +89,10 @@
         </v-data-table>
       </v-flex>
     </v-layout>
+
+    <v-flex class="no-data">
+      <v-btn color="info" @click="isInitializeBudgetOpen = !isInitializeBudgetOpen">Skopiuj</v-btn>
+    </v-flex>
     <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
       {{ snackText }}
       <v-btn flat @click="snack = false">Close</v-btn>
@@ -103,11 +100,14 @@
   </v-container>
 </template>
 <script>
+import InitializeBudget from './InitializeBudget.vue';
+
 export default {
   name: 'budgets-index',
+  components: { InitializeBudget },
   data() {
     return {
-      selectedMonth: new Date().toISOString().substr(0, 7),
+      selectedMonth: '2019-02', // new Date().toISOString().substr(0, 7),
       headers: [
         {
           text: 'Kategoria',
@@ -123,6 +123,7 @@ export default {
       snackColor: '',
       editedBudgetAmount: 0,
       editedBudgetSubcategory: null,
+      isInitializeBudgetOpen: false,
     };
   },
   computed: {
@@ -143,16 +144,18 @@ export default {
       this.editedBudgetSubcategory = subcategory.subcategoryId;
     },
     saveBudget() {
-      this.$store.dispatch('budgets/saveBudgetAction', {
-        amount: Number(this.editedBudgetAmount),
-        subcategoryId: this.editedBudgetSubcategory,
-        year: this.selectedMonth.substr(0, 4),
-        month: this.selectedMonth.substr(5, 7),
-      }).then(() => {
-        this.snackColor = 'success';
-        this.snackText = 'Zapisano budżet';
-        this.snack = true;
-      });
+      this.$store
+        .dispatch('budgets/saveBudgetAction', {
+          amount: Number(this.editedBudgetAmount),
+          subcategoryId: this.editedBudgetSubcategory,
+          year: this.selectedMonth.substr(0, 4),
+          month: this.selectedMonth.substr(5, 7),
+        })
+        .then(() => {
+          this.snackColor = 'success';
+          this.snackText = 'Zapisano budżet';
+          this.snack = true;
+        });
     },
   },
 };

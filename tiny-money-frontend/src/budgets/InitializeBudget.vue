@@ -14,22 +14,14 @@
         <v-container grid-list-md>
           <v-layout wrap>
             <v-flex xs12>
-              {{ initializeMode }}
-              <v-radio-group v-model="initializeMode" :mandatory="false">
-                <v-radio label="Pusty" value="empty"></v-radio>
-                <v-radio :label="``" value="copy">
-                  <div slot="label">Skopiuj z
+              Skopiuj z
                     <v-menu
                       ref="menu"
                       :close-on-content-click="false"
-                      :nudge-right="40"
                       :return-value.sync="sourceMonth"
                       lazy
                       transition="scale-transition"
                       offset-y
-                      full-width
-                      max-width="290px"
-                      min-width="290px"
                     >
                       <span slot="activator">{{ sourceMonth }}</span>
                       <v-date-picker
@@ -40,9 +32,7 @@
                         @input="$refs.menu.save(sourceMonth)"
                       ></v-date-picker>
                     </v-menu>
-                  </div>
-                </v-radio>
-              </v-radio-group>
+                    do {{ targetMonth }}
             </v-flex>
             <v-flex></v-flex>
           </v-layout>
@@ -61,15 +51,42 @@
 export default {
   data() {
     return {
-      isOpen: true,
-      initializeMode: "empty",
-      sourceMonth: null
+      initializeMode: 'empty',
+      sourceMonth: null,
     };
   },
+  props: {
+    isOpen: {
+      type: Boolean,
+      required: true,
+    },
+    targetMonth: {
+      type: String,
+      required: true,
+    },
+  },
   created() {
-    var sourceMonth = new Date();
+    const sourceMonth = new Date(this.targetMonth.substr(0, 4), this.targetMonth.substr(5, 7));
     sourceMonth.setMonth(sourceMonth.getMonth() - 1);
     this.sourceMonth = sourceMonth.toISOString().substr(0, 7);
-  }
+  },
+  methods: {
+    close() {
+      this.$emit('closed');
+    },
+    save() {
+      this.$store
+        .dispatch('budgets/copyBudgetAction', {
+          yearFrom: this.sourceMonth.substr(0, 4),
+          monthFrom: this.sourceMonth.substr(5, 7),
+          yearTo: this.targetMonth.substr(0, 4),
+          monthTo: this.targetMonth.substr(5, 7),
+        })
+        .then(() => {
+          alert('saved!');
+          this.$emit('closed');
+        });
+    },
+  },
 };
 </script>
