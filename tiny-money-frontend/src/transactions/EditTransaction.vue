@@ -2,9 +2,7 @@
   <v-dialog v-model="isOpen" width="500" persistent>
     <v-card tile>
       <v-toolbar card dark color="primary">
-        <v-toolbar-title>
-          {{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}
-        </v-toolbar-title>
+        <v-toolbar-title>{{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-toolbar-items>
           <v-btn icon dark @click="close()">
@@ -68,32 +66,37 @@
               </v-autocomplete>
             </v-flex>
             <v-flex xs12>
-              <v-autocomplete
+              <v-combobox
                 v-model="transaction.tags"
                 :items="tags"
+                :search-input.sync="tagSearch"
+                hide-selected
+                label="Tagi"
                 item-text="name"
                 item-value="id"
-                chips
                 multiple
-                deletable-chips="true"
-                label="Tagi"
+                persistent-hint
+                chips
                 prepend-icon="#"
+                :deletable-chips="true"
               >
-                <v-slide-x-reverse-transition slot="append-outer" mode="out-in">
-                  <v-icon
-                    :color="isEditing ? 'success' : 'info'"
-                    :key="`icon-${isEditing}`"
-                    @click="isEditing = !isEditing"
-                    v-text="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
-                  ></v-icon>
-                </v-slide-x-reverse-transition>
-              </v-autocomplete>
+                <template slot="no-data">
+                  <v-list-tile>
+                    <v-list-tile-content>
+                      <v-list-tile-title>No results matching "
+                        <strong>{{ tagSearch }}</strong>". Press
+                        <kbd>enter</kbd> to create a new one
+                      </v-list-tile-title>
+                    </v-list-tile-content>
+                  </v-list-tile>
+                </template>
+              </v-combobox>
             </v-flex>
             <!-- <v-flex xs2>
               <v-btn :color="transaction.isExpense ? 'red' : 'green'" fab small @click="transaction.isExpense = !transaction.isExpense">
                 <v-icon>{{ transaction.isExpense ? 'remove' : 'add' }}</v-icon>
               </v-btn>
-            </v-flex> -->
+            </v-flex>-->
             <v-flex xs12>
               <v-text-field
                 :label="`Kwota ${ transaction.isExpense ? 'wydatku' : 'przychodu' }*`"
@@ -139,6 +142,7 @@ export default {
       valid: true,
       isEditing: false,
       datePickerOpen: false,
+      tagSearch: null,
     };
   },
   computed: {
