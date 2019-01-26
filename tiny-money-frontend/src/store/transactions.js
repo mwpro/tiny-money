@@ -37,7 +37,7 @@ export default {
       // .catch(captains.error)
     },
 
-    addTransactionAction({ commit }, transaction) {
+    addTransactionAction({ commit, dispatch }, transaction) {
       transaction.tags = transaction.tags.map((t) => {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
@@ -45,12 +45,15 @@ export default {
 
       return axios.post('/api/transaction', transaction).then((response) => {
         if (response.status !== 201) throw Error(response.message);
-        let addedTransaction = response.data;
-        if (typeof addedTransaction !== 'object') {
-          addedTransaction = undefined;
+        let addTransactionResult = response.data;
+        if (typeof addTransactionResult !== 'object') {
+          addTransactionResult = undefined;
         }
-        commit('addTransaction', addedTransaction);
-        return addedTransaction;
+        commit('addTransaction', addTransactionResult.transaction);
+        addTransactionResult.addedTags.forEach((t) => {
+          dispatch('tags/addTagAction', t, { root: true });
+        });
+        return addTransactionResult;
       });
     },
   },

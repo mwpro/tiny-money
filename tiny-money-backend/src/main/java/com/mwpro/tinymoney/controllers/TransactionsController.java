@@ -4,6 +4,7 @@ import com.mwpro.tinymoney.models.Tag;
 import com.mwpro.tinymoney.models.dtos.AddTransactionDto;
 import com.mwpro.tinymoney.models.Subcategory;
 import com.mwpro.tinymoney.models.Transaction;
+import com.mwpro.tinymoney.models.dtos.AddTransactionResultDto;
 import com.mwpro.tinymoney.models.dtos.TagDto;
 import com.mwpro.tinymoney.models.dtos.TransactionDto;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
@@ -53,9 +54,8 @@ public class TransactionsController {
     }
 
     @PostMapping(path="")
-    @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
-    public Transaction addTransaction(@RequestBody AddTransactionDto addTransactionDto) {
+    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto) {
         Transaction transaction = new Transaction();
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
 
@@ -64,7 +64,7 @@ public class TransactionsController {
         transaction.setTransactionDate(addTransactionDto.getTransactionDate());
         transaction.setIsExpense(addTransactionDto.getIsExpense());
 
-        Set<Tag> tags = new HashSet<>();
+        Set<Tag> newTagsToSave = new HashSet<>();
         for (TagDto tagDto : addTransactionDto.getTags())
         {
             Tag tag;
@@ -72,18 +72,28 @@ public class TransactionsController {
                 // adding new tag
                 tag = new Tag();
                 tag.setName(tagDto.getName());
+                newTagsToSave.add(tag);
             } else {
                 // existing tag
                 tag = tagsRepository.getOne(tagDto.getId());
             }
             tag.getTransactions().add(transaction);
             transaction.getTags().add(tag);
-            tags.add(tag);
         }
 
         transactionsRepository.save(transaction);
-        tagsRepository.saveAll(tags);
-        return transaction;
+        tagsRepository.saveAll(newTagsToSave);
+
+        AddTransactionResultDto result = new AddTransactionResultDto();
+        result.setAddedTags(newTagsToSave.stream().map(t -> {
+            TagDto tagDto = new TagDto();
+            tagDto.setId(t.getId());
+            tagDto.setName(t.getName());
+            return tagDto;
+        }).collect(Collectors.toSet()));
+        result.setTransaction(transaction);
+        
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     // TODO something sucks about primary keys in db - some weird hibernate_sequence table is created?

@@ -10,6 +10,9 @@ export default {
     getTags(state, tags) {
       state.tagsList = tags;
     },
+    addTag(state, tag) {
+      state.tagsList.push(tag);
+    },
   },
   getters: {
     tags: state => state.tagsList,
@@ -29,6 +32,9 @@ export default {
           return tags;
         });
       // .catch(captains.error)
+    },
+    addTagAction({ commit }, tag) {
+      commit('addTag', tag);
     },
   },
 };

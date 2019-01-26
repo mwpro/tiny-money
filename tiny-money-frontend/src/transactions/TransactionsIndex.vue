@@ -61,7 +61,7 @@
             <v-card-text>
               Data dodania: {{ props.item.createdDate | date }}<br/>
               Data aktualizacji: {{ props.item.modifiedDate | date }}<br/>
-              Tagi: <span v-if="!props.item.tags.length">brak</span> <v-chip v-for="tag in props.item.tags" :key="tag.id" color="primary" text-color="white">{{ tag.name }}</v-chip>
+              Tagi: <span v-if="!props.item.tags.length">brak</span> <v-chip v-for="tag in props.item.tags" :key="tag.id" color="primary" small text-color="white">{{ tag.name }}</v-chip>
             </v-card-text>
           </v-card>
         </template>
