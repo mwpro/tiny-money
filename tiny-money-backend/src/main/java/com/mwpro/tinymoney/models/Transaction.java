@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -28,10 +29,10 @@ public class Transaction {
     @NotNull
     private Subcategory subcategory;
 
-    // TODO created/updatedAt
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "transactions")
+    private Set<Tag> tags;
+
     // TODO notes
-
-
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate
@@ -95,5 +96,13 @@ public class Transaction {
 
     public void setCreatedDate(Date createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public Set<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
     }
 }

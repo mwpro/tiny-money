@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Set;
 
 public class TransactionDto {
     private Integer id;
@@ -15,6 +16,8 @@ public class TransactionDto {
     private Date createdDate;
     private Date modifiedDate;
     private SubcategoryDto subcategory;
+
+    private Set<TagDto> tags;
 
     public Date getCreatedDate() {
         return createdDate;
@@ -70,5 +73,13 @@ public class TransactionDto {
 
     public void setSubcategory(SubcategoryDto subcategory) {
         this.subcategory = subcategory;
+    }
+
+    public Set<TagDto> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<TagDto> tags) {
+        this.tags = tags;
     }
 }
