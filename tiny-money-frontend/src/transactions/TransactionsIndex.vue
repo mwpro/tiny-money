@@ -40,7 +40,7 @@
   </v-layout>
   <v-layout row wrap>
     <v-flex>
-      <v-data-table :headers="headers" :items="transactions" class="elevation-1" pagination.rowsPerPage="10">
+      <v-data-table :headers="headers" :items="transactions" class="elevation-1" :hide-actions="true">
         <template slot="items" slot-scope="props">
           <tr @click="props.expanded = !props.expanded">
             <td class="text-xs-left">{{ props.item.transactionDate | date }}</td>
@@ -51,13 +51,17 @@
               class="text-xs-left"
               :class="props.item.isExpense ? 'red--text' : 'green--text'"
             >{{ props.item.amount | toFixed(2) | currency }}</td>
+            <td class="text-xs-left">
+              <v-icon v-if="props.item.tags.length">#</v-icon>
+            </td>
           </tr>
         </template>
         <template slot="expand" slot-scope="props">
           <v-card flat>
             <v-card-text>
               Data dodania: {{ props.item.createdDate | date }}<br/>
-              Data aktualizacji: {{ props.item.modifiedDate | date }}
+              Data aktualizacji: {{ props.item.modifiedDate | date }}<br/>
+              Tagi: <v-chip v-for="tag in props.item.tags" :key="tag.id" color="primary" text-color="white">{{ tag.name }}</v-chip>
             </v-card-text>
           </v-card>
         </template>
