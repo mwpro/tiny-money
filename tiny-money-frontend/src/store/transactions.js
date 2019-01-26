@@ -38,6 +38,11 @@ export default {
     },
 
     addTransactionAction({ commit }, transaction) {
+      transaction.tags = transaction.tags.map((t) => {
+        if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
+        return t;
+      });
+
       return axios.post('/api/transaction', transaction).then((response) => {
         if (response.status !== 201) throw Error(response.message);
         let addedTransaction = response.data;

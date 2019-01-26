@@ -1,5 +1,6 @@
 package com.mwpro.tinymoney.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -30,7 +32,8 @@ public class Transaction {
     private Subcategory subcategory;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "transactions")
-    private Set<Tag> tags;
+    @JsonIgnoreProperties("transactions")
+    private Set<Tag> tags = new HashSet<>();
 
     // TODO notes
 

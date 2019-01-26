@@ -73,7 +73,7 @@
                 hide-selected
                 label="Tagi"
                 item-text="name"
-                item-value="id"
+                small-chips
                 multiple
                 persistent-hint
                 chips

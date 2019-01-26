@@ -4,6 +4,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,7 +20,7 @@ public class Tag {
     @JoinTable(name = "transaction_tag",
             joinColumns = { @JoinColumn(name = "tag_id") },
             inverseJoinColumns = { @JoinColumn(name = "transaction_id") })
-    private Set<Transaction> transactions;
+    private Set<Transaction> transactions = new HashSet<>();
 
     public Integer getId() {
         return id;
