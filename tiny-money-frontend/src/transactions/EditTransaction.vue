@@ -67,6 +67,28 @@
                 </v-slide-x-reverse-transition>
               </v-autocomplete>
             </v-flex>
+            <v-flex xs12>
+              <v-autocomplete
+                v-model="transaction.tags"
+                :items="tags"
+                item-text="name"
+                item-value="id"
+                chips
+                multiple
+                deletable-chips="true"
+                label="Tagi"
+                prepend-icon="#"
+              >
+                <v-slide-x-reverse-transition slot="append-outer" mode="out-in">
+                  <v-icon
+                    :color="isEditing ? 'success' : 'info'"
+                    :key="`icon-${isEditing}`"
+                    @click="isEditing = !isEditing"
+                    v-text="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
+                  ></v-icon>
+                </v-slide-x-reverse-transition>
+              </v-autocomplete>
+            </v-flex>
             <!-- <v-flex xs2>
               <v-btn :color="transaction.isExpense ? 'red' : 'green'" fab small @click="transaction.isExpense = !transaction.isExpense">
                 <v-icon>{{ transaction.isExpense ? 'remove' : 'add' }}</v-icon>
@@ -112,6 +134,7 @@ export default {
         subcategoryId: null,
         isExpense: true,
         amount: null,
+        tags: [],
       },
       valid: true,
       isEditing: false,
@@ -121,9 +144,11 @@ export default {
   computed: {
     ...mapState('categories', { categories: 'categoriesList' }),
     ...mapGetters('categories', { subcategories: 'subcategories' }),
+    ...mapGetters('tags', { tags: 'tags' }),
   },
   created() {
     this.$store.dispatch('categories/getCategories');
+    this.$store.dispatch('tags/getTagsAction');
   },
   props: {
     isOpen: {
@@ -142,6 +167,7 @@ export default {
         subcategoryId: null,
         isExpense: true,
         amount: null,
+        tags: [],
       };
     },
     save() {
@@ -154,6 +180,7 @@ export default {
         subcategoryId: null,
         isExpense: true,
         amount: null,
+        tags: [],
       };
       this.close();
     },

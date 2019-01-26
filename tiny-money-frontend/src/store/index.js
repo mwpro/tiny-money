@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import categoriesModule from './categories';
 import transactionsModule from './transactions';
 import budgetsModule from './budgets';
+import tagsModule from './tags';
 
 Vue.use(Vuex);
 
@@ -12,7 +13,8 @@ export default new Vuex.Store({
   modules: {
     categories: categoriesModule,
     transactions: transactionsModule,
-    budgets: budgetsModule
+    budgets: budgetsModule,
+    tags: tagsModule,
   },
   state: {
   },
