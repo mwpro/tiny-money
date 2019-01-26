@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface TransactionsRepository extends JpaRepository<Transaction, Integer> {
-     @Query("SELECT t FROM Transaction t JOIN FETCH t.subcategory subCat JOIN FETCH subCat.parentCategory pc LEFT JOIN FETCH t.tags tags WHERE t.transactionDate BETWEEN :dateFrom AND :dateTo ORDER BY t.transactionDate DESC, t.createdDate DESC")
+     @Query("SELECT DISTINCT t FROM Transaction t JOIN FETCH t.subcategory subCat JOIN FETCH subCat.parentCategory pc LEFT JOIN FETCH t.tags tags WHERE t.transactionDate BETWEEN :dateFrom AND :dateTo ORDER BY t.transactionDate DESC, t.createdDate DESC")
      List<Transaction> findAllFromMonthForListing(@Param("dateFrom") LocalDate dateFrom, @Param("dateTo") LocalDate dateTo);
 }
