@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +41,7 @@ public class TransactionsController {
     @GetMapping(path="")
     public ResponseEntity<List<TransactionDto>> getTransactions
             (@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month) {
+
         LocalDate date = month.withDayOfMonth(1);
         List<Transaction> transactions = transactionsRepository.findAllFromMonthForListing(date,
                 date.plusMonths(1));
@@ -55,7 +57,7 @@ public class TransactionsController {
 
     @PostMapping(path="")
     @ResponseBody
-    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto) {
+    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto, Principal principal) {
         Transaction transaction = new Transaction();
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
 
@@ -63,6 +65,7 @@ public class TransactionsController {
         transaction.setAmount(addTransactionDto.getAmount());
         transaction.setTransactionDate(addTransactionDto.getTransactionDate());
         transaction.setIsExpense(addTransactionDto.getIsExpense());
+        transaction.setCreatedBy(principal.getName());
 
         Set<Tag> newTagsToSave = new HashSet<>();
         for (TagDto tagDto : addTransactionDto.getTags())
@@ -92,7 +95,7 @@ public class TransactionsController {
             return tagDto;
         }).collect(Collectors.toSet()));
         result.setTransaction(transaction);
-        
+
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 

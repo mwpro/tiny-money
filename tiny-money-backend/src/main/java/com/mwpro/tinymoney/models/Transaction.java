@@ -45,6 +45,9 @@ public class Transaction {
     @LastModifiedDate
     private Date modifiedDate;
 
+    @NotNull
+    private String createdBy;
+
     public Integer getId() {
         return id;
     }
@@ -107,5 +110,13 @@ public class Transaction {
 
     public void setTags(Set<Tag> tags) {
         this.tags = tags;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }
