@@ -1,32 +1,32 @@
 package com.mwpro.tinymoney.controllers;
 
 import com.mwpro.tinymoney.models.Tag;
-import com.mwpro.tinymoney.models.dtos.AddTransactionDto;
+import com.mwpro.tinymoney.models.dtos.*;
 import com.mwpro.tinymoney.models.Subcategory;
 import com.mwpro.tinymoney.models.Transaction;
-import com.mwpro.tinymoney.models.dtos.AddTransactionResultDto;
-import com.mwpro.tinymoney.models.dtos.TagDto;
-import com.mwpro.tinymoney.models.dtos.TransactionDto;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
 import com.mwpro.tinymoney.repositories.TagsRepository;
 import com.mwpro.tinymoney.repositories.TransactionsRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.criteria.*;
 import java.security.Principal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping(path="/api/transaction")
+@RequestMapping(path = "/api/transaction")
 public class TransactionsController {
     @Autowired
     private TransactionsRepository transactionsRepository;
@@ -38,13 +38,41 @@ public class TransactionsController {
     @Autowired
     private ModelMapper modelMapper;
 
-    @GetMapping(path="")
+    @GetMapping(path = "")
     public ResponseEntity<List<TransactionDto>> getTransactions
-            (@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate month) {
+            (TransactionSearchOptions searchOptions,
+             Principal principal) {
 
-        LocalDate date = month.withDayOfMonth(1);
-        List<Transaction> transactions = transactionsRepository.findAllFromMonthForListing(date,
-                date.plusMonths(1));
+        @SuppressWarnings("unchecked")
+        List<Transaction> transactions = transactionsRepository.findAll((Specification<Transaction>)
+                (root, query, cb) -> {
+
+                    List<Predicate> predicates = new ArrayList<>();
+
+                    if (searchOptions.getMonth() != null) {
+                        LocalDate date = searchOptions.getMonth().withDayOfMonth(1);
+                        predicates.add(cb.between(root.get("transactionDate"), date, date.plusMonths(1)));
+                    }
+
+                    if (searchOptions.getMyTransactionsOnly() != null) {
+                        predicates.add(cb.equal(root.get("createdBy"), principal.getName()));
+                    }
+
+                    if (searchOptions.getMinAmount() != null) {
+                        predicates.add(cb.greaterThanOrEqualTo(root.get("amount"), searchOptions.getMinAmount()));
+                    }
+
+                    if (searchOptions.getMaxAmount() != null) {
+                        predicates.add(cb.lessThanOrEqualTo(root.get("amount"), searchOptions.getMaxAmount()));
+                    }
+
+                    query.orderBy(cb.desc(root.get("transactionDate")), cb.desc(root.get("createdDate")));
+                    root.fetch("subcategory").fetch("parentCategory");
+                    root.fetch("tags", JoinType.LEFT);
+
+                    query.distinct(true);
+                    return cb.and(predicates.toArray(new Predicate[0]));
+                });
 
         return new ResponseEntity<>(transactions.stream()
                 .map(t -> mapToDto(t)).collect(Collectors.toList()), HttpStatus.OK);
@@ -55,9 +83,10 @@ public class TransactionsController {
         return transactionDto;
     }
 
-    @PostMapping(path="")
+    @PostMapping(path = "")
     @ResponseBody
-    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto, Principal principal) {
+    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto,
+                                                                  Principal principal) {
         Transaction transaction = new Transaction();
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
 
@@ -68,8 +97,7 @@ public class TransactionsController {
         transaction.setCreatedBy(principal.getName());
 
         Set<Tag> newTagsToSave = new HashSet<>();
-        for (TagDto tagDto : addTransactionDto.getTags())
-        {
+        for (TagDto tagDto : addTransactionDto.getTags()) {
             Tag tag;
             if (tagDto.getId() == null) {
                 // adding new tag
