@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.criteria.*;
+import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class TransactionsController {
 
     @PostMapping(path = "")
     @ResponseBody
-    public ResponseEntity<AddTransactionResultDto> addTransaction(@RequestBody AddTransactionDto addTransactionDto,
+    public ResponseEntity<AddTransactionResultDto> addTransaction(@Valid @RequestBody AddTransactionDto addTransactionDto,
                                                                   Principal principal) {
         Transaction transaction = new Transaction();
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();

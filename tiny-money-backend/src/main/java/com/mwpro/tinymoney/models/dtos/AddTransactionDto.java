@@ -2,13 +2,17 @@ package com.mwpro.tinymoney.models.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
 public class AddTransactionDto {
+    @NotNull
     private LocalDate transactionDate;
+    @NotNull
     private BigDecimal amount;
+    @NotNull
     private Integer subcategoryId;
     private Set<TagDto> tags;
 

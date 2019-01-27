@@ -17,7 +17,7 @@ const auth = new Vue({
   },
   computed: {
     isAuthorized() {
-      return this.user;
+      return this.user && new Date().getTime() < this.expiresAt;
     },
   },
   created() {
