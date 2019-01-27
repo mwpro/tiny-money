@@ -104,6 +104,7 @@
                 :color="transaction.isExpense ? 'red' : 'green'"
                 v-model="transaction.amount"
                 required
+                type="number"
                 suffix="PLN"
               ></v-text-field>
             </v-flex>
@@ -162,31 +163,35 @@ export default {
   },
   methods: {
     saveAndAddNext() {
-      this.$store.dispatch(
-        'transactions/addTransactionAction',
-        this.transaction,
-      );
-      this.transaction = {
-        transactionDate: new Date().toISOString().substr(0, 10),
-        subcategoryId: null,
-        isExpense: true,
-        amount: null,
-        tags: [],
-      };
+      this.$store.dispatch('transactions/addTransactionAction', this.transaction)
+        .then(() => {
+          this.transaction = {
+            transactionDate: new Date().toISOString().substr(0, 10),
+            subcategoryId: null,
+            isExpense: true,
+            amount: null,
+            tags: [],
+          };
+          this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', { root: true });
+        }).catch((error) => {
+          this.$store.dispatch('displayErrorSnack', 'Błąd przy zapisywaniu transakcji', { root: true });
+        });
     },
     save() {
-      this.$store.dispatch(
-        'transactions/addTransactionAction',
-        this.transaction,
-      );
-      this.transaction = {
-        transactionDate: new Date().toISOString().substr(0, 10),
-        subcategoryId: null,
-        isExpense: true,
-        amount: null,
-        tags: [],
-      };
-      this.close();
+      this.$store.dispatch('transactions/addTransactionAction', this.transaction)
+        .then(() => {
+          this.transaction = {
+            transactionDate: new Date().toISOString().substr(0, 10),
+            subcategoryId: null,
+            isExpense: true,
+            amount: null,
+            tags: [],
+          };
+          this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', { root: true });
+          this.close();
+        }).catch((error) => {
+          this.$store.dispatch('displayErrorSnack', 'Błąd przy zapisywaniu transakcji', { root: true });
+        });
     },
     close() {
       this.$emit('closed');

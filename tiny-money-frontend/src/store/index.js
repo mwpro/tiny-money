@@ -17,9 +17,29 @@ export default new Vuex.Store({
     tags: tagsModule,
   },
   state: {
+    snackText: '',
+    snack: false,
+    snackColor: '',
   },
   mutations: {
+    setSnack(state, snack) {
+      state.snackText = snack.snackText;
+      state.snack = true;
+      state.snackColor = snack.snackColor;
+    },
+    closeSnack(state) {
+      state.snack = false;
+    },
   },
   actions: {
+    displaySuccessSnack({ commit }, message) {
+      commit('setSnack', { snackText: message, snackColor: 'success' });
+    },
+    displayErrorSnack({ commit }, message) {
+      commit('setSnack', { snackText: message, snackColor: 'red' });
+    },
+    closeSnack({ commit }) {
+      commit('closeSnack');
+    },
   },
 });

@@ -39,7 +39,6 @@ export default {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
       });
-      transaction.amount = transaction.amount.replace(',', '.'); // 🙈
 
       return axios.post('/api/transaction', transaction).then((response) => {
         if (response.status !== 201) throw Error(response.message);

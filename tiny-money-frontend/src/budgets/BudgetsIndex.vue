@@ -92,10 +92,6 @@
     <v-flex class="no-data">
       <v-btn color="info" @click="isInitializeBudgetOpen = !isInitializeBudgetOpen">Skopiuj</v-btn>
     </v-flex>
-    <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
-      {{ snackText }}
-      <v-btn flat @click="snack = false">Close</v-btn>
-    </v-snackbar>
   </v-container>
 </template>
 <script>
@@ -117,9 +113,6 @@ export default {
         { text: 'Realizacja', value: 'amount', sortable: false },
         { text: 'Różnica', value: 'amount', sortable: false },
       ],
-      snackText: '',
-      snack: false,
-      snackColor: '',
       editedBudgetAmount: 0,
       editedBudgetSubcategory: null,
       isInitializeBudgetOpen: false,
@@ -151,9 +144,7 @@ export default {
           month: this.selectedMonth.substr(5, 7),
         })
         .then(() => {
-          this.snackColor = 'success';
-          this.snackText = 'Zapisano budżet';
-          this.snack = true;
+          this.$store.dispatch('displaySuccessSnack', 'Budżet zapisany', { root: true });
         });
     },
   },

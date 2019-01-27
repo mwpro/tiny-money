@@ -59,10 +59,16 @@
         <router-view/>
       </v-container>
     </v-content>
+    <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
+      {{ snackText }}
+      <v-btn flat @click="snack = false">Close</v-btn>
+    </v-snackbar>
   </v-app>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'App',
   data() {
@@ -82,6 +88,17 @@ export default {
         },
       ],
     };
+  },
+  computed: {
+    ...mapState(['snackColor', 'snackText']),
+    snack: {
+      get() {
+        return this.$store.state.snack;
+      },
+      set(value) {
+        this.$store.dispatch('closeSnack');
+      },
+    },
   },
   methods: {
     logout() {
