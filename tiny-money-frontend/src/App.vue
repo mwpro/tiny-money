@@ -1,6 +1,7 @@
 <template>
-<v-app id="inspire" :dark="darkMode">
+  <v-app id="inspire" :dark="darkMode">
     <v-navigation-drawer
+      v-if="$auth.user"
       :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer"
       fixed
@@ -13,47 +14,52 @@
               <v-icon>{{ item.icon }}</v-icon>
             </v-list-tile-action>
             <v-list-tile-content>
-              <v-list-tile-title>
-                {{ item.title }}
-              </v-list-tile-title>
+              <v-list-tile-title>{{ item.title }}</v-list-tile-title>
             </v-list-tile-content>
           </v-list-tile>
         </template>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar
-      :clipped-left="$vuetify.breakpoint.lgAndUp"
-      color="blue darken-3"
-      dark
-      app
-      fixed
-    >
+    <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" color="blue darken-3" dark app fixed>
       <v-toolbar-title style="width: 300px" class="ml-0 pl-3">
-        <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-side-icon v-if="$auth.user" @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <span>TINY</span>
         <span class="font-weight-light">-Money</span>
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <v-btn icon @click="darkMode = !darkMode">
-        <v-icon>{{ darkMode ? 'brightness_low' : 'brightness_high'}}</v-icon>
-      </v-btn>
-      <v-btn icon large>
-        <v-avatar size="32px">
-          <img
-            src="https://www.gravatar.com/avatar/3a54039709969c1600dbb1ef2b322c91?s=200"
-            alt="Vuetify"
-          >
-        </v-avatar>
-      </v-btn>
+      <v-menu v-if="$auth.user" offset-y>
+        <v-btn icon large slot="activator">
+          <v-avatar size="32px">
+            <img
+              :src="`${$auth.user.picture}?s=200`"
+              alt="Vuetify"
+            >
+          </v-avatar>
+        </v-btn>
+        <v-list>
+          <v-list-tile>
+            <v-list-tile-title>
+              {{ $auth.user.nickname }}
+            </v-list-tile-title>
+          </v-list-tile>
+          <v-list-tile>
+            <v-list-tile-title
+              @click="darkMode = !darkMode"
+            >{{ darkMode ? 'Tryb ciemny' : 'Tryb jasny'}}</v-list-tile-title>
+          </v-list-tile>
+          <v-list-tile @click="logout">
+            <v-list-tile-title>Wyloguj</v-list-tile-title>
+          </v-list-tile>
+        </v-list>
+      </v-menu>
     </v-toolbar>
     <v-content>
-       <v-container fluid>
+      <v-container fluid>
         <router-view/>
       </v-container>
     </v-content>
   </v-app>
-
 </template>
 
 <script>
@@ -76,6 +82,11 @@ export default {
         },
       ],
     };
+  },
+  methods: {
+    logout() {
+      this.$auth.logout();
+    },
   },
 };
 </script>

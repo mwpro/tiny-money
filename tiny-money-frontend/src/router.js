@@ -9,12 +9,14 @@ import VendorsIndex from './vendors/VendorsIndex.vue';
 import CategoriesIndex from './categories/CategoriesIndex.vue';
 import EditCategory from './categories/EditCategory.vue';
 import EditSubcategory from './categories/EditSubcategory.vue';
+import Callback from './auth/Callback.vue';
+import Login from './auth/Login.vue';
 
 import InitializeBudget from './budgets/InitializeBudget.vue';
 
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -76,5 +78,26 @@ export default new Router({
       props: true,
       component: EditSubcategory,
     },
+    {
+      path: '/callback',
+      name: 'callback',
+      component: Callback,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: Login,
+    },
   ],
 });
+
+router.beforeEach((to, from, next) => {
+  if (to.name === 'callback' || to.name === 'login' || router.app.$auth.isAuthenticated()) {
+    next();
+  } else {
+    next('/login');
+    //
+  }
+});
+
+export default router;
