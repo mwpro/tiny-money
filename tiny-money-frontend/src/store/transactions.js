@@ -16,13 +16,13 @@ export default {
     },
   },
   actions: {
-    getTransactionsAction({ commit }, selectedMonth) {
+    getTransactionsAction({ commit }, searchOptions) {
       // TODO appending '-01' does not seem to be the best practice :)
+      searchOptions.month = `${searchOptions.month}-01`;
+      console.log(searchOptions);
       return axios
         .get('/api/transaction', {
-          params: {
-            month: `${selectedMonth}-01`,
-          },
+          params: searchOptions,
         })
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);

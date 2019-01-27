@@ -5,12 +5,12 @@
       <v-icon>add</v-icon>
     </v-btn>
   <v-layout row wrap>
-    <v-flex xs11 sm5>
+    <v-flex xs11 sm3>
       <v-menu
         ref="menu"
         :close-on-content-click="false"
         :nudge-right="40"
-        :return-value.sync="selectedMonth"
+        :return-value.sync="searchOptions.month"
         lazy
         transition="scale-transition"
         offset-y
@@ -20,13 +20,13 @@
       >
         <v-text-field
           slot="activator"
-          v-model="selectedMonth"
+          v-model="searchOptions.month"
           label="Okres transakcji"
           prepend-icon="event"
           readonly
         ></v-text-field>
         <v-date-picker
-          v-model="selectedMonth"
+          v-model="searchOptions.month"
           type="month"
           no-title
           scrollable
@@ -35,6 +35,12 @@
           <v-spacer></v-spacer>
         </v-date-picker>
       </v-menu>
+    </v-flex>
+    <v-flex xs11 sm3>
+      aaa
+    </v-flex>
+    <v-flex xs11 sm3>
+      aaa
     </v-flex>
     <v-spacer></v-spacer>
   </v-layout>
@@ -79,7 +85,12 @@ export default {
   components: { EditTransaction },
   data() {
     return {
-      selectedMonth: new Date().toISOString().substr(0, 7),
+      searchOptions: {
+        month: new Date().toISOString().substr(0, 7),
+        onlyMyTransactions: false,
+        minAmount: null,
+        maxAmount: null,
+      },
       isEditTransactionActive: false,
       headers: [
         {
@@ -105,15 +116,15 @@ export default {
     },
   },
   created() {
-    this.$store.dispatch('transactions/getTransactionsAction', this.selectedMonth);
+    this.$store.dispatch('transactions/getTransactionsAction', this.searchOptions);
   },
   methods: {
     openAddTransaction() {
       this.isEditTransactionActive = true;
     },
     selectMonth() {
-      this.$refs.menu.save(this.selectedMonth);
-      this.$store.dispatch('transactions/getTransactionsAction', this.selectedMonth);
+      this.$refs.menu.save(this.searchOptions.month);
+      this.$store.dispatch('transactions/getTransactionsAction', this.searchOptions);
     },
   },
 };
