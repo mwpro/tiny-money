@@ -78,10 +78,65 @@ public class TransactionsController {
             (@PathVariable("id") Integer transactionId) {
         Optional<Transaction> transaction = transactionsRepository.findById(transactionId);
 
-        if (transaction.get() == null)
+        if (!transaction.isPresent())
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         return new ResponseEntity<>(mapToDto(transaction.get()), HttpStatus.OK);
+    }
+
+
+    @PostMapping(path = "/{id}")
+    public ResponseEntity<AddTransactionResultDto> editTransaction
+            (@PathVariable("id") Integer transactionId,
+             @Valid @RequestBody AddTransactionDto addTransactionDto,
+             Principal principal) {
+
+        Optional<Transaction> transactionOption = transactionsRepository.findById(transactionId);
+
+        if (!transactionOption.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
+
+        Transaction transaction = transactionOption.get();
+
+        transaction.setSubcategory(subcategory);
+        transaction.setAmount(addTransactionDto.getAmount());
+        transaction.setTransactionDate(addTransactionDto.getTransactionDate());
+        transaction.setIsExpense(addTransactionDto.getIsExpense());
+
+        Set<Tag> newTagsToSave = new HashSet<>();
+        for (TagDto tagDto : addTransactionDto.getTags()) {
+            Tag tag;
+            if (tagDto.getId() == null) {
+                // adding new tag
+                tag = new Tag();
+                tag.setName(tagDto.getName());
+                newTagsToSave.add(tag);
+            } else {
+                // existing tag
+                tag = tagsRepository.getOne(tagDto.getId());
+            }
+            tag.getTransactions().add(transaction);
+            transaction.getTags().add(tag);
+        }
+
+        transactionsRepository.save(transaction);
+        tagsRepository.saveAll(newTagsToSave);
+
+        AddTransactionResultDto result = new AddTransactionResultDto();
+        result.setAddedTags(newTagsToSave.stream().map(t -> mapToDto(t)).collect(Collectors.toSet()));
+        result.setTransaction(transaction);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    private TagDto mapToDto(Tag t) {
+        TagDto tagDto = new TagDto();
+        tagDto.setId(t.getId());
+        tagDto.setName(t.getName());
+        return tagDto;
     }
 
     @PostMapping(path = "")
@@ -117,12 +172,7 @@ public class TransactionsController {
         tagsRepository.saveAll(newTagsToSave);
 
         AddTransactionResultDto result = new AddTransactionResultDto();
-        result.setAddedTags(newTagsToSave.stream().map(t -> {
-            TagDto tagDto = new TagDto();
-            tagDto.setId(t.getId());
-            tagDto.setName(t.getName());
-            return tagDto;
-        }).collect(Collectors.toSet()));
+        result.setAddedTags(newTagsToSave.stream().map(t -> mapToDto(t)).collect(Collectors.toSet()));
         result.setTransaction(transaction);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);

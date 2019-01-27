@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Vue from 'vue';
 
 export default {
   namespaced: true,
@@ -12,8 +13,13 @@ export default {
     getTransactions(state, transactions) {
       state.transactionsList = transactions;
     },
-    addTransaction(state, transaction) {
-      state.transactionsList.unshift(transaction);
+    saveTransaction(state, transaction) {
+      const currentIndex = state.transactionsList.findIndex(t => t.id === transaction.id);
+      if (currentIndex >= 0) {
+        Vue.set(state.transactionsList, currentIndex, transaction);
+      } else {
+        state.transactionsList.unshift(transaction);
+      }
     },
     getTransaction(state, transaction) {
       state.transaction = transaction;
@@ -38,19 +44,26 @@ export default {
       // .catch(captains.error)
     },
 
-    addTransactionAction({ commit, dispatch }, transaction) {
+    addTransactionAction({ commit, dispatch }, transaction) { // TODO rename to save
+      const isUpdate = transaction.id;
       transaction.tags = transaction.tags.map((t) => {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
       });
 
-      return axios.post('/api/transaction', transaction).then((response) => {
-        if (response.status !== 201) throw Error(response.message);
+      return axios.post(
+        (isUpdate ? `/api/transaction/${transaction.id}` : '/api/transaction'),
+        transaction,
+      ).then((response) => {
+        if ((isUpdate && response.status !== 200) || (!isUpdate && response.status !== 201)) {
+          throw Error(response.message);
+        }
+
         let addTransactionResult = response.data;
         if (typeof addTransactionResult !== 'object') {
           addTransactionResult = undefined;
         }
-        commit('addTransaction', addTransactionResult.transaction);
+        commit('saveTransaction', addTransactionResult.transaction);
         addTransactionResult.addedTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });

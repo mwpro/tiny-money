@@ -242,13 +242,7 @@ export default {
       this.$store
         .dispatch('transactions/addTransactionAction', this.transaction)
         .then(() => {
-          this.transaction = {
-            transactionDate: new Date().toISOString().substr(0, 10),
-            subcategoryId: null,
-            isExpense: true,
-            amount: null,
-            tags: [],
-          };
+          this.transactionId = null;
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {
             root: true,
           });
