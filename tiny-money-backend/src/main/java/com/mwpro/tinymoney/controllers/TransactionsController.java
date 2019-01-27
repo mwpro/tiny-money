@@ -54,16 +54,8 @@ public class TransactionsController {
                         predicates.add(cb.between(root.get("transactionDate"), date, date.plusMonths(1)));
                     }
 
-                    if (searchOptions.getMyTransactionsOnly() != null) {
+                    if (searchOptions.getMyTransactionsOnly() != null && searchOptions.getMyTransactionsOnly()) {
                         predicates.add(cb.equal(root.get("createdBy"), principal.getName()));
-                    }
-
-                    if (searchOptions.getMinAmount() != null) {
-                        predicates.add(cb.greaterThanOrEqualTo(root.get("amount"), searchOptions.getMinAmount()));
-                    }
-
-                    if (searchOptions.getMaxAmount() != null) {
-                        predicates.add(cb.lessThanOrEqualTo(root.get("amount"), searchOptions.getMaxAmount()));
                     }
 
                     query.orderBy(cb.desc(root.get("transactionDate")), cb.desc(root.get("createdDate")));
