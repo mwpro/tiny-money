@@ -4,43 +4,27 @@ import Vue from 'vue';
 // https://www.storyblok.com/tp/how-to-auth0-vuejs-authentication#auth0-callback-route
 
 // exchange the object with your own from the setup step above.
-const webAuth = new auth0.WebAuth({});
+const webAuth = new auth0.WebAuth();
 
 const auth = new Vue({
+  data() {
+    return {
+      token: null,
+      accessToken: null,
+      expiresAt: null,
+      user: null,
+    };
+  },
   computed: {
-    token: {
-      get() {
-        return localStorage.getItem('id_token');
-      },
-      set(id_token) {
-        localStorage.setItem('id_token', id_token);
-      },
+    isAuthorized() {
+      return this.user;
     },
-    accessToken: {
-      get() {
-        return localStorage.getItem('access_token');
-      },
-      set(accessToken) {
-        localStorage.setItem('access_token', accessToken);
-      },
-    },
-    expiresAt: {
-      get() {
-        return localStorage.getItem('expires_at');
-      },
-      set(expiresIn) {
-        const expiresAt = JSON.stringify(expiresIn * 1000 + new Date().getTime());
-        localStorage.setItem('expires_at', expiresAt);
-      },
-    },
-    user: {
-      get() {
-        return JSON.parse(localStorage.getItem('user'));
-      },
-      set(user) {
-        localStorage.setItem('user', JSON.stringify(user));
-      },
-    },
+  },
+  created() {
+    this.token = localStorage.getItem('id_token');
+    this.accessToken = localStorage.getItem('access_token');
+    this.expiresAt = localStorage.getItem('expires_at');
+    this.user = JSON.parse(localStorage.getItem('user'));
   },
   methods: {
     login() {
@@ -52,6 +36,10 @@ const auth = new Vue({
         localStorage.removeItem('id_token');
         localStorage.removeItem('expires_at');
         localStorage.removeItem('user');
+        this.token = null;
+        this.accessToken = null;
+        this.expiresAt = null;
+        this.user = null;
       });
     },
     isAuthenticated() {
@@ -61,10 +49,15 @@ const auth = new Vue({
       return new Promise((resolve, reject) => {
         webAuth.parseHash((err, authResult) => {
           if (authResult && authResult.accessToken && authResult.idToken) {
-            this.expiresAt = authResult.expiresIn;
+            const expiresAt = JSON.stringify(authResult.expiresIn * 1000 + new Date().getTime());
+            localStorage.setItem('expires_at', expiresAt);
+            this.expiresAt = expiresAt;
             this.accessToken = authResult.accessToken;
+            localStorage.setItem('access_token', authResult.accessToken);
             this.token = authResult.idToken;
+            localStorage.setItem('id_token', authResult.idToken);
             this.user = authResult.idTokenPayload;
+            localStorage.setItem('user', JSON.stringify(authResult.idTokenPayload));
             resolve();
           } else if (err) {
             this.logout();

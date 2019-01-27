@@ -1,7 +1,7 @@
 <template>
   <v-app id="inspire" :dark="darkMode">
     <v-navigation-drawer
-      v-if="$auth.user"
+      v-if="$auth.isAuthorized"
       :clipped="$vuetify.breakpoint.lgAndUp"
       v-model="drawer"
       fixed
@@ -22,13 +22,13 @@
     </v-navigation-drawer>
     <v-toolbar :clipped-left="$vuetify.breakpoint.lgAndUp" color="blue darken-3" dark app fixed>
       <v-toolbar-title style="width: 300px" class="ml-0 pl-3">
-        <v-toolbar-side-icon v-if="$auth.user" @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+        <v-toolbar-side-icon v-if="$auth.isAuthorized" @click.stop="drawer = !drawer"></v-toolbar-side-icon>
         <span>TINY</span>
         <span class="font-weight-light">-Money</span>
       </v-toolbar-title>
 
       <v-spacer></v-spacer>
-      <v-menu v-if="$auth.user" offset-y>
+      <v-menu v-if="$auth.isAuthorized" offset-y>
         <v-btn icon large slot="activator">
           <v-avatar size="32px">
             <img
@@ -86,6 +86,7 @@ export default {
   methods: {
     logout() {
       this.$auth.logout();
+      this.$router.push({ name: 'login' });
     },
   },
 };
