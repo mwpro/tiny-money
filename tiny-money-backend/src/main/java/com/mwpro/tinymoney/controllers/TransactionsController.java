@@ -20,10 +20,7 @@ import javax.persistence.criteria.*;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -74,6 +71,17 @@ public class TransactionsController {
     private TransactionDto mapToDto(Transaction t) {
         TransactionDto transactionDto = modelMapper.map(t, TransactionDto.class);
         return transactionDto;
+    }
+
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<TransactionDto> getTransaction
+            (@PathVariable("id") Integer transactionId) {
+        Optional<Transaction> transaction = transactionsRepository.findById(transactionId);
+
+        if (transaction.get() == null)
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(mapToDto(transaction.get()), HttpStatus.OK);
     }
 
     @PostMapping(path = "")

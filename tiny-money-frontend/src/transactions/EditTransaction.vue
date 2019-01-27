@@ -169,6 +169,15 @@ export default {
       type: Boolean,
       required: true,
     },
+    editedTransactionId: {
+      type: Number,
+      required: false,
+    },
+  },
+  watch: {
+    editedTransactionId(val) {
+      console.log(val);
+    },
   },
   methods: {
     saveAndAddNext() {

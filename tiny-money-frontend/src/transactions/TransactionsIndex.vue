@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <edit-transaction :isOpen="isEditTransactionActive" @closed="isEditTransactionActive=false"/>
+    <edit-transaction :isOpen="isEditTransactionActive" :editedTransactionId="editedTransactionId" @closed="isEditTransactionActive=false"/>
     <v-btn color="green" fab bottom right dark fixed @click="openAddTransaction()">
       <v-icon>add</v-icon>
     </v-btn>
@@ -87,6 +87,9 @@
                 <br>
                 Dodana przez: {{ props.item.createdBy }}
                 <br>
+                <v-btn >
+                  <v-icon @click="openEditTransaction(props.item.id)">edit</v-icon>
+                </v-btn>
               </v-card-text>
             </v-card>
           </template>
@@ -107,6 +110,7 @@ export default {
         myTransactionsOnly: false,
       },
       isEditTransactionActive: false,
+      editedTransactionId: null,
       headers: [
         {
           text: 'Data',
@@ -136,6 +140,11 @@ export default {
   },
   methods: {
     openAddTransaction() {
+      this.editedTransactionId = null;
+      this.isEditTransactionActive = true;
+    },
+    openEditTransaction(id) {
+      this.editedTransactionId = id;
       this.isEditTransactionActive = true;
     },
     selectMonth() {
