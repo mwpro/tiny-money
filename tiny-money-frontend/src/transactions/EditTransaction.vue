@@ -142,15 +142,14 @@ export default {
       transactionDateRules: [
         v => !!v || 'Data transakcji jest wymagana',
       ],
-      amountRules: [
+      categoryRules: [
         v => !!v || 'Kategoria jest wymagana',
       ],
-      categoryRules: [
+      amountRules: [
         v => !!v || 'Kwota jest wymagana',
         v => (v && v > 0) || 'Kwota musi być wyższa od 0',
       ],
       valid: true,
-      isEditing: false,
       datePickerOpen: false,
       tagSearch: null,
     };
@@ -159,6 +158,9 @@ export default {
     ...mapState('categories', { categories: 'categoriesList' }),
     ...mapGetters('categories', { subcategories: 'subcategories' }),
     ...mapGetters('tags', { tags: 'tags' }),
+    isEditing() {
+      return this.editedTransactionId;
+    },
   },
   created() {
     this.$store.dispatch('categories/getCategories');
@@ -175,8 +177,22 @@ export default {
     },
   },
   watch: {
-    editedTransactionId(val) {
-      console.log(val);
+    editedTransactionId(transactionId) {
+      if (transactionId) {
+        this.$store.dispatch('transactions/getTransactionAction', transactionId)
+          .then((t) => {
+            this.transaction = { ...this.$store.state.transactions.transaction };
+            this.transaction.subcategoryId = this.$store.state.transactions.transaction.subcategory.id;
+          });
+      } else {
+        this.transaction = {
+          transactionDate: new Date().toISOString().substr(0, 10),
+          subcategoryId: null,
+          isExpense: true,
+          amount: null,
+          tags: [],
+        };
+      }
     },
   },
   methods: {

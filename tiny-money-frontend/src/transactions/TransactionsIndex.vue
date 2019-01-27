@@ -87,8 +87,8 @@
                 <br>
                 Dodana przez: {{ props.item.createdBy }}
                 <br>
-                <v-btn >
-                  <v-icon @click="openEditTransaction(props.item.id)">edit</v-icon>
+                <v-btn @click="openEditTransaction(props.item.id)">
+                  <v-icon>edit</v-icon>
                 </v-btn>
               </v-card-text>
             </v-card>

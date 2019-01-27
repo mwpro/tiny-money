@@ -6,6 +6,7 @@ export default {
     transactionsList: [
 
     ],
+    transaction: null,
   },
   mutations: {
     getTransactions(state, transactions) {
@@ -13,6 +14,9 @@ export default {
     },
     addTransaction(state, transaction) {
       state.transactionsList.unshift(transaction);
+    },
+    getTransaction(state, transaction) {
+      state.transaction = transaction;
     },
   },
   actions: {
@@ -51,6 +55,18 @@ export default {
           dispatch('tags/addTagAction', t, { root: true });
         });
         return addTransactionResult;
+      });
+    },
+
+    getTransactionAction({ commit }, transactionId) {
+      return axios.get(`/api/transaction/${transactionId}`).then((response) => {
+        if (response.status !== 200) throw Error(response.message);
+        let transaction = response.data;
+        if (typeof transaction !== 'object') {
+          transaction = undefined;
+        }
+        commit('getTransaction', transaction);
+        return transaction;
       });
     },
   },
