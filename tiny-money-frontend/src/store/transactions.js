@@ -53,6 +53,9 @@ export default {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
       });
+      if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) { 
+        transaction.vendor = { id: null, name: transaction.vendor }; 
+      }
 
       return axios.post(
         (isUpdate ? `/api/transaction/${transaction.id}` : '/api/transaction'),
@@ -70,6 +73,12 @@ export default {
         addTransactionResult.addedTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });
+        console.log(transaction.vendor.id);
+        
+        console.log(transaction.vendor.id === null);
+        if (transaction.vendor.id === null) { 
+          dispatch('vendors/addVendorAction', addTransactionResult.transaction.vendor, { root: true });
+        }
         return addTransactionResult;
       });
     },

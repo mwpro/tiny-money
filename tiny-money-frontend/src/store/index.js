@@ -5,6 +5,7 @@ import categoriesModule from './categories';
 import transactionsModule from './transactions';
 import budgetsModule from './budgets';
 import tagsModule from './tags';
+import vendorsModule from './vendors';
 
 Vue.use(Vuex);
 
@@ -15,6 +16,7 @@ export default new Vuex.Store({
     transactions: transactionsModule,
     budgets: budgetsModule,
     tags: tagsModule,
+    vendors: vendorsModule,
   },
   state: {
     snackText: '',

@@ -17,6 +17,7 @@ public class TransactionDto {
     private Date modifiedDate;
     private SubcategoryDto subcategory;
     private String createdBy;
+    private VendorDto vendor;
 
     private Set<TagDto> tags;
 
@@ -90,5 +91,13 @@ public class TransactionDto {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public VendorDto getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(VendorDto vendor) {
+        this.vendor = vendor;
     }
 }

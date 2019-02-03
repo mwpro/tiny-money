@@ -63,6 +63,7 @@ public class TransactionsController {
                     query.orderBy(cb.desc(root.get("transactionDate")), cb.desc(root.get("createdDate")));
                     root.fetch("subcategory").fetch("parentCategory");
                     root.fetch("tags", JoinType.LEFT);
+                    root.fetch("vendor", JoinType.LEFT);
 
                     query.distinct(true);
                     return cb.and(predicates.toArray(new Predicate[0]));
@@ -104,6 +105,16 @@ public class TransactionsController {
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
 
         Transaction transaction = transactionOption.get();
+
+        Vendor vendor;
+        if (addTransactionDto.getVendor().getId() == null) {
+            vendor = new Vendor();
+            vendor.setName(addTransactionDto.getVendor().getName());
+            vendorsRepository.save(vendor);
+        } else {
+            vendor = vendorsRepository.getOne(addTransactionDto.getVendor().getId());
+        }
+        transaction.setVendor(vendor);
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());

@@ -70,6 +70,7 @@
               <td
                 class="text-xs-left"
               >{{ props.item.subcategory.parentCategory.name }} / {{ props.item.subcategory.name }}</td>
+              <td class="text-xs-left">{{ props.item.vendor.name }}</td>
               <td
                 class="text-xs-left"
                 :class="props.item.isExpense ? 'red--text' : 'green--text'"
@@ -137,7 +138,7 @@ export default {
           sortable: false,
           value: 'category',
         },
-        // { text: 'Sprzedawca', value: 'calories', sortable: false },
+        { text: 'Sprzedawca', value: 'vendor', sortable: false },
         // { text: 'Tagi', value: 'fat', sortable: false },
         { text: 'Kwota', value: 'amount', sortable: false },
         { text: '', value: '', sortable: false },

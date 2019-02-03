@@ -178,13 +178,13 @@ export default {
       datePickerOpen: false,
       tagSearch: null,
       vendorSearch: null,
-      vendors: ['lidl', 'biedra']
     };
   },
   computed: {
     ...mapState('categories', { categories: 'categoriesList' }),
     ...mapGetters('categories', { subcategories: 'subcategories' }),
     ...mapGetters('tags', { tags: 'tags' }),
+    ...mapGetters('vendors', { vendors: 'vendors' }),
     isEditing() {
       return this.editedTransactionId;
     },
@@ -192,6 +192,7 @@ export default {
   created() {
     this.$store.dispatch('categories/getCategories');
     this.$store.dispatch('tags/getTagsAction');
+    this.$store.dispatch('vendors/getVendorsAction');
   },
   props: {
     isOpen: {

@@ -1,5 +1,7 @@
 package com.mwpro.tinymoney.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -15,6 +17,7 @@ public class Vendor {
     private String name;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "vendor")
+    @JsonIgnore
     private Set<Transaction> transactions = new HashSet<>();
 
     public Integer getId() {
