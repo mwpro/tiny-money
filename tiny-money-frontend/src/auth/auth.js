@@ -49,6 +49,9 @@ const auth = new Vue({
         this.accessToken = null;
         this.expiresAt = null;
         this.user = null;
+        webAuth.logout({
+          returnTo: 'http://localhost:8080/',
+        });
       });
     },
     isAuthenticated() {

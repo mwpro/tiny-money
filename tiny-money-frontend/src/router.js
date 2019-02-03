@@ -22,8 +22,9 @@ const router = new Router({
   routes: [
     {
       path: '/',
-      name: 'dashboard',
-      component: Dashboard,
+      // name: 'dashboard',
+      // component: Dashboard,
+      redirect: '/transactions',
     },
     {
       path: '/transactions',

@@ -76,7 +76,7 @@ export default {
       drawer: false,
       darkMode: false,
       items: [
-        { title: 'Home', icon: 'dashboard', route: '/' },
+        // { title: 'Home', icon: 'dashboard', route: '/' },
         { title: 'Transakcje', icon: 'attach_money', route: '/transactions' },
         { title: 'Budżety', icon: 'show_chart', route: '/budgets' },
         // { title: 'Tagi', icon: '#', route: '/tags' },
@@ -103,7 +103,6 @@ export default {
   methods: {
     logout() {
       this.$auth.logout();
-      this.$router.push({ name: 'login' });
     },
   },
 };
