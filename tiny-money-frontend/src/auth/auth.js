@@ -4,7 +4,15 @@ import Vue from 'vue';
 // https://www.storyblok.com/tp/how-to-auth0-vuejs-authentication#auth0-callback-route
 
 // exchange the object with your own from the setup step above.
-const webAuth = new auth0.WebAuth();
+const webAuth = new auth0.WebAuth({
+  domain: 'mwpro.eu.auth0.com',
+  // make sure this line is contains the port: 8080
+  redirectUri: 'http://localhost:8080/callback',
+  // we will use the api/v2/ to access the user information as payload
+  audience: 'https://dev.tinymoney/',
+  responseType: 'token id_token',
+  scope: 'openid profile manage:transactions', // define the scopes you want to use
+});
 
 const auth = new Vue({
   data() {

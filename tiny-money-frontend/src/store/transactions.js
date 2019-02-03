@@ -21,6 +21,9 @@ export default {
         state.transactionsList.unshift(transaction);
       }
     },
+    deleteTransaction(state, transactionId) {
+      state.transactionsList = [...state.transactionsList.filter(p => p.id !== transactionId)];
+    },
     getTransaction(state, transaction) {
       state.transaction = transaction;
     },
@@ -68,6 +71,13 @@ export default {
           dispatch('tags/addTagAction', t, { root: true });
         });
         return addTransactionResult;
+      });
+    },
+
+    deleteTransactionAction({ commit }, transactionId) {
+      return axios.delete(`/api/transaction/${transactionId}`).then((response) => {
+        if (response.status !== 200) throw Error(response.message);
+        commit('deleteTransaction', transactionId);
       });
     },
 

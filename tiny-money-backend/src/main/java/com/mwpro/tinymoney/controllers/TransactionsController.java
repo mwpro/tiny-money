@@ -178,24 +178,15 @@ public class TransactionsController {
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
-    // TODO something sucks about primary keys in db - some weird hibernate_sequence table is created?
-
-    // TODO update
-
-    // TODO delete
-
-    // TODO get single
-
-    // TODO advanced get list
-
-    // TODO jpa auditing
-
-    // todo rewrite controller methods as ResponseEntity<> with valid status codes
-
-    // todo rewrite using DTOs
-
-    // TODO use java.time instead of Date...
-
-    // TODO configure /api prefix globally
-
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<AddTransactionResultDto> deleteTransaction(@PathVariable("id") Integer transactionId) {
+        Transaction transaction = transactionsRepository.getOne(transactionId);
+        if (transaction == null){
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
+        transaction.getTags().clear();
+        transactionsRepository.delete(transaction);
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
 }

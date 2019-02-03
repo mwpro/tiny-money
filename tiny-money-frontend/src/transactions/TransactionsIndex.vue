@@ -1,6 +1,16 @@
 <template>
   <v-container>
     <edit-transaction :isOpen="isEditTransactionActive" :editedTransactionId="editedTransactionId" @closed="isEditTransactionActive=false"/>
+    <v-dialog v-model="isDeleteTransactionActive" persistent max-width="290">
+      <v-card>
+        <v-card-title class="headline">Czy na pewno chcesz usunąć transakcję?</v-card-title>
+                <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat @click="isDeleteTransactionActive = false">Nie</v-btn>
+          <v-btn color="green darken-1" flat @click="deleteTransaction()">Tak</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-btn color="green" fab bottom right dark fixed @click="openAddTransaction()">
       <v-icon>add</v-icon>
     </v-btn>
@@ -90,6 +100,9 @@
                 <v-btn @click="openEditTransaction(props.item.id)">
                   <v-icon>edit</v-icon>
                 </v-btn>
+                <v-btn @click="openDeleteTransaction(props.item.id)">
+                  <v-icon>delete</v-icon>
+                </v-btn>
               </v-card-text>
             </v-card>
           </template>
@@ -110,7 +123,9 @@ export default {
         myTransactionsOnly: false,
       },
       isEditTransactionActive: false,
+      isDeleteTransactionActive: false,
       editedTransactionId: null,
+      transactionToDeleteId: null,
       headers: [
         {
           text: 'Data',
@@ -146,6 +161,14 @@ export default {
     openEditTransaction(id) {
       this.editedTransactionId = id;
       this.isEditTransactionActive = true;
+    },
+    openDeleteTransaction(id) {
+      this.transactionToDeleteId = id;
+      this.isDeleteTransactionActive = true;
+    },
+    deleteTransaction() {
+      this.$store.dispatch('transactions/deleteTransactionAction', this.transactionToDeleteId)
+        .then(() => { this.isDeleteTransactionActive = false; });
     },
     selectMonth() {
       // TODO appending '-01' does not seem to be the best practice :)
