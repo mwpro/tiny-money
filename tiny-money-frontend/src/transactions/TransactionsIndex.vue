@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <edit-transaction :isOpen="isEditTransactionActive" :editedTransactionId="editedTransactionId" @closed="isEditTransactionActive=false"/>
-    <v-dialog v-model="isDeleteTransactionActive" persistent max-width="290">
+    <v-dialog v-model="isDeleteTransactionActive" persistent max-width="400">
       <v-card>
         <v-card-title class="headline">Czy na pewno chcesz usunąć transakcję?</v-card-title>
                 <v-card-actions>

@@ -20,14 +20,14 @@ export default {
     addCategory(state, category) {
       state.categoriesList.push(category);
     },
-    removeSubcategory(state, subcategory) {
-      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
+    deleteSubcategory(state, subcategoryId) {
+      state.categoriesList
         .forEach((category) => {
-          category.subcategories = [...category.subcategories.filter(p => p.id !== subcategory.id)];
+          category.subcategories = [...category.subcategories.filter(p => p.id !== subcategoryId)];
         });
     },
-    removeCategory(state, category) {
-      state.categoriesList = [...state.categoriesList.filter(p => p.id !== category.id)];
+    deleteCategory(state, categoryId) {
+      state.categoriesList = [...state.categoriesList.filter(p => p.id !== categoryId)];
     },
     addSubcategory(state, subcategory) {
       state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
@@ -82,13 +82,17 @@ export default {
         return addedCategory;
       });
     },
-    removeSubcategory({ commit }, subcategory) {
-      // todo http
-      commit('removeSubcategory', subcategory);
+    deleteCategoryAction({ commit }, categoryId) {
+      return axios.delete(`/api/category/${categoryId}`).then((response) => {
+        if (response.status !== 200) throw Error(response.message);
+        commit('deleteCategory', categoryId);
+      });
     },
-    removeCategory({ commit }, category) {
-      // todo http
-      commit('removeCategory', category);
+    deleteSubcategoryAction({ commit }, subcategoryId) {
+      return axios.delete(`/api/category/${subcategoryId}/subcategory/${subcategoryId}`).then((response) => { // TODO hack - categoryId in path not provided
+        if (response.status !== 200) throw Error(response.message);
+        commit('deleteSubcategory', subcategoryId);
+      });
     },
     saveSubcategory({ commit }, subcategory) {
       if (subcategory.id) {

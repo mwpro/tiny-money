@@ -183,14 +183,14 @@ public class TransactionsController {
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<AddTransactionResultDto> deleteTransaction(@PathVariable("id") Integer transactionId) {
+    public ResponseEntity deleteTransaction(@PathVariable("id") Integer transactionId) {
         Transaction transaction = transactionsRepository.getOne(transactionId);
         if (transaction == null){
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
         transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
         transaction.getTags().clear();
         transactionsRepository.delete(transaction);
-        return new ResponseEntity<>(null, HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 }

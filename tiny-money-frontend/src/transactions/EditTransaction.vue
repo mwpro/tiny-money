@@ -221,7 +221,7 @@ export default {
           });
           this.$refs.form.resetValidation();
         })
-        .catch((error) => {
+        .catch(() => {
           this.$store.dispatch(
             'displayErrorSnack',
             'Błąd przy zapisywaniu transakcji',
