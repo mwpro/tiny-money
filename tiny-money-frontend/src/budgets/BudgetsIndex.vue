@@ -57,10 +57,10 @@
         >
           <template slot="items" slot-scope="props">
             <tr>
-              <th>{{ props.item.name }}</th>
-              <th>{{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-              <th>{{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-              <th :class="props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''">{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              <th class="text-xs-left">{{ props.item.name }}</th>
+              <th class="text-xs-left">{{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              <th class="text-xs-left">{{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              <th class="text-xs-left" :class="props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''">{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
             </tr>
             <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
               <td class="text-xs-left">{{ subcategory.subcategoryName }}</td>
