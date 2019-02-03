@@ -103,7 +103,7 @@ public class TransactionsController {
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());
-        transaction.setTransactionDate(addTransactionDto.getTransactionDate()); // todo plusDays(1) hack for MySql issues
+        transaction.setTransactionDate(addTransactionDto.getTransactionDate().plusDays(1)); // todo plusDays(1) hack for MySql issues
         transaction.setIsExpense(addTransactionDto.getIsExpense());
 
         Set<Tag> newTagsToSave = new HashSet<>();
