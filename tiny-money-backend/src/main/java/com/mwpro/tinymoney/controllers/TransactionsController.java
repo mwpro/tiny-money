@@ -107,6 +107,8 @@ public class TransactionsController {
         transaction.setIsExpense(addTransactionDto.getIsExpense());
 
         Set<Tag> newTagsToSave = new HashSet<>();
+        transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
+        transaction.getTags().clear();
         for (TagDto tagDto : addTransactionDto.getTags()) {
             Tag tag;
             if (tagDto.getId() == null) {
