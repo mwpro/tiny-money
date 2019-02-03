@@ -62,8 +62,21 @@ export default {
       }
     },
     save() {
-      this.$store.dispatch('categories/saveSubcategory', this.subcategory);
-      this.close();
+      this.$store.dispatch('categories/saveSubcategory', this.subcategory)
+        .then(() => {
+          this.$store.dispatch('displaySuccessSnack', 'Podkategoria dodana', {
+            root: true,
+          });
+          this.close();
+        })
+        .catch(() => {
+          this.$store.dispatch(
+            'displayErrorSnack',
+            'Błąd przy dodawaniu podkategorii',
+            { root: true },
+          );
+          this.close();
+        });
     },
     close() {
       this.$router.push({ name: 'categories' });

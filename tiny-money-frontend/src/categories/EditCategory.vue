@@ -47,8 +47,21 @@ export default {
       }
     },
     save() {
-      this.$store.dispatch('categories/saveCategory', this.category);
-      this.close();
+      this.$store.dispatch('categories/saveCategory', this.category)
+        .then(() => {
+          this.$store.dispatch('displaySuccessSnack', 'Kategoria dodana', {
+            root: true,
+          });
+          this.close();
+        })
+        .catch(() => {
+          this.$store.dispatch(
+            'displayErrorSnack',
+            'Błąd przy dodawaniu kategorii',
+            { root: true },
+          );
+          this.close();
+        });
     },
     close() {
       this.$router.push({ name: 'categories' });

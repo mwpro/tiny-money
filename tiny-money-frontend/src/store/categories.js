@@ -30,7 +30,7 @@ export default {
       state.categoriesList = [...state.categoriesList.filter(p => p.id !== categoryId)];
     },
     addSubcategory(state, subcategory) {
-      state.categoriesList.filter(c => c.id === subcategory.parentCategoryId)
+      state.categoriesList.filter(c => c.id === subcategory.parentCategory.id)
         .forEach((category) => {
           category.subcategories.push(subcategory);
         });
