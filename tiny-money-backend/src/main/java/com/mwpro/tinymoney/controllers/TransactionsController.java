@@ -103,7 +103,7 @@ public class TransactionsController {
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());
-        transaction.setTransactionDate(addTransactionDto.getTransactionDate());
+        transaction.setTransactionDate(addTransactionDto.getTransactionDate()); // todo plusDays(1) hack for MySql issues
         transaction.setIsExpense(addTransactionDto.getIsExpense());
 
         Set<Tag> newTagsToSave = new HashSet<>();
@@ -129,6 +129,7 @@ public class TransactionsController {
 
         AddTransactionResultDto result = new AddTransactionResultDto();
         result.setAddedTags(newTagsToSave.stream().map(t -> mapToDto(t)).collect(Collectors.toSet()));
+        transaction.setTransactionDate(transaction.getTransactionDate().minusDays(1)); // todo .minusDays(1) hack for MySql issues
         result.setTransaction(transaction);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -150,7 +151,7 @@ public class TransactionsController {
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());
-        transaction.setTransactionDate(addTransactionDto.getTransactionDate());
+        transaction.setTransactionDate(addTransactionDto.getTransactionDate().plusDays(1)); // todo plusDays(1) hack for MySql issues
         transaction.setIsExpense(addTransactionDto.getIsExpense());
         transaction.setCreatedBy(principal.getName());
 
@@ -175,6 +176,7 @@ public class TransactionsController {
 
         AddTransactionResultDto result = new AddTransactionResultDto();
         result.setAddedTags(newTagsToSave.stream().map(t -> mapToDto(t)).collect(Collectors.toSet()));
+        transaction.setTransactionDate(transaction.getTransactionDate().minusDays(1)); // todo .minusDays(1) hack for MySql issues
         result.setTransaction(transaction);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
