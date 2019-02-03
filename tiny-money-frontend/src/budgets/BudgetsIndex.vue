@@ -51,6 +51,7 @@
         <v-data-table
           :headers="headers"
           :items="budgets"
+          :hide-actions="true"
           class="elevation-1"
           pagination.rowsPerPage="10"
         >

@@ -168,7 +168,19 @@ export default {
     },
     deleteTransaction() {
       this.$store.dispatch('transactions/deleteTransactionAction', this.transactionToDeleteId)
-        .then(() => { this.isDeleteTransactionActive = false; });
+        .then(() => {
+          this.isDeleteTransactionActive = false;
+          this.$store.dispatch('displaySuccessSnack', 'Transakcja usunięta', {
+            root: true,
+          });
+        })
+        .catch(() => {
+          this.$store.dispatch(
+            'displayErrorSnack',
+            'Błąd przy usuwaniu transakcji',
+            { root: true },
+          );
+        });
     },
     selectMonth() {
       // TODO appending '-01' does not seem to be the best practice :)
