@@ -70,6 +70,30 @@
               </v-flex>
               <v-flex xs12>
                 <v-combobox
+                  v-model="transaction.vendor"
+                  :items="vendors"
+                  :search-input.sync="vendorSearch"
+                  hide-selected
+                  label="Sprzedawca"
+                  item-text="name"
+                  persistent-hint
+                  prepend-icon="work"
+                >
+                  <template slot="no-data">
+                    <v-list-tile>
+                      <v-list-tile-content>
+                        <v-list-tile-title>
+                          No results matching "
+                          <strong>{{ vendorSearch }}</strong>". Press
+                          <kbd>enter</kbd> to create a new one
+                        </v-list-tile-title>
+                      </v-list-tile-content>
+                    </v-list-tile>
+                  </template>
+                </v-combobox>
+              </v-flex>
+              <v-flex xs12>
+                <v-combobox
                   v-model="transaction.tags"
                   :items="tags"
                   :search-input.sync="tagSearch"
@@ -137,6 +161,7 @@ export default {
         subcategoryId: null,
         isExpense: true,
         amount: null,
+        vendor: null,
         tags: [],
       },
       transactionDateRules: [
@@ -152,6 +177,8 @@ export default {
       valid: true,
       datePickerOpen: false,
       tagSearch: null,
+      vendorSearch: null,
+      vendors: ['lidl', 'biedra']
     };
   },
   computed: {
@@ -190,6 +217,7 @@ export default {
           subcategoryId: null,
           isExpense: true,
           amount: null,
+          vendor: null,
           tags: [],
         };
       }
@@ -214,6 +242,7 @@ export default {
             subcategoryId: null,
             isExpense: true,
             amount: null,
+            vendor: null,
             tags: [],
           };
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {

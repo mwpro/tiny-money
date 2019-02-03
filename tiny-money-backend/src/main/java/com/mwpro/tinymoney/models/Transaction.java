@@ -31,6 +31,11 @@ public class Transaction {
     @NotNull
     private Subcategory subcategory;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    @NotNull
+    private Vendor vendor;
+
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "transactions")
     @JsonIgnoreProperties("transactions")
     private Set<Tag> tags = new HashSet<>();
@@ -118,5 +123,13 @@ public class Transaction {
 
     public void setCreatedBy(String createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Vendor getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(Vendor vendor) {
+        this.vendor = vendor;
     }
 }

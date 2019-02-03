@@ -19,6 +19,9 @@ public class AddTransactionDto {
     @JsonProperty(value="isExpense")
     private Boolean isExpense;
 
+    @NotNull
+    private VendorDto vendor;
+
     public LocalDate getTransactionDate() {
         return transactionDate;
     }
@@ -37,5 +40,13 @@ public class AddTransactionDto {
 
     public Set<TagDto> getTags() {
         return tags;
+    }
+
+    public VendorDto getVendor() {
+        return vendor;
+    }
+
+    public void setVendor(VendorDto vendor) {
+        this.vendor = vendor;
     }
 }

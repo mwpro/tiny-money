@@ -1,12 +1,14 @@
 package com.mwpro.tinymoney.controllers;
 
 import com.mwpro.tinymoney.models.Tag;
+import com.mwpro.tinymoney.models.Vendor;
 import com.mwpro.tinymoney.models.dtos.*;
 import com.mwpro.tinymoney.models.Subcategory;
 import com.mwpro.tinymoney.models.Transaction;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
 import com.mwpro.tinymoney.repositories.TagsRepository;
 import com.mwpro.tinymoney.repositories.TransactionsRepository;
+import com.mwpro.tinymoney.repositories.VendorsRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +34,8 @@ public class TransactionsController {
     private SubcategoriesRepository subcategoriesRepository;
     @Autowired
     private TagsRepository tagsRepository;
+    @Autowired
+    private VendorsRepository vendorsRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -148,6 +152,16 @@ public class TransactionsController {
                                                                   Principal principal) {
         Transaction transaction = new Transaction();
         Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
+
+        Vendor vendor;
+        if (addTransactionDto.getVendor().getId() == null) {
+            vendor = new Vendor();
+            vendor.setName(addTransactionDto.getVendor().getName());
+            vendorsRepository.save(vendor);
+        } else {
+            vendor = vendorsRepository.getOne(addTransactionDto.getVendor().getId());
+        }
+        transaction.setVendor(vendor);
 
         transaction.setSubcategory(subcategory);
         transaction.setAmount(addTransactionDto.getAmount());
