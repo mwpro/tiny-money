@@ -76,7 +76,6 @@
                   hide-selected
                   label="Sprzedawca"
                   item-text="name"
-                  persistent-hint
                   prepend-icon="work"
                 >
                   <template slot="no-data">
@@ -273,6 +272,14 @@ export default {
         .dispatch('transactions/addTransactionAction', this.transaction)
         .then(() => {
           this.transactionId = null;
+          this.transaction = {
+            transactionDate: new Date().toISOString().substr(0, 10),
+            subcategoryId: null,
+            isExpense: true,
+            amount: null,
+            vendor: null,
+            tags: [],
+          };
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {
             root: true,
           });

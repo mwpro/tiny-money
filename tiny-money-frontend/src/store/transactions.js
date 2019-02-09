@@ -73,9 +73,7 @@ export default {
         addTransactionResult.addedTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });
-        console.log(transaction.vendor.id);
         
-        console.log(transaction.vendor.id === null);
         if (transaction.vendor.id === null) { 
           dispatch('vendors/addVendorAction', addTransactionResult.transaction.vendor, { root: true });
         }
