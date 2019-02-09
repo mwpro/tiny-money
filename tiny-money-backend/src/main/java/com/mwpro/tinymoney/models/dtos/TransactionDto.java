@@ -18,6 +18,7 @@ public class TransactionDto {
     private SubcategoryDto subcategory;
     private String createdBy;
     private VendorDto vendor;
+    private String description;
 
     private Set<TagDto> tags;
 
@@ -99,5 +100,13 @@ public class TransactionDto {
 
     public void setVendor(VendorDto vendor) {
         this.vendor = vendor;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

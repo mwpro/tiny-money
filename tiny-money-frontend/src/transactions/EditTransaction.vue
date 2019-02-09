@@ -130,6 +130,15 @@
                   suffix="PLN"
                 ></v-text-field>
               </v-flex>
+              <v-flex xs12>
+                <v-textarea
+                  label="Opis"
+                  v-model="transaction.description"
+                  auto-grow
+                  rows="1"
+                  prepend-icon="notes"
+                ></v-textarea>
+              </v-flex>
             </v-layout>
           </v-container>
         </v-card-text>
@@ -161,6 +170,7 @@ export default {
         isExpense: true,
         amount: null,
         vendor: null,
+        description: null,
         tags: [],
       },
       transactionDateRules: [
@@ -218,6 +228,7 @@ export default {
           isExpense: true,
           amount: null,
           vendor: null,
+          description: null,
           tags: [],
         };
       }
@@ -241,6 +252,7 @@ export default {
             transactionDate: new Date().toISOString().substr(0, 10),
             subcategoryId: null,
             isExpense: true,
+            description: null,
             amount: null,
             vendor: null,
             tags: [],
@@ -278,6 +290,7 @@ export default {
             isExpense: true,
             amount: null,
             vendor: null,
+            description: null,
             tags: [],
           };
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {

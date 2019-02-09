@@ -40,7 +40,8 @@ public class Transaction {
     @JsonIgnoreProperties("transactions")
     private Set<Tag> tags = new HashSet<>();
 
-    // TODO notes
+    @Lob
+    private String description;
 
     @Column(name = "created_date", nullable = false, updatable = false)
     @CreatedDate
@@ -132,4 +133,13 @@ public class Transaction {
     public void setVendor(Vendor vendor) {
         this.vendor = vendor;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
 }

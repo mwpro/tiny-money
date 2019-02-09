@@ -120,6 +120,7 @@ public class TransactionsController {
         transaction.setAmount(addTransactionDto.getAmount());
         transaction.setTransactionDate(addTransactionDto.getTransactionDate().plusDays(1)); // todo plusDays(1) hack for MySql issues
         transaction.setIsExpense(addTransactionDto.getIsExpense());
+        transaction.setDescription(addTransactionDto.getDescription());
 
         Set<Tag> newTagsToSave = new HashSet<>();
         transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
@@ -179,6 +180,7 @@ public class TransactionsController {
         transaction.setTransactionDate(addTransactionDto.getTransactionDate().plusDays(1)); // todo plusDays(1) hack for MySql issues
         transaction.setIsExpense(addTransactionDto.getIsExpense());
         transaction.setCreatedBy(principal.getName());
+        transaction.setDescription(addTransactionDto.getDescription());
 
         Set<Tag> newTagsToSave = new HashSet<>();
         for (TagDto tagDto : addTransactionDto.getTags()) {

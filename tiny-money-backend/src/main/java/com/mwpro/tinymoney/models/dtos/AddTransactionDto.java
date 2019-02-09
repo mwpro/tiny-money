@@ -22,6 +22,8 @@ public class AddTransactionDto {
     @NotNull
     private VendorDto vendor;
 
+    private String description;
+
     public LocalDate getTransactionDate() {
         return transactionDate;
     }
@@ -48,5 +50,9 @@ public class AddTransactionDto {
 
     public void setVendor(VendorDto vendor) {
         this.vendor = vendor;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

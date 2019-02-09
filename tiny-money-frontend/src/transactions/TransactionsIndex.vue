@@ -76,6 +76,7 @@
                 :class="props.item.isExpense ? 'red--text' : 'green--text'"
               >{{ props.item.amount | toFixed(2) | currency }}</td>
               <td class="text-xs-left">
+                <v-icon v-if="props.item.description">notes</v-icon>
                 <v-icon v-if="props.item.tags.length">#</v-icon>
               </td>
             </tr>
@@ -96,6 +97,10 @@
                   text-color="white"
                 >{{ tag.name }}</v-chip>
                 <br>
+                Opis:
+                <span v-if="!props.item.description">brak</span>
+                {{ props.item.description }}
+                <br />
                 Dodana przez: {{ props.item.createdBy }}
                 <br>
                 <v-btn @click="openEditTransaction(props.item.id)">
