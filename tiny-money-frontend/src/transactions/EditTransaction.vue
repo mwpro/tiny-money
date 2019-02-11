@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isOpen" width="500" persistent>
     <v-card tile>
-      <v-form ref="form" v-model="valid">
+      <v-form ref="form" v-model="valid" @keyup.native.ctrl.enter="saveAndAddNext()">
         <v-toolbar card dark color="primary">
           <v-toolbar-title>{{ isEditing ? `Edytuj transakcję` : "Dodaj transakcję" }}</v-toolbar-title>
           <v-spacer></v-spacer>
