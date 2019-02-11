@@ -1,14 +1,17 @@
 import Vue from 'vue';
 import './plugins/vuetify';
 import Axios from 'axios';
+import VueApexCharts from 'vue-apexcharts';
 import App from './App.vue';
 import router from './router';
 import store from './store';
 import auth from './auth/auth';
 
+
 Vue.config.productionTip = false;
 
 Vue.use(auth);
+Vue.use(VueApexCharts);
 
 Vue.filter('currency', value => `${value} PLN`);
 Vue.filter('toFixed', (price, limit) => price.toFixed(limit));
