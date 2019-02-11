@@ -1,11 +1,3 @@
--- Adminer 4.6.2 MySQL dump
-
-SET NAMES utf8;
-SET time_zone = '+00:00';
-SET foreign_key_checks = 0;
-SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
-
-
 INSERT INTO `category` (`id`, `name`) VALUES
 (1,	'Jedzenie'),
 (2,	'Mieszkanie / dom'),
@@ -15,61 +7,50 @@ INSERT INTO `category` (`id`, `name`) VALUES
 (6,	'Ubrania'),
 (7,	'Higiena'),
 (8,	'Elektronika'),
-(10,	'Rozrywka'),
-(11,	'Zwierzaki'),
-(12,	'Podróże'),
-(13,	'Inne');
-
-INSERT INTO `hibernate_sequence` (`next_val`) VALUES
-(55),
-(55),
-(55),
-(55);
+(9,	'Rozrywka'),
+(10,	'Zwierzaki'),
+(11,	'Podróże'),
+(12,	'Inne');
 
 INSERT INTO `subcategory` (`id`, `name`, `parent_category_id`) VALUES
-(14,	'Dom',	1),
-(15,	'Miasto',	1),
-(16,	'Praca',	1),
-(17,	'Czynsz',	2),
-(18,	'Woda',	2),
-(19,	'Prąd',	2),
-(20,	'Gaz',	2),
-(21,	'Ogrzewanie',	2),
-(22,	'Konserwacje i naprawy',	2),
-(23,	'Wyposażenie',	2),
-(24,	'Paliwo do auta',	3),
-(25,	'Bilet komunikacji miejskiej',	3),
-(26,	'Bilet PKP, PKS',	3),
-(27,	'Taxi',	3),
-(28,	'Telefon',	4),
-(29,	'TV i Internet',	4),
-(30,	'Szkoła',	4),
-(31,	'Lekarz',	5),
-(32,	'Badania',	5),
-(33,	'Lekarstwa',	5),
-(34,	'Dobroczynność',	13),
-(35,	'Prezenty',	13),
-(36,	'Edukacja / Szkolenia',	13),
-(37,	'Inne',	13),
-(38,	'Przeloty',	12),
-(39,	'Hotele',	12),
-(40,	'Inne',	12),
-(41,	'Niczko',	11),
-(42,	'Króliczki',	11),
-(43,	'Siłownia / Basen',	10),
-(44,	'Kino / Teatr',	10),
-(45,	'Książki',	10),
-(46,	'Inne',	10),
-(47,	'Sprzęty',	8),
-(48,	'Oprogramowanie',	8),
-(49,	'Gry',	8),
-(50,	'Abonamenty',	8),
-(51,	'Kosmetyki',	7),
-(52,	'Inne',	7),
-(53,	'Ubrania',	6),
-(54,	'Buty',	6);
-
-
-
-
--- 2019-02-03 02:04:58
+(1,	'Dom',	1),
+(2,	'Miasto',	1),
+(3,	'Praca',	1),
+(4,	'Czynsz',	2),
+(5,	'Woda',	2),
+(6,	'Prąd',	2),
+(7,	'Gaz',	2),
+(8,	'Ogrzewanie',	2),
+(9,	'Konserwacje i naprawy',	2),
+(10,	'Wyposażenie',	2),
+(11,	'Paliwo do auta',	3),
+(12,	'Bilet komunikacji miejskiej',	3),
+(13,	'Bilet PKP, PKS',	3),
+(14,	'Taxi',	3),
+(15,	'Telefon',	4),
+(16,	'TV i Internet',	4),
+(17,	'Szkoła',	4),
+(18,	'Lekarz',	5),
+(19,	'Badania',	5),
+(20,	'Lekarstwa',	5),
+(21,	'Dobroczynność',	12),
+(22,	'Prezenty',	12),
+(23,	'Edukacja / Szkolenia',	12),
+(24,	'Inne',	12),
+(25,	'Przeloty',	11),
+(26,	'Hotele',	11),
+(27,	'Inne',	11),
+(28,	'Niczko',	10),
+(29,	'Króliczki',	10),
+(30,	'Siłownia / Basen',	9),
+(31,	'Kino / Teatr',	9),
+(32,	'Książki',	9),
+(33,	'Inne',	9),
+(34,	'Sprzęty',	8),
+(35,	'Oprogramowanie',	8),
+(36,	'Gry',	8),
+(37,	'Abonamenty',	8),
+(38,	'Kosmetyki',	7),
+(39,	'Inne',	7),
+(40,	'Ubrania',	6),
+(41,	'Buty',	6);

@@ -17,7 +17,7 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Transaction {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
     private LocalDate transactionDate;

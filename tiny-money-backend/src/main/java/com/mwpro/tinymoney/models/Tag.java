@@ -11,7 +11,7 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Tag {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
     private String name;
