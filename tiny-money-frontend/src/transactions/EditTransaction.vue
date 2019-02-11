@@ -20,12 +20,13 @@
                   :close-on-content-click="false"
                   v-model="datePickerOpen"
                   :nudge-right="40"
-                  :return-value.sync="transaction.transactionDate"
-                  lazy
                   transition="scale-transition"
                   offset-y
                   full-width
                   min-width="290px"
+                  @keyup.native.left="dayBack()"
+                  @keyup.native.right="dayForward()"
+                  @keyup.native.enter="datePickerOpen = false"
                 >
                   <v-text-field
                     slot="activator"
@@ -35,14 +36,11 @@
                     prepend-icon="event"
                     readonly
                   ></v-text-field>
-                  <v-date-picker v-model="transaction.transactionDate" no-title scrollable>
-                    <v-spacer></v-spacer>
-                    <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
-                    <v-btn
-                      flat
-                      color="primary"
-                      @click="$refs.menu.save(transaction.transactionDate)"
-                    >OK</v-btn>
+                  <v-date-picker v-model="transaction.transactionDate"
+                    no-title
+                    scrollable
+                    first-day-of-week="1"
+                    @input="datePickerOpen = false">
                   </v-date-picker>
                 </v-menu>
               </v-flex>
@@ -233,6 +231,16 @@ export default {
     },
   },
   methods: {
+    dayBack() {
+      const date = new Date(this.transaction.transactionDate);
+      date.setDate(date.getDate() - 1);
+      this.transaction.transactionDate = date.toISOString().substr(0, 10);
+    },
+    dayForward() {
+      const date = new Date(this.transaction.transactionDate);
+      date.setDate(date.getDate() + 1);
+      this.transaction.transactionDate = date.toISOString().substr(0, 10);
+    },
     saveAndAddNext() {
       this.$refs.form.validate();
       if (!this.valid) {
