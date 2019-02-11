@@ -92,6 +92,17 @@
                 </v-combobox>
               </v-flex>
               <v-flex xs12>
+                <v-text-field
+                  label="Kwota wydatku*"
+                  :rules="amountRules"
+                  prepend-icon="attach_money"
+                  v-model="transaction.amount"
+                  required
+                  type="number"
+                  suffix="PLN"
+                ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
                 <v-combobox
                   v-model="transaction.tags"
                   :items="tags"
@@ -118,17 +129,6 @@
                     </v-list-tile>
                   </template>
                 </v-combobox>
-              </v-flex>
-              <v-flex xs12>
-                <v-text-field
-                  label="Kwota wydatku*"
-                  :rules="amountRules"
-                  prepend-icon="attach_money"
-                  v-model="transaction.amount"
-                  required
-                  type="number"
-                  suffix="PLN"
-                ></v-text-field>
               </v-flex>
               <v-flex xs12>
                 <v-textarea
@@ -249,7 +249,7 @@ export default {
         .dispatch('transactions/addTransactionAction', this.transaction)
         .then(() => {
           this.transaction = {
-            transactionDate: new Date().toISOString().substr(0, 10),
+            transactionDate: this.transaction.transactionDate,
             subcategoryId: null,
             isExpense: true,
             description: null,
