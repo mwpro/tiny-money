@@ -47,48 +47,17 @@
                 </v-menu>
               </v-flex>
               <v-flex xs12>
-                <v-autocomplete
-                  v-model="transaction.subcategoryId"
-                  :items="subcategories"
-                  :rules="categoryRules"
-                  item-text="fullName"
-                  item-value="id"
-                  label="Kategoria*"
-                  persistent-hint
-                  prepend-icon="format_list_bulleted"
-                  required
-                >
-                  <v-slide-x-reverse-transition slot="append-outer" mode="out-in">
-                    <v-icon
-                      :color="isEditing ? 'success' : 'info'"
-                      :key="`icon-${isEditing}`"
-                      @click="isEditing = !isEditing"
-                      v-text="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
-                    ></v-icon>
-                  </v-slide-x-reverse-transition>
-                </v-autocomplete>
-              </v-flex>
-              <v-flex xs12>
                 <v-combobox
                   v-model="transaction.vendor"
                   :items="vendors"
                   :search-input.sync="vendorSearch"
+                  :rules="vendorRules"
                   hide-selected
-                  label="Sprzedawca"
+                  label="Sprzedawca*"
                   item-text="name"
                   prepend-icon="work"
+                  required
                 >
-                  <template slot="no-data">
-                    <v-list-tile>
-                      <v-list-tile-content>
-                        <v-list-tile-title>
-                          No results matching "
-                          <strong>{{ vendorSearch }}</strong>". Press
-                          <kbd>enter</kbd> to create a new one
-                        </v-list-tile-title>
-                      </v-list-tile-content>
-                    </v-list-tile>
-                  </template>
                 </v-combobox>
               </v-flex>
               <v-flex xs12>
@@ -101,6 +70,27 @@
                   type="number"
                   suffix="PLN"
                 ></v-text-field>
+              </v-flex>
+              <v-flex xs12>
+                <v-autocomplete
+                  v-model="transaction.subcategoryId"
+                  :items="subcategories"
+                  :rules="categoryRules"
+                  item-text="fullName"
+                  item-value="id"
+                  label="Kategoria*"
+                  persistent-hint
+                  prepend-icon="format_list_bulleted"
+                >
+                  <v-slide-x-reverse-transition slot="append-outer" mode="out-in">
+                    <v-icon
+                      :color="isEditing ? 'success' : 'info'"
+                      :key="`icon-${isEditing}`"
+                      @click="isEditing = !isEditing"
+                      v-text="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
+                    ></v-icon>
+                  </v-slide-x-reverse-transition>
+                </v-autocomplete>
               </v-flex>
               <v-flex xs12>
                 <v-combobox
@@ -183,6 +173,9 @@ export default {
         v => !!v || 'Kwota jest wymagana',
         v => (v && v > 0) || 'Kwota musi być wyższa od 0',
       ],
+      vendorRules: [
+        v => !!v || 'Sprzedawca jest wymagany',
+      ],
       valid: true,
       datePickerOpen: false,
       tagSearch: null,
@@ -233,6 +226,11 @@ export default {
         };
       }
     },
+    'transaction.vendor': function () {
+      if (this.transaction.vendor && this.transaction.vendor.defaultSubcategory) {
+        this.transaction.subcategoryId = this.transaction.vendor.defaultSubcategory.id;
+      }
+    },
   },
   methods: {
     saveAndAddNext() {
@@ -248,19 +246,12 @@ export default {
       this.$store
         .dispatch('transactions/addTransactionAction', this.transaction)
         .then(() => {
-          this.transaction = {
-            transactionDate: this.transaction.transactionDate,
-            subcategoryId: null,
-            isExpense: true,
-            description: null,
-            amount: null,
-            vendor: null,
-            tags: [],
-          };
+          const date = this.transaction.transactionDate;
+          this.resetTransaction();
+          this.transaction.transactionDate = date;
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {
             root: true,
           });
-          this.$refs.form.resetValidation();
         })
         .catch(() => {
           this.$store.dispatch(
@@ -283,20 +274,10 @@ export default {
       this.$store
         .dispatch('transactions/addTransactionAction', this.transaction)
         .then(() => {
-          this.transactionId = null;
-          this.transaction = {
-            transactionDate: new Date().toISOString().substr(0, 10),
-            subcategoryId: null,
-            isExpense: true,
-            amount: null,
-            vendor: null,
-            description: null,
-            tags: [],
-          };
+          this.resetTransaction();
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zapisana', {
             root: true,
           });
-          this.$refs.form.resetValidation();
           this.close();
         })
         .catch((error) => {
@@ -308,7 +289,21 @@ export default {
         });
     },
     close() {
+      this.resetTransaction();
       this.$emit('closed');
+    },
+    resetTransaction() {
+      this.transactionId = null;
+      this.transaction = {
+        transactionDate: new Date().toISOString().substr(0, 10),
+        subcategoryId: null,
+        isExpense: true,
+        amount: null,
+        vendor: null,
+        description: null,
+        tags: [],
+      };
+      this.$refs.form.resetValidation();
     },
   },
 };
