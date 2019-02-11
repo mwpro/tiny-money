@@ -7,11 +7,13 @@ import com.mwpro.tinymoney.repositories.BudgetsRepository;
 import com.mwpro.tinymoney.repositories.CategoriesRepository;
 import com.mwpro.tinymoney.repositories.SubcategoriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.criteria.JoinType;
 @Controller
 @RequestMapping(path="/api/category")
 public class CategoriesController {
@@ -25,9 +27,12 @@ public class CategoriesController {
     private BudgetsRepository budgetsRepository;
 
     @GetMapping(path="")
-    public @ResponseBody
-    Iterable<Category> getCategories() {
-        return categoriesRepository.findAll();
+    public ResponseEntity<Iterable<Category>> getCategories() {
+        return new ResponseEntity<>(categoriesRepository.findAll((Specification<Category>)
+                (root, query, cb) -> {
+                    root.fetch("subcategories", JoinType.LEFT);
+                    return cb.and();
+                }), HttpStatus.OK);
     }
 
     @PostMapping(path="")
