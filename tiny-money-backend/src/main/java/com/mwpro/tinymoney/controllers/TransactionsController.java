@@ -45,7 +45,6 @@ public class TransactionsController {
             (TransactionSearchOptions searchOptions,
              Principal principal) {
 
-        @SuppressWarnings("unchecked")
         List<Transaction> transactions = transactionsRepository.findAll((Specification<Transaction>)
                 (root, query, cb) -> {
 
@@ -110,6 +109,7 @@ public class TransactionsController {
         if (addTransactionDto.getVendor().getId() == null) {
             vendor = new Vendor();
             vendor.setName(addTransactionDto.getVendor().getName());
+            vendor.setDefaultSubcategory(subcategory);
             vendorsRepository.save(vendor);
         } else {
             vendor = vendorsRepository.getOne(addTransactionDto.getVendor().getId());
@@ -169,6 +169,7 @@ public class TransactionsController {
         if (addTransactionDto.getVendor().getId() == null) {
             vendor = new Vendor();
             vendor.setName(addTransactionDto.getVendor().getName());
+            vendor.setDefaultSubcategory(subcategory);
             vendorsRepository.save(vendor);
         } else {
             vendor = vendorsRepository.getOne(addTransactionDto.getVendor().getId());
