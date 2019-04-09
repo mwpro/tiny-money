@@ -15,12 +15,7 @@ public class TinyMoneyApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         SpringApplication.run(TinyMoneyApplication.class, args);
     }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(TinyMoneyApplication.class);
-    }
-
+    
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
