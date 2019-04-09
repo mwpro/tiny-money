@@ -28,10 +28,7 @@ steps:
     customCommand: 'run build'
     workingDir: 'tiny-money-frontend'
 
-    
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tiny-money-frontend/dist'
-    includeRootFolder: false
-
 - task: PublishBuildArtifacts@1
+  inputs:
+    artifactName: 'website'
+    pathtoPublish: '$(System.DefaultWorkingDirectory)/tiny-money-frontend/dist'
