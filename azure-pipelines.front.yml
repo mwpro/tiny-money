@@ -12,12 +12,14 @@ steps:
   displayName: 'npm install'
   inputs:
     command: install
+    workingDir: 'tiny-money-frontend'
 
 - task: Npm@1
   displayName: 'npm test'
   inputs:
     command: custom
     customCommand: 'test'
+    workingDir: 'tiny-money-frontend'
 
 - task: PublishTestResults@2
   inputs:
@@ -33,7 +35,7 @@ steps:
     
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/tiny-money-frontend'
     includeRootFolder: false
 
 - task: PublishBuildArtifacts@1
