@@ -22,10 +22,10 @@ steps:
     workingDir: 'tiny-money-frontend'
 
 - task: Npm@1
-  displayName: 'npm test'
+  displayName: 'npm build'
   inputs:
     command: custom
-    customCommand: 'build'
+    customCommand: 'run build'
     workingDir: 'tiny-money-frontend'
 
     
