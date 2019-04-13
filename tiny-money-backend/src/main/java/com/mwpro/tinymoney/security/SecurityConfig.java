@@ -21,11 +21,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private String apiAudience;
     @Value(value = "${auth0.issuer}")
     private String issuer;
+    @Value(value = "${cors.allowedOrigins}")
+    private String[] allowedOrigins;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080"));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET","POST","DELETE"));
         configuration.setAllowCredentials(true);
         configuration.addAllowedHeader("Authorization");
