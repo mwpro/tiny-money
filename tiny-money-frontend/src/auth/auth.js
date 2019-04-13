@@ -49,7 +49,7 @@ const auth = new Vue({
         this.expiresAt = null;
         this.user = null;
         webAuth.logout({
-          returnTo: 'http://localhost:8080/',
+          returnTo: process.env.VUE_APP_AUTH_LOGOUT_RETURN,
         });
       });
     },
