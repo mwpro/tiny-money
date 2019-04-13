@@ -11,7 +11,7 @@
     <groupId>com.mwpro</groupId>
     <artifactId>tiny-money</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>tiny-money</name>
     <description>Backend for TINY-Money</description>
 
