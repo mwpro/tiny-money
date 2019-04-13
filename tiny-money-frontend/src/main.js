@@ -17,7 +17,7 @@ Vue.filter('currency', value => `${value} PLN`);
 Vue.filter('toFixed', (price, limit) => price.toFixed(limit));
 Vue.filter('date', date => new Date(date).toLocaleDateString());
 
-Axios.defaults.baseURL = 'http://localhost:8081';
+Axios.defaults.baseURL = process.env.VUE_APP_API;
 Axios.interceptors.request.use((config) => {
   config.headers.Authorization = `Bearer ${Vue.prototype.$auth.accessToken}`;
   return config;

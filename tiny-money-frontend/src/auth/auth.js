@@ -5,14 +5,13 @@ import Vue from 'vue';
 
 // exchange the object with your own from the setup step above.
 const webAuth = new auth0.WebAuth({
-  domain: 'mwpro.eu.auth0.com',
-  clientID: 'am3ZJ8ZdJdtTVEeGdBJPJNibV9IhrnTr',
-  // make sure this line is contains the port: 8080
-  redirectUri: 'http://localhost:8080/callback',
+  domain: process.env.VUE_APP_AUTH_DOMAIN,
+  clientID: process.env.VUE_APP_AUTH_CLIENTID,
+  redirectUri: process.env.VUE_APP_AUTH_REDIRECTURI,
   // we will use the api/v2/ to access the user information as payload
-  audience: 'https://dev.tinymoney/',
-  responseType: 'token id_token',
-  scope: 'openid profile manage:transactions', // define the scopes you want to use
+  audience: process.env.VUE_APP_AUTH_AUDIENCE,
+  responseType: process.env.VUE_APP_AUTH_RESPONSETYPE,
+  scope: process.env.VUE_APP_AUTH_SCOPE, // define the scopes you want to use
 });
 
 const auth = new Vue({
