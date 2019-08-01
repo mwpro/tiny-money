@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "apexcharts": "^3.3.0",
-    "auth0-js": "^9.10.0",
+    "auth0-js": "^9.11.2",
     "axios": "^0.18.0",
     "vue": "^2.5.21",
     "vue-apexcharts": "^1.2.9",
