@@ -9,6 +9,7 @@ namespace MW.TinyMoney.Api.Controllers
     {
         void SaveTransactionsToBuffer(IEnumerable<BufferedTransaction> bufferedTransactions);
         IEnumerable<BufferedTransaction> GetBufferedTransactions();
+        void DeleteBufferedTransaction(int id);
     }
 
     public class MySqlBufferedTransactionStore : IBufferedTransactionStore
@@ -16,9 +17,21 @@ namespace MW.TinyMoney.Api.Controllers
         private const string GetBufferedTransactionsQuery = @"SELECT `id`, `amount`, `importDate`, `transactionDate`, `rawBankStatementDescription`
                 FROM `bufferedTransaction`";
 
+        private const string DeleteBufferedTransactionQuery = @"DELETE FROM bufferedTransaction WHERE id = @id";
+
         private const string SaveBufferedTransactionsQuery =
             @"INSERT INTO `bufferedTransaction` (`amount`, `importDate`, `transactionDate`, `rawBankStatementDescription`)
                 VALUES(@amount, @importDate, @transactionDate, @rawBankStatementDescription)";
+
+        public void DeleteBufferedTransaction(int id)
+        {
+            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            {
+                connection.Open();
+
+                connection.Execute(DeleteBufferedTransactionQuery, new { id });
+            }
+        }
 
         public IEnumerable<BufferedTransaction> GetBufferedTransactions()
         {

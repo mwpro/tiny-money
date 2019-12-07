@@ -47,6 +47,8 @@ namespace MW.TinyMoney.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         public async Task<IActionResult> RejectBufferedTransaction([FromRoute]int id)
         {
+            // TODO what if there was no such transaction in buffer?
+            _bufferedTransactionStore.DeleteBufferedTransaction(id);
             return Ok();
         }
     }
