@@ -79,6 +79,7 @@ export default {
         // { title: 'Home', icon: 'dashboard', route: '/' },
         { title: 'Transakcje', icon: 'attach_money', route: '/transactions' },
         { title: 'Budżety', icon: 'show_chart', route: '/budgets' },
+        { title: 'Import', icon: 'cloud_upload', route: '/buffer' },
         // { title: 'Tagi', icon: '#', route: '/tags' },
         // { title: 'Sprzedawcy', icon: 'business', route: '/vendors' },
         {

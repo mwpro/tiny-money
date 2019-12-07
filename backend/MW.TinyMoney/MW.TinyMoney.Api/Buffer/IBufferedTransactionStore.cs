@@ -17,7 +17,7 @@ namespace MW.TinyMoney.Api.Controllers
     public class MySqlBufferedTransactionStore : IBufferedTransactionStore
     {
         private const string GetBufferedTransactionsQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription
-                FROM bufferedTransaction";
+                FROM bufferedTransaction ORDER BY transactionDate";
 
         private const string GetBufferedTransactionQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription
                 FROM bufferedTransaction

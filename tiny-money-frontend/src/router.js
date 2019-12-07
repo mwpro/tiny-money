@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 import Dashboard from './home/Dashboard.vue';
+import BufferIndex from './buffer/BufferIndex.vue';
 import TransactionsIndex from './transactions/TransactionsIndex.vue';
 import BudgetsIndex from './budgets/BudgetsIndex.vue';
 import TagsIndex from './tags/TagsIndex.vue';
@@ -26,6 +27,12 @@ const router = new Router({
       // component: Dashboard,
       redirect: '/transactions',
     },
+    ,
+    {
+      path: '/buffer',
+      name: 'buffer',
+      component: BufferIndex,
+    },,
     {
       path: '/transactions',
       name: 'transactions',
