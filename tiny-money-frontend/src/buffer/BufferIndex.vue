@@ -30,13 +30,13 @@ export default {
           value: "date"
         },
         { text: "Opis", value: "fat", sortable: false },
-        { text: "Kwota", value: "amount", sortable: false },
+        { text: "Kwota", value: "amount", sortable: false },        
+        { text: "Sprzedawca", value: "vendor", sortable: false },
         {
           text: "Kategoria",
           sortable: false,
           value: "category"
         },
-        { text: "Sprzedawca", value: "vendor", sortable: false },
         { text: "Tagi", value: "fat", sortable: false },
         { text: "", value: "", sortable: false }
       ]
@@ -49,6 +49,10 @@ export default {
   },
   created() {
     this.$store.dispatch("buffer/getTransactionsAction");
+    // gets below should happen in BufferRow 🤔
+    this.$store.dispatch('categories/getCategories');
+    this.$store.dispatch('tags/getTagsAction');
+    this.$store.dispatch('vendors/getVendorsAction');
   },
   methods: {}
 };

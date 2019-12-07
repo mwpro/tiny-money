@@ -7,10 +7,37 @@
     >{{ bufferedTransaction.amount | toFixed(2) | currency }}</td>
     <td class="text-xs-left">{{ bufferedTransaction.rawBankStatementDescription }}</td>
     <td class="text-xs-left">
-      <!-- {{ props.item.subcategory.parentCategory.name }} / {{ props.item.subcategory.name }} -->
+      <v-combobox
+                  v-model="vendor"
+                  :items="vendors"
+                  :search-input.sync="vendorSearch"
+                  :rules="vendorRules"
+                  hide-selected
+                  label="Sprzedawca*"
+                  item-text="name"
+                  required
+                >
+                </v-combobox>
     </td>
     <td class="text-xs-left">
-      <!-- {{ props.item.vendor.name }} -->
+        <v-autocomplete
+            v-model="subcategoryId"
+            :items="subcategories"
+            :rules="categoryRules"
+            item-text="fullName"
+            item-value="id"
+            label="Kategoria*"
+            persistent-hint
+        >
+            <v-slide-x-reverse-transition slot="append-outer" mode="out-in">
+            <v-icon
+                :color="isEditing ? 'success' : 'info'"
+                :key="`icon-${isEditing}`"
+                @click="isEditing = !isEditing"
+                v-text="isEditing ? 'mdi-check-outline' : 'mdi-circle-edit-outline'"
+            ></v-icon>
+            </v-slide-x-reverse-transition>
+        </v-autocomplete>
     </td>
     <td class="text-xs-left">
       <!-- {{ props.item.vendor.name }} -->
@@ -37,14 +64,44 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex';
+
 export default {
   data() {
       return {
         isRejectTransactionActive: false,
+        subcategoryId: null,
+        //isExpense: true,
+        //amount: null,
+        vendor: null,
+        //description: null,
+        //tags: [],
+        isEditing: false, // todo remove
+        vendorRules: [
+            v => !!v || 'Sprzedawca jest wymagany',
+        ],
+        categoryRules: [
+            v => !!v || 'Kategoria jest wymagana',
+        ],
+        vendorSearch: null,
       }
   },
   props: {
     bufferedTransaction: Object
+  },
+  watch: {
+    'vendor': function () {
+      if (this.vendor && this.vendor.defaultSubcategory) {
+        this.subcategoryId = this.vendor.defaultSubcategory.id;
+      }
+    },
+  },
+  computed: {      
+    ...mapGetters('categories', { subcategories: 'subcategories' }),
+    ...mapGetters('tags', { tags: 'tags' }),
+    ...mapGetters('vendors', { vendors: 'vendors' }),
+  },
+  created() {      
   },
   methods: {
     openRejectTransaction(id) {
