@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -9,22 +10,6 @@ using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Controllers
 {
-    //public class BufferedTransaction
-    //{
-    //    public int Id { get; set; }
-    //    public decimal Amount { get; set; }
-    //    public DateTime ImportDate { get; set; }
-    //    public DateTime TransactionDate { get; set; }
-    //    // public int? MatchedVendorId { get; private set; }
-    //    // public int? MatchedSubcategoryId { get; private set; }
-    //    public string RawBankStatementDescription { get; set; }
-    //}
-
-    //public interface IBankStatementParser
-    //{
-        
-    //}
-
     [ApiController, Route("/api/transaction/buffer")]
     public class TransactionBufferController : ControllerBase
     {
@@ -32,9 +17,12 @@ namespace MW.TinyMoney.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
         public async Task<IActionResult> PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
         {
+            IBankStatementParser parser = new GetinPdfBankStatementParser();
+            var parsingResult = parser.Parse(bankStatementFile.FileContent);
+            return Ok(parsingResult); // todo do not return?
             return Created("", new BankStatementFileImportResult()
             {
-                NumberOfImportedTransactions = 10
+                NumberOfImportedTransactions = parsingResult.Count()
             });
         }
 

@@ -4,6 +4,6 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
 {
     public class BankStatementFile
     {
-        public IFormFile File { get; set; }
+        public string FileContent { get; set; }
     }
 }
