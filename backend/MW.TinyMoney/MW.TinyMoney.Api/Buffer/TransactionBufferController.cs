@@ -13,14 +13,15 @@ namespace MW.TinyMoney.Api.Controllers
     [ApiController, Route("/api/transaction/buffer")]
     public class TransactionBufferController : ControllerBase
     {
+        private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
+
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
         public async Task<IActionResult> PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
         {
             IBankStatementParser parser = new GetinPdfBankStatementParser();
-            IBufferedTransactionStore bufferedTransactionStore = new MySqlBufferedTransactionStore();
             var parsingResult = parser.Parse(bankStatementFile.FileContent);
-            bufferedTransactionStore.SaveTransactionsToBuffer(parsingResult);
+            _bufferedTransactionStore.SaveTransactionsToBuffer(parsingResult);
 
             return Created("", new BankStatementFileImportResult()
             {
@@ -32,14 +33,7 @@ namespace MW.TinyMoney.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<BufferedTransaction>))]
         public async Task<IActionResult> GetBufferedTransactions()
         {
-            return Ok(new List<BufferedTransaction>()
-            {
-                new BufferedTransaction(),
-                new BufferedTransaction(),
-                new BufferedTransaction(),
-                new BufferedTransaction(),
-                new BufferedTransaction()
-            });
+            return Ok(_bufferedTransactionStore.GetBufferedTransactions());
         }
 
         [HttpPost, Route("{id}")]
