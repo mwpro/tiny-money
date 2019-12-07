@@ -18,8 +18,10 @@ namespace MW.TinyMoney.Api.Controllers
         public async Task<IActionResult> PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
         {
             IBankStatementParser parser = new GetinPdfBankStatementParser();
+            IBufferedTransactionStore bufferedTransactionStore = new MySqlBufferedTransactionStore();
             var parsingResult = parser.Parse(bankStatementFile.FileContent);
-            return Ok(parsingResult); // todo do not return?
+            bufferedTransactionStore.SaveTransactionsToBuffer(parsingResult);
+
             return Created("", new BankStatementFileImportResult()
             {
                 NumberOfImportedTransactions = parsingResult.Count()
