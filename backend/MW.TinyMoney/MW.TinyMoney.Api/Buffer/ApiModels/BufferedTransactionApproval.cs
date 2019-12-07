@@ -5,8 +5,8 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
 {
     public class BufferedTransactionApproval
     {
-        public decimal Amount { get; set; }
-        public DateTime TransactionDate { get; set; }
+        public decimal? Amount { get; set; }
+        public DateTime? TransactionDate { get; set; }
         public string Description { get; set; }
 
         public int VendorId { get; set; }

@@ -14,6 +14,7 @@ namespace MW.TinyMoney.Api.Controllers
     public class TransactionBufferController : ControllerBase
     {
         private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
+        private readonly ITransactionStore _transactionStore = new MySqlTransactionStore();
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
@@ -40,15 +41,30 @@ namespace MW.TinyMoney.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         public async Task<IActionResult> AcceptBufferedTransaction([FromRoute]int id, [FromBody]BufferedTransactionApproval approval)
         {
-            return Ok();
+            // TODO validation, should be a single transaction scope
+            var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
+            if (bufferedTransaction == null)
+                return NotFound();
+
+            var approvedTransaction = bufferedTransaction.Approve(approval);
+
+            _transactionStore.SaveTransaction(approvedTransaction);
+
+            _bufferedTransactionStore.DeleteBufferedTransaction(id);
+
+            return Ok(approvedTransaction);
         }
 
         [HttpDelete, Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         public async Task<IActionResult> RejectBufferedTransaction([FromRoute]int id)
         {
-            // TODO what if there was no such transaction in buffer?
+            var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
+            if (bufferedTransaction == null)
+                return NotFound();
+
             _bufferedTransactionStore.DeleteBufferedTransaction(id);
+
             return Ok();
         }
     }

@@ -11,5 +11,22 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public DateTime ImportDate { get; set; }
         public DateTime TransactionDate { get; set; }
         public string RawBankStatementDescription { get; set; }
+
+        public Transaction.ApiModels.Transaction Approve(BufferedTransactionApproval bufferedTransactionApproval)
+        {
+            return new Transaction.ApiModels.Transaction()
+            {
+                Amount = bufferedTransactionApproval.Amount ?? Amount,
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = "Buffer",
+                Description = bufferedTransactionApproval.Description,
+                IsExpense = true,
+                ModifiedDate = DateTime.UtcNow,
+                SubcategoryId = bufferedTransactionApproval.SubcategorId,
+                TagIds = bufferedTransactionApproval.TagIds,
+                TransactionDate = bufferedTransactionApproval.TransactionDate ?? TransactionDate,
+                VendorId = bufferedTransactionApproval.VendorId
+            };  
+        }
     }
 }
