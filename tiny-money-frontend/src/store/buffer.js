@@ -77,9 +77,9 @@ export default {
     },
 
     rejectTransactionAction({ commit }, transactionId) {
-      return axios.delete(`/api/transaction/${transactionId}`).then((response) => {
+      return axios.delete(`/api/transaction/buffer/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.message);
-        commit('deleteTransaction', transactionId);
+        commit('rejectTransaction', transactionId);
       });
     },
   },
