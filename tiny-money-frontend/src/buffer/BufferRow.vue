@@ -116,7 +116,7 @@ export default {
         ],
         vendorSearch: null,
         tagSearch: null,
-        tags: null,
+        tags: [],
       }
   },
   props: {
@@ -158,7 +158,7 @@ export default {
                 "description": this.description,
                 "vendor": this.vendor,
                 "subcategoryId": this.subcategoryId,
-                //"tagIds": [ 1, 2, 3 ]
+                "tags": this.tags
         })
         .then(() => {
           this.$store.dispatch('displaySuccessSnack', 'Transakcja zaakceptowana', {
@@ -179,6 +179,7 @@ export default {
       this.subcategoryId = null;
       this.vendor = null;
       this.description = null;
+      this.tags = [];
     },
     rejectTransaction() {
       this.$store

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api.Controllers
@@ -18,6 +16,7 @@ namespace MW.TinyMoney.Api.Controllers
         private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
         private readonly ITransactionStore _transactionStore = new MySqlTransactionStore();
         private readonly IVendorStore _vendorStore = new MySqlVendorStore();
+        private readonly ITagStore _tagStore = new MySqlTagStore();
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
@@ -58,6 +57,16 @@ namespace MW.TinyMoney.Api.Controllers
                 };
                 _vendorStore.SaveVendor(vendor);
                 approval.Vendor.Id = vendor.Id;
+            }
+
+            foreach (var newTag in approval.Tags.Where(x => x.Id is null))
+            {
+                var tag = new Tag()
+                {
+                    Name = newTag.Name,
+                };
+                _tagStore.SaveTag(tag);
+                newTag.Id = tag.Id;
             }
 
             var approvedTransaction = bufferedTransaction.Approve(approval);

@@ -9,11 +9,17 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public string Name { get; set; }
     }
 
+    public class TagDto
+    {
+        public int? Id { get; set; }
+        public string Name { get; set; }
+    }
+
     public class BufferedTransactionApproval
     {
         public BufferedTransactionApproval()
         {
-            TagIds = new List<int>();
+            Tags = new List<TagDto>();
         }
 
         public decimal? Amount { get; set; }
@@ -23,6 +29,6 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public VendorDto Vendor { get; set; }
         public string VendorName { get; set; }
         public int SubcategoryId { get; set; }
-        public IEnumerable<int> TagIds { get; set; }
+        public IEnumerable<TagDto> Tags { get; set; }
     }
 }

@@ -45,10 +45,10 @@ export default {
     },
 
     approveTransactionAction({ commit, dispatch }, transaction) { // TODO rename to save
-      // transaction.tags = transaction.tags.map((t) => {
-      //   if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
-      //   return t;
-      // });
+      transaction.tags = transaction.tags.map((t) => {
+        if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
+        return t;
+      });
       if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) { 
         transaction.vendor = { id: null, name: transaction.vendor }; 
       }
