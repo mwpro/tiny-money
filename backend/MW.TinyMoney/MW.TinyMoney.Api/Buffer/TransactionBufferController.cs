@@ -4,13 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Controllers
 {
-    [ApiController, Route("/api/transaction/buffer")]
+    [ApiController, Route("/api/transaction/buffer"), Authorize]
     public class TransactionBufferController : ControllerBase
     {
         private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
