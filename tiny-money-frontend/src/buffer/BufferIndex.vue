@@ -6,7 +6,7 @@
           :headers="headers"
           :items="transactions"
           class="elevation-1"
-          :hide-actions="true"
+          :rows-per-page-items=[10,25,50]
         >
           <template slot="items" slot-scope="props">
             <buffer-row :buffered-transaction="props.item" />
@@ -29,13 +29,18 @@ export default {
           sortable: false,
           value: "date"
         },
-        { text: "Opis", value: "fat", sortable: false },
         { text: "Kwota", value: "amount", sortable: false },        
+        { text: "Opis", value: "fat", sortable: false },
         { text: "Sprzedawca", value: "vendor", sortable: false },
         {
           text: "Kategoria",
           sortable: false,
           value: "category"
+        },
+        {
+          text: "Opis",
+          sortable: false,
+          value: "description"
         },
         { text: "Tagi", value: "fat", sortable: false },
         { text: "", value: "", sortable: false }
