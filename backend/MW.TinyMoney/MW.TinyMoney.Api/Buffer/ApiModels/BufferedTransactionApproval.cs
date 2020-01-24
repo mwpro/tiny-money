@@ -5,6 +5,11 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
 {
     public class BufferedTransactionApproval
     {
+        public BufferedTransactionApproval()
+        {
+            TagIds = new List<int>();
+        }
+
         public decimal? Amount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public string Description { get; set; }

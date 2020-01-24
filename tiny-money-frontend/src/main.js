@@ -14,7 +14,7 @@ Vue.use(auth);
 Vue.use(VueApexCharts);
 
 Vue.filter('currency', value => `${value} PLN`);
-Vue.filter('toFixed', (price, limit) => price.toFixed(limit));
+Vue.filter('toFixed', (price, limit) => price ? price.toFixed(limit) : '');
 Vue.filter('date', date => new Date(date).toLocaleDateString());
 
 Axios.defaults.baseURL = process.env.VUE_APP_API;

@@ -38,13 +38,21 @@
             ></v-icon>
             </v-slide-x-reverse-transition>
         </v-autocomplete>
+    </td>    
+    <td class="text-xs-left">
+      <v-textarea
+            label="Opis"
+            v-model="description"
+            auto-grow
+            rows="1"
+        ></v-textarea>
     </td>
     <td class="text-xs-left">
-      <!-- {{ props.item.vendor.name }} -->
+      <!-- TODO tagi -->
     </td>
     <td class="text-xs-left">
-      <v-icon @click="openEditTransaction(bufferedTransaction.id)">check</v-icon>
-      <v-icon @click="openRejectTransaction(bufferedTransaction.id)">close</v-icon>
+      <v-icon @click="approveTransaction()">check</v-icon>
+      <v-icon @click="openRejectTransaction()">close</v-icon>
     </td>
     <v-dialog v-model="isRejectTransactionActive" persistent max-width="600"><!-- TODO move to other component -->
       <v-card>
@@ -74,7 +82,7 @@ export default {
         //isExpense: true,
         //amount: null,
         vendor: null,
-        //description: null,
+        description: null,
         //tags: [],
         isEditing: false, // todo remove
         vendorRules: [
@@ -104,8 +112,48 @@ export default {
   created() {      
   },
   methods: {
-    openRejectTransaction(id) {
+    openRejectTransaction() {
       this.isRejectTransactionActive = true;
+    },
+    approveTransaction() {
+      // TODO this.$refs.form.validate();
+    //   if (!this.valid) {
+    //     this.$store.dispatch(
+    //       'displayErrorSnack',
+    //       'Dane transakcji są niepoprawne',
+    //       { root: true },
+    //     );
+    //     return;
+    //   }
+      this.$store
+        .dispatch('buffer/approveTransactionAction', {
+                "id": this.bufferedTransaction.id,
+                //"amount": null,
+                //"transactionDate": null,
+                "description": this.description,
+                "vendorId": this.vendor.id,
+                "subcategorId": this.subcategoryId,
+                //"tagIds": [ 1, 2, 3 ]
+        })
+        .then(() => {
+          this.$store.dispatch('displaySuccessSnack', 'Transakcja zaakceptowana', {
+            root: true,
+          });
+          this.resetTransaction();
+        })
+        .catch((error) => {
+          console.log(error);
+          this.$store.dispatch(
+            'displayErrorSnack',
+            'Błąd przy akceptowaniu transakcji',
+            { root: true },
+          );
+        });
+    },
+    resetTransaction() {
+      this.subcategoryId = null;
+      this.vendor = null;
+      this.description = null;
     },
     rejectTransaction() {
       this.$store
@@ -115,6 +163,7 @@ export default {
           this.$store.dispatch("displaySuccessSnack", "Transakcja usunięta", {
             root: true
           });
+          this.resetTransaction();
         })
         .catch(() => {
           this.$store.dispatch(
