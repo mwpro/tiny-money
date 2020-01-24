@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
 using System.Data.Common;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace MW.TinyMoney.Api.Controllers
 
     public class MySqlTransactionStore : ITransactionStore
     {
+        private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+
+        public MySqlTransactionStore(MySqlConnectionFactory mySqlConnectionFactory)
+        {
+            _mySqlConnectionFactory = mySqlConnectionFactory;
+        }
+
         private const string SaveTransactionQuery =
               @"INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id)
                 VALUES(@amount, @createdBy, @createdDate, @description, @isExpense, @modifiedDate, @transactionDate, @subcategoryId, @vendorId);
@@ -23,7 +31,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
                 using (var dbTransaction = connection.BeginTransaction())

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
 
 namespace MW.TinyMoney.Api.Tags
@@ -16,6 +17,13 @@ namespace MW.TinyMoney.Api.Tags
 
     public class MySqlTagStore : ITagStore
     {
+        private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+
+        public MySqlTagStore(MySqlConnectionFactory mySqlConnectionFactory)
+        {
+            _mySqlConnectionFactory = mySqlConnectionFactory;
+        }
+
         private const string SaveVendorQuery =
               @"INSERT INTO tag (name)
                 VALUES(@name);
@@ -24,7 +32,7 @@ namespace MW.TinyMoney.Api.Tags
 
         public void SaveTag(Tag tag)
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
                 using (var dbTransaction = connection.BeginTransaction())

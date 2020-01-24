@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dapper;
 using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
 
 namespace MW.TinyMoney.Api.Controllers
@@ -16,6 +17,13 @@ namespace MW.TinyMoney.Api.Controllers
 
     public class MySqlBufferedTransactionStore : IBufferedTransactionStore
     {
+        private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+
+        public MySqlBufferedTransactionStore(MySqlConnectionFactory mySqlConnectionFactory)
+        {
+            _mySqlConnectionFactory = mySqlConnectionFactory;
+        }
+
         private const string GetBufferedTransactionsQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription
                 FROM bufferedTransaction ORDER BY transactionDate";
 
@@ -31,7 +39,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         public void DeleteBufferedTransaction(int id)
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
@@ -41,7 +49,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         public BufferedTransaction GetBufferedTransaction(int id)
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
@@ -51,7 +59,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         public IEnumerable<BufferedTransaction> GetBufferedTransactions()
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
@@ -61,7 +69,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         public void SaveTransactionsToBuffer(IEnumerable<BufferedTransaction> bufferedTransactions) // todo async
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 

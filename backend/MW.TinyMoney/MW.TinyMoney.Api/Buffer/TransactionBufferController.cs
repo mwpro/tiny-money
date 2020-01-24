@@ -13,10 +13,19 @@ namespace MW.TinyMoney.Api.Controllers
     [ApiController, Route("/api/transaction/buffer"), Authorize]
     public class TransactionBufferController : ControllerBase
     {
-        private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
-        private readonly ITransactionStore _transactionStore = new MySqlTransactionStore();
-        private readonly IVendorStore _vendorStore = new MySqlVendorStore();
-        private readonly ITagStore _tagStore = new MySqlTagStore();
+        private readonly IBufferedTransactionStore _bufferedTransactionStore;
+        private readonly ITransactionStore _transactionStore;
+        private readonly IVendorStore _vendorStore;
+        private readonly ITagStore _tagStore;
+
+        public TransactionBufferController(IBufferedTransactionStore bufferedTransactionStore,
+            ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore)
+        {
+            _bufferedTransactionStore = bufferedTransactionStore;
+            _transactionStore = transactionStore;
+            _vendorStore = vendorStore;
+            _tagStore = tagStore;
+        }
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
 
 namespace MW.TinyMoney.Api.Vendors
@@ -17,6 +18,13 @@ namespace MW.TinyMoney.Api.Vendors
 
     public class MySqlVendorStore : IVendorStore
     {
+        private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+
+        public MySqlVendorStore(MySqlConnectionFactory mySqlConnectionFactory)
+        {
+            _mySqlConnectionFactory = mySqlConnectionFactory;
+        }
+
         private const string SaveVendorQuery =
               @"INSERT INTO vendor (name, default_subcategory_id)
                 VALUES(@name, @defaultSubcategoryId);
@@ -25,7 +33,7 @@ namespace MW.TinyMoney.Api.Vendors
 
         public void SaveVendor(Vendor vendor)
         {
-            using (var connection = new MySqlConnection("Server=localhost;Database=tinymoney;User ID=root;Password=tinymoney;")) // todo to config
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
                 using (var dbTransaction = connection.BeginTransaction())
