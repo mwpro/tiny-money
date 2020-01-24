@@ -48,7 +48,31 @@
         ></v-textarea>
     </td>
     <td class="text-xs-left">
-      <!-- TODO tagi -->
+      <v-combobox
+        v-model="tags"
+        :items="tagsDict"
+        :search-input.sync="tagSearch"
+        hide-selected
+        label="Tagi"
+        item-text="name"
+        small-chips
+        multiple
+        persistent-hint
+        chips
+        :deletable-chips="true"
+      >
+        <template slot="no-data">
+          <v-list-tile>
+            <v-list-tile-content>
+              <v-list-tile-title>
+                No results matching "
+                <strong>{{ tagSearch }}</strong>". Press
+                <kbd>enter</kbd> to create a new one
+              </v-list-tile-title>
+            </v-list-tile-content>
+          </v-list-tile>
+        </template>
+      </v-combobox>
     </td>
     <td class="text-xs-left">
       <v-icon @click="approveTransaction()">check</v-icon>
@@ -83,7 +107,6 @@ export default {
         //amount: null,
         vendor: null,
         description: null,
-        //tags: [],
         isEditing: false, // todo remove
         vendorRules: [
             v => !!v || 'Sprzedawca jest wymagany',
@@ -92,6 +115,8 @@ export default {
             v => !!v || 'Kategoria jest wymagana',
         ],
         vendorSearch: null,
+        tagSearch: null,
+        tags: null,
       }
   },
   props: {
@@ -106,7 +131,7 @@ export default {
   },
   computed: {      
     ...mapGetters('categories', { subcategories: 'subcategories' }),
-    ...mapGetters('tags', { tags: 'tags' }),
+    ...mapGetters('tags', { tagsDict: 'tags' }),
     ...mapGetters('vendors', { vendors: 'vendors' }),
   },
   created() {      
