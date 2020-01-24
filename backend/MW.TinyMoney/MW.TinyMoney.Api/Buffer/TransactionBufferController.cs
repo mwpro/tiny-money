@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api.Controllers
 {
@@ -16,6 +17,7 @@ namespace MW.TinyMoney.Api.Controllers
     {
         private readonly IBufferedTransactionStore _bufferedTransactionStore = new MySqlBufferedTransactionStore();
         private readonly ITransactionStore _transactionStore = new MySqlTransactionStore();
+        private readonly IVendorStore _vendorStore = new MySqlVendorStore();
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
@@ -46,6 +48,17 @@ namespace MW.TinyMoney.Api.Controllers
             var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
             if (bufferedTransaction == null)
                 return NotFound();
+            
+            if (approval.Vendor.Id == null) // todo to be moved
+            {
+                var vendor = new Vendor()
+                {
+                    Name = approval.Vendor.Name,
+                    DefaultSubcategoryId = approval.SubcategoryId
+                };
+                _vendorStore.SaveVendor(vendor);
+                approval.Vendor.Id = vendor.Id;
+            }
 
             var approvedTransaction = bufferedTransaction.Approve(approval);
 

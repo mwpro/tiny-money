@@ -22,10 +22,10 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
                 Description = bufferedTransactionApproval.Description,
                 IsExpense = true,
                 ModifiedDate = DateTime.UtcNow,
-                SubcategoryId = bufferedTransactionApproval.SubcategorId,
+                SubcategoryId = bufferedTransactionApproval.SubcategoryId,
                 TagIds = bufferedTransactionApproval.TagIds,
                 TransactionDate = bufferedTransactionApproval.TransactionDate ?? TransactionDate,
-                VendorId = bufferedTransactionApproval.VendorId
+                VendorId = bufferedTransactionApproval.Vendor.Id.Value
             };  
         }
     }

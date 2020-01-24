@@ -131,8 +131,8 @@ export default {
                 //"amount": null,
                 //"transactionDate": null,
                 "description": this.description,
-                "vendorId": this.vendor.id,
-                "subcategorId": this.subcategoryId,
+                "vendor": this.vendor,
+                "subcategoryId": this.subcategoryId,
                 //"tagIds": [ 1, 2, 3 ]
         })
         .then(() => {
