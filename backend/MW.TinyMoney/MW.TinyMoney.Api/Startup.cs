@@ -45,6 +45,12 @@ namespace MW.TinyMoney.Api
 
             services.AddControllers();
 
+            services.AddCors(conf =>
+            {
+                conf.AddDefaultPolicy(builder =>
+                    builder.WithOrigins(Configuration["Cors:AllowedOrigins"]));
+            });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MW.TinyMoney API", Version = "v1" });
