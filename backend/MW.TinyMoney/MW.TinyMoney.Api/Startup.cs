@@ -79,6 +79,8 @@ namespace MW.TinyMoney.Api
 
             app.UseAuthentication();
 
+            app.UseCors();
+
             app.UseRouting();
 
             app.UseAuthorization();
