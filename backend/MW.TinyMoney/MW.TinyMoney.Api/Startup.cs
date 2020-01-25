@@ -48,7 +48,9 @@ namespace MW.TinyMoney.Api
             services.AddCors(conf =>
             {
                 conf.AddDefaultPolicy(builder =>
-                    builder.WithOrigins(Configuration["Cors:AllowedOrigins"]));
+                    builder.WithOrigins(Configuration["Cors:AllowedOrigins"])
+                        .WithHeaders("Authorization", "Content-Type")
+                        .WithMethods("GET", "POST", "DELETE"));
             });
 
             services.AddSwaggerGen(c =>
