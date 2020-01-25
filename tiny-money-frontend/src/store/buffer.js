@@ -30,7 +30,7 @@ export default {
   actions: {
     getTransactionsAction({ commit }) {
       return axios
-        .get('/api/transaction/buffer')
+        .get(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let transactions = response.data;
@@ -53,7 +53,7 @@ export default {
         transaction.vendor = { id: null, name: transaction.vendor }; 
       }
 
-      return axios.post( `/api/transaction/buffer/${transaction.id}`,
+      return axios.post(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/${transaction.id}`,
         transaction,
       ).then((response) => {
         if (response.status !== 200) {
@@ -77,7 +77,7 @@ export default {
     },
 
     rejectTransactionAction({ commit }, transactionId) {
-      return axios.delete(`/api/transaction/buffer/${transactionId}`).then((response) => {
+      return axios.delete(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.message);
         commit('rejectTransaction', transactionId);
       });
