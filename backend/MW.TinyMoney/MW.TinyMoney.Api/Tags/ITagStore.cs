@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Tags
 {
@@ -13,6 +14,7 @@ namespace MW.TinyMoney.Api.Tags
     public interface ITagStore
     {
         void SaveTag(Tag tag);
+        IEnumerable<Tag> GetTags();
     }
 
     public class MySqlTagStore : ITagStore
@@ -24,10 +26,14 @@ namespace MW.TinyMoney.Api.Tags
             _mySqlConnectionFactory = mySqlConnectionFactory;
         }
 
-        private const string SaveVendorQuery =
+        private const string SaveTagQuery =
               @"INSERT INTO tag (name)
                 VALUES(@name);
                 SELECT LAST_INSERT_ID();";
+
+        private const string GetTagsQuery =
+              @"SELECT id, name
+                FROM tag";
 
 
         public void SaveTag(Tag tag)
@@ -37,10 +43,19 @@ namespace MW.TinyMoney.Api.Tags
                 connection.Open();
                 using (var dbTransaction = connection.BeginTransaction())
                 {
-                    tag.Id = connection.QuerySingle<int>(SaveVendorQuery, tag, dbTransaction);
+                    tag.Id = connection.QuerySingle<int>(SaveTagQuery, tag, dbTransaction);
 
                     dbTransaction.Commit();
                 }
+            }
+        }
+
+        public IEnumerable<Tag> GetTags()
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<Tag>(GetTagsQuery);
             }
         }
     }

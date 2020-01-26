@@ -20,7 +20,7 @@ export default {
   actions: {
     getTagsAction({ commit }) {
       return axios
-        .get('/api/tag')
+        .get(`${process.env.VUE_APP_API_NEW}/api/tags`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let tags = response.data;
