@@ -72,10 +72,6 @@ namespace MW.TinyMoney.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler();
-            }
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -85,10 +81,10 @@ namespace MW.TinyMoney.Api
 
             app.UseAuthentication();
 
-            app.UseCors();
-
             app.UseRouting();
 
+            app.UseCors();
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
