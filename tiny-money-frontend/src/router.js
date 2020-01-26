@@ -39,6 +39,12 @@ const router = new Router({
       component: TransactionsIndex,
     },
     {
+      path: '/transactions/:year/:month',
+      name: 'transactionsQuery',
+      component: TransactionsIndex,
+      
+    },
+    {
       path: '/budgets',
       name: 'budgets',
       component: BudgetsIndex,

@@ -156,8 +156,16 @@ export default {
     },
   },
   created() {
-    this.searchOptions.month = `${this.searchOptions.month}-01`;
+    this.searchOptions.month = `${this.$route.params.year}-${this.$route.params.month}-01`;
     this.search();
+  },
+  watch: {
+    $route(to, from) {
+      console.log(from);
+      this.searchOptions.month = `${to.params.year}-${to.params.month}-01`,
+      this.$refs.menu.save(this.searchOptions.month);
+      this.search();
+    }
   },
   methods: {
     openAddTransaction() {
@@ -190,9 +198,13 @@ export default {
     },
     selectMonth() {
       // TODO appending '-01' does not seem to be the best practice :)
-      this.searchOptions.month = `${this.searchOptions.month}-01`;
-      this.$refs.menu.save(this.searchOptions.month);
-      this.search();
+      // TODO update route
+      //this.searchOptions.month = `${this.searchOptions.month}-01`;
+      //this.$refs.menu.save(this.searchOptions.month);
+      //this.search();
+      let year = this.searchOptions.month.substring(0, 4);
+      let month = this.searchOptions.month.substring(5, 7);
+      this.$router.push({ name: 'transactionsQuery', params: { year: year, month: month } })
     },
     search() {
       this.$store.dispatch(
