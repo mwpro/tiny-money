@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using MySql.Data.MySqlClient;
+using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Vendors
 {
@@ -14,6 +15,7 @@ namespace MW.TinyMoney.Api.Vendors
     public interface IVendorStore
     {
         void SaveVendor(Vendor vendor);
+        IEnumerable<Vendor> GetVendors();
     }
 
     public class MySqlVendorStore : IVendorStore
@@ -30,6 +32,10 @@ namespace MW.TinyMoney.Api.Vendors
                 VALUES(@name, @defaultSubcategoryId);
                 SELECT LAST_INSERT_ID();";
 
+        private const string GetVendorsQuery =
+              @"SELECT id, name, default_subcategory_id as defaultSubcategoryId
+                FROM vendor";
+
 
         public void SaveVendor(Vendor vendor)
         {
@@ -42,6 +48,15 @@ namespace MW.TinyMoney.Api.Vendors
 
                     dbTransaction.Commit();
                 }
+            }
+        }
+
+        public IEnumerable<Vendor> GetVendors()
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<Vendor>(GetVendorsQuery);
             }
         }
     }

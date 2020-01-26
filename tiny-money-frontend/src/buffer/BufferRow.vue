@@ -124,8 +124,8 @@ export default {
   },
   watch: {
     'vendor': function () {
-      if (this.vendor && this.vendor.defaultSubcategory) {
-        this.subcategoryId = this.vendor.defaultSubcategory.id;
+      if (this.vendor && this.vendor.defaultSubcategoryId) {
+        this.subcategoryId = this.vendor.defaultSubcategoryId;
       }
     },
   },

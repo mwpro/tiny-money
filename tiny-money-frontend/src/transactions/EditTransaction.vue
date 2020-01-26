@@ -225,8 +225,8 @@ export default {
       }
     },
     'transaction.vendor': function () {
-      if (this.transaction.vendor && this.transaction.vendor.defaultSubcategory) {
-        this.transaction.subcategoryId = this.transaction.vendor.defaultSubcategory.id;
+      if (this.transaction.vendor && this.transaction.vendor.defaultSubcategoryId) {
+        this.transaction.subcategoryId = this.transaction.vendor.defaultSubcategoryId;
       }
     },
   },

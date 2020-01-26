@@ -7,6 +7,7 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
     {
         public int? Id { get; set; }
         public string Name { get; set; }
+        public int? DefaultSubcategoryId { get; set; }
     }
 
     public class TagDto
