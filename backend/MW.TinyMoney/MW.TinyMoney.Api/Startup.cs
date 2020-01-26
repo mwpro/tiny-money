@@ -72,6 +72,10 @@ namespace MW.TinyMoney.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler();
+            }
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
