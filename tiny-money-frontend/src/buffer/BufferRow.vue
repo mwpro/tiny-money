@@ -11,7 +11,6 @@
                   v-model="vendor"
                   :items="vendors"
                   :search-input.sync="vendorSearch"
-                  :rules="vendorRules"
                   hide-selected
                   label="Sprzedawca*"
                   item-text="name"
@@ -23,7 +22,6 @@
         <v-autocomplete
             v-model="subcategoryId"
             :items="subcategories"
-            :rules="categoryRules"
             item-text="fullName"
             item-value="id"
             label="Kategoria*"
@@ -108,12 +106,6 @@ export default {
         vendor: null,
         description: null,
         isEditing: false, // todo remove
-        vendorRules: [
-            v => !!v || 'Sprzedawca jest wymagany',
-        ],
-        categoryRules: [
-            v => !!v || 'Kategoria jest wymagana',
-        ],
         vendorSearch: null,
         tagSearch: null,
         tags: [],

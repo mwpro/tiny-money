@@ -82,9 +82,8 @@ export default {
         });
     },
     close() {
-      this.transactionsImportData = null;
-      this.$refs.form.resetValidation();
       this.$emit('closed');
+      this.$refs.form.reset();
     },
   },
 };
