@@ -35,14 +35,19 @@ const router = new Router({
     },,
     {
       path: '/transactions',
-      name: 'transactions',
-      component: TransactionsIndex,
+      name: 'transactionsIndex',
+      redirect: {
+        name: 'transactions',
+        params: {
+          year: new Date().getFullYear(),
+          month: (new Date().getMonth() + 1).toString().padStart(2, "0")
+        }
+      }
     },
     {
       path: '/transactions/:year/:month',
-      name: 'transactionsQuery',
-      component: TransactionsIndex,
-      
+      name: 'transactions',
+      component: TransactionsIndex,      
     },
     {
       path: '/budgets',
