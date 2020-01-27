@@ -44,6 +44,25 @@ export default {
       // .catch(captains.error)
     },
 
+    importTransactionsAction({ commit, dispatch }, transactions) {
+      const params = new URLSearchParams();
+      params.append('fileContent', transactions);
+      return axios.post(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/`, params)
+      .then((response) => {
+        if (response.status !== 201) {
+          throw Error(response.message);
+        }
+
+        let importTransactionsResult = response.data;
+        if (typeof importTransactionsResult !== 'object') {
+          importTransactionsResult = undefined;
+        }
+        
+        dispatch("getTransactionsAction");
+        return importTransactionsResult;
+      });
+    },
+    
     approveTransactionAction({ commit, dispatch }, transaction) { // TODO rename to save
       transaction.tags = transaction.tags.map((t) => {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }

@@ -1,5 +1,9 @@
 <template>
   <v-container>
+    <v-btn color="green" fab bottom right dark fixed @click="openImportTransactions()">
+      <v-icon>add</v-icon>
+    </v-btn>
+    <import-transactions :isOpen="isImportTransactionsActive" @closed="isImportTransactionsActive=false"/>
     <v-layout row wrap>
       <v-flex>
         <v-data-table
@@ -18,11 +22,13 @@
 </template>
 <script>
 import BufferRow from "./BufferRow.vue";
+import ImportTransactions from './ImportTransactions.vue';
 
 export default {
-  components: { BufferRow },
+  components: { BufferRow, ImportTransactions },
   data() {
     return {
+      isImportTransactionsActive: false,
       headers: [
         {
           text: "Data",
@@ -59,6 +65,10 @@ export default {
     this.$store.dispatch('tags/getTagsAction');
     this.$store.dispatch('vendors/getVendorsAction');
   },
-  methods: {}
+  methods: {
+    openImportTransactions() {
+      this.isImportTransactionsActive = true;
+    }
+  }
 };
 </script>
