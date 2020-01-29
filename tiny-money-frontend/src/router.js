@@ -25,7 +25,9 @@ const router = new Router({
       path: '/',
       // name: 'dashboard',
       // component: Dashboard,
-      redirect: '/transactions',
+      redirect: {
+        name: 'transactionsIndex'
+      }
     },
     ,
     {

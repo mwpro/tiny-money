@@ -76,7 +76,7 @@
       <v-icon @click="approveTransaction()">check</v-icon>
       <v-icon @click="openRejectTransaction()">close</v-icon>
     </td>
-    <v-dialog v-model="isRejectTransactionActive" persistent max-width="600"><!-- TODO move to other component -->
+    <v-dialog v-model="isRejectTransactionActive" persistent max-width="600">
       <v-card>
         <v-card-title class="headline">Czy na pewno chcesz odrzucić transakcję?</v-card-title>
         <v-card-text>
@@ -133,15 +133,6 @@ export default {
       this.isRejectTransactionActive = true;
     },
     approveTransaction() {
-      // TODO this.$refs.form.validate();
-    //   if (!this.valid) {
-    //     this.$store.dispatch(
-    //       'displayErrorSnack',
-    //       'Dane transakcji są niepoprawne',
-    //       { root: true },
-    //     );
-    //     return;
-    //   }
       this.$store
         .dispatch('buffer/approveTransactionAction', {
                 "id": this.bufferedTransaction.id,
