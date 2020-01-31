@@ -84,14 +84,14 @@ export default {
           addTransactionResult = undefined;
         }
         commit('approveTransaction', transaction);
-        // addTransactionResult.addedTags.forEach((t) => {
-        //   dispatch('tags/addTagAction', t, { root: true });
-        // });
+        addTransactionResult.newTags.forEach((t) => {
+          dispatch('tags/addTagAction', t, { root: true });
+        });
         
-        // if (transaction.vendor.id === null) { 
-        //   dispatch('vendors/addVendorAction', addTransactionResult.transaction.vendor, { root: true });
-        // }
-        return addTransactionResult;
+        if (addTransactionResult.newVendor) { 
+          dispatch('vendors/addVendorAction', addTransactionResult.newVendor, { root: true });
+        }
+        return addTransactionResult.transaction;
       });
     },
 
