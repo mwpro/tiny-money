@@ -26,9 +26,10 @@ namespace MW.TinyMoney.Api.Controllers
     {
         private readonly static CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
 
-        // (?'transactionDate'\d{4}.\d{2}.\d{2})\s(?'postingDate'\d{4}.\d{2}.\d{2})\s(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\d+\s)?\d{1,3},\d{2})\s(?>-?(?>\d+\s)?\d{1,3},\d{2})
+        // (?'transactionDate'\d{4}.\d{2}.\d{2})\s(?'postingDate'\d{4}.\d{2}.\d{2})\s(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\d+\s)?\d{1,3},\d{2})\s(?>(?>-?(?>\d+\s)?\d{1,3},\d{2})|(?>PLN$))
         private static Regex statementRegex = new Regex(
-            "(?'transactionDate'\\d{4}.\\d{2}.\\d{2})\\s(?'postingDate'\\d{4}.\\d{2}.\\d{2})\\s(?'transactionDecription'(?:.*?\\r?\\n?)*)(?'transactionAmount'-?(?>\\d+\\s)?\\d{1,3},\\d{2})\\s(?>-?(?>\\d+\\s)?\\d{1,3},\\d{2})");
+            "(?'transactionDate'\\d{4}.\\d{2}.\\d{2})\\s(?'postingDate'\\d{4}.\\d{2}.\\d{2})\\s(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\\d+\\s)?\\d{1,3},\\d{2})\\s(?>(?>-?(?>\\d+\\s)?\\d{1,3},\\d{2})|(?>PLN$))",
+            RegexOptions.None, TimeSpan.FromSeconds(5));
 
         public IEnumerable<BufferedTransaction> Parse(string rawContent)
         {
