@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed50be27-9d82-4c7d-973a-5373bb780551" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -74,8 +71,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="268">
-              <caret line="135" column="40" selection-start-line="135" selection-start-column="40" selection-end-line="135" selection-end-column="40" />
+            <state relative-caret-position="-1255">
+              <caret line="37" column="58" selection-start-line="37" selection-start-column="58" selection-end-line="37" selection-end-column="58" />
             </state>
           </provider>
         </entry>
@@ -195,12 +192,12 @@
       <updated>1586970271219</updated>
       <workItem from="1586970274054" duration="288000" />
       <workItem from="1586970789793" duration="137000" />
-      <workItem from="1586970948478" duration="3352000" />
+      <workItem from="1586970948478" duration="5429000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="3777000" />
+    <option name="totallyTimeSpent" value="5854000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -290,9 +287,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/package.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/transactions/TransactionsIndex.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -327,10 +321,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/package.json">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="135" column="40" selection-start-line="135" selection-start-column="40" selection-end-line="135" selection-end-column="40" />
+        <state relative-caret-position="-1255">
+          <caret line="37" column="58" selection-start-line="37" selection-start-column="58" selection-end-line="37" selection-end-column="58" />
         </state>
       </provider>
     </entry>

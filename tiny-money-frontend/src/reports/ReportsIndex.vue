@@ -34,8 +34,8 @@
           >
             <v-layout fill-height>
               <v-flex xs12 align-end flexbox>
-                <span class="headline">wykres liniowy: y1: wydatki, y2: budżet, x: miesiące. Konfiguracja: tylko dla miesiąc - wszystkie</span>
-                <canvas id="myChart" width="400" height="400"></canvas>
+                <span class="headline">wykres słupkowy: y: wydatki (z rozdziałem na kategorie), x: miesiące. tylko dla miesiąc - wsztstkie</span>
+                <canvas id="myChart" width="400" height="200"></canvas>
               </v-flex>
             </v-layout>
           </v-container>
@@ -84,7 +84,7 @@
           flex: 4
         },
         {
-          title: 'wykres słupkowy: y: wydatki (z rozdziałem na kategorie), x: miesiące. tylko dla miesiąc - wsztstkie',
+          title: 'wykres liniowy: y1: wydatki, y2: budżet, x: miesiące. Konfiguracja: tylko dla miesiąc - wszystkie',
           flex: 12
         },
         {
@@ -104,28 +104,24 @@
           flex: 6
         },
       ],
-      labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+      labels: [new Date(2020, 0, 1), new Date(2020, 1, 1), new Date(2020, 2, 1), new Date(2020, 3, 1), new Date(2020, 4, 1), new Date(2020, 5, 1)],
       datasets: [{
-        label: '# of Votes',
-        data: [12, 19, 3, 5, 2, 3],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)',
-          'rgba(54, 162, 235, 0.2)',
-          'rgba(255, 206, 86, 0.2)',
-          'rgba(75, 192, 192, 0.2)',
-          'rgba(153, 102, 255, 0.2)',
-          'rgba(255, 159, 64, 0.2)'
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-          'rgba(255, 159, 64, 1)'
-        ],
-        borderWidth: 1
-      }]
+        label: 'Kategoria 1',
+        data: [3000, 5000, 1000, 3032, 1349, 4242],
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      },
+        {
+          label: 'Kategoria 2',
+          data: [400, 21, 505, 420, 0, 15],
+          backgroundColor: 'rgba(255, 206, 86, 0.5)',
+        },
+        {
+          label: 'Kategoria 3',
+          data: [0, 3, 0, 0, 4000, 0],
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        }]
+      // 'rgba(153, 102, 255, 0.2)',
+      // 'rgba(255, 159, 64, 0.2)'
     }),
     mounted() {
       var ctx = document.getElementById('myChart');
@@ -137,10 +133,18 @@
         },
         options: {
           scales: {
+            xAxes: [{
+              type: 'time',
+              time: {
+                unit: 'month'
+              },
+              stacked: true,
+            }],
             yAxes: [{
               ticks: {
                 beginAtZero: true
-              }
+              },
+              stacked: true,
             }]
           }
         }
