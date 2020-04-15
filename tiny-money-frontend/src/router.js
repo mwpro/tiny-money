@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 
-import Dashboard from './home/Dashboard.vue';
 import BufferIndex from './buffer/BufferIndex.vue';
 import TransactionsIndex from './transactions/TransactionsIndex.vue';
 import BudgetsIndex from './budgets/BudgetsIndex.vue';
@@ -12,6 +11,7 @@ import EditCategory from './categories/EditCategory.vue';
 import EditSubcategory from './categories/EditSubcategory.vue';
 import Callback from './auth/Callback.vue';
 import Login from './auth/Login.vue';
+import ReportsIndex from './reports/ReportsIndex.vue'
 
 import InitializeBudget from './budgets/InitializeBudget.vue';
 
@@ -49,7 +49,7 @@ const router = new Router({
     {
       path: '/transactions/:year/:month',
       name: 'transactions',
-      component: TransactionsIndex,      
+      component: TransactionsIndex,
     },
     {
       path: '/budgets',
@@ -108,6 +108,11 @@ const router = new Router({
       path: '/login',
       name: 'login',
       component: Login,
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: ReportsIndex,
     },
   ],
 });
