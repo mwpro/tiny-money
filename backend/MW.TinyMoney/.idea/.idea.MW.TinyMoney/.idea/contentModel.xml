@@ -70,6 +70,7 @@
       <e p="auth0-js" t="IncludeRecursive" />
       <e p="axios" t="IncludeRecursive" />
       <e p="babel-eslint" t="IncludeRecursive" />
+      <e p="chart.js" t="IncludeRecursive" />
       <e p="eslint" t="IncludeRecursive" />
       <e p="eslint-plugin-vue" t="IncludeRecursive" />
       <e p="stylus" t="IncludeRecursive" />

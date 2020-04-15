@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed50be27-9d82-4c7d-973a-5373bb780551" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/src/router.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/src/router.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -37,8 +39,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/App.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-10">
-              <caret line="69" column="32" lean-forward="true" selection-start-line="69" selection-start-column="32" selection-end-line="69" selection-end-column="32" />
+            <state relative-caret-position="290">
+              <caret line="89" column="38" selection-start-line="89" selection-start-column="38" selection-end-line="89" selection-end-column="38" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/budgets/BudgetsIndex.vue">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="289">
+              <caret line="131" column="36" lean-forward="true" selection-start-line="131" selection-start-column="36" selection-end-line="131" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -63,9 +74,16 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="64" column="50" lean-forward="true" selection-start-line="64" selection-start-column="50" selection-end-line="64" selection-end-column="50" />
+            <state relative-caret-position="268">
+              <caret line="135" column="40" selection-start-line="135" selection-start-column="40" selection-end-line="135" selection-end-column="40" />
             </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/budgets/InitializeBudget.vue">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-729" />
           </provider>
         </entry>
       </file>
@@ -121,6 +139,12 @@
               <item name="tiny-money-frontend" type="9a108dff:SolutionExplorerFileNode" />
               <item name="src" type="9a108dff:SolutionExplorerFileNode" />
             </path>
+            <path>
+              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
+              <item name="tiny-money-frontend" type="9a108dff:SolutionExplorerFileNode" />
+              <item name="src" type="9a108dff:SolutionExplorerFileNode" />
+              <item name="budgets" type="9a108dff:SolutionExplorerFileNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -171,12 +195,12 @@
       <updated>1586970271219</updated>
       <workItem from="1586970274054" duration="288000" />
       <workItem from="1586970789793" duration="137000" />
-      <workItem from="1586970948478" duration="2450000" />
+      <workItem from="1586970948478" duration="3352000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2875000" />
+    <option name="totallyTimeSpent" value="3777000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -197,7 +221,7 @@
       <window_info id="Capture Tool" order="3" />
       <window_info id="Favorites" order="4" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3289855" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -209,7 +233,7 @@
       <window_info anchor="bottom" id="Database Changes" order="10" />
       <window_info anchor="bottom" id="Unit Tests" order="11" />
       <window_info anchor="bottom" id="REST Client" order="12" />
-      <window_info anchor="bottom" id="Terminal" order="13" visible="true" weight="0.3289855" />
+      <window_info anchor="bottom" id="Terminal" order="13" weight="0.3289855" />
       <window_info anchor="bottom" id="Event Log" order="14" side_tool="true" />
       <window_info anchor="bottom" id="Build" order="15" visible="true" weight="0.3289855" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -269,13 +293,6 @@
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/package.json">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/App.vue">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-10">
-          <caret line="69" column="32" lean-forward="true" selection-start-line="69" selection-start-column="32" selection-end-line="69" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/transactions/TransactionsIndex.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -291,10 +308,29 @@
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/views/Home.vue">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/App.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="89" column="38" selection-start-line="89" selection-start-column="38" selection-end-line="89" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/budgets/InitializeBudget.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-729" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/budgets/BudgetsIndex.vue">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="131" column="36" lean-forward="true" selection-start-line="131" selection-start-column="36" selection-end-line="131" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/../../tiny-money-frontend/src/reports/ReportsIndex.vue">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="64" column="50" lean-forward="true" selection-start-line="64" selection-start-column="50" selection-end-line="64" selection-end-column="50" />
+        <state relative-caret-position="268">
+          <caret line="135" column="40" selection-start-line="135" selection-start-column="40" selection-end-line="135" selection-end-column="40" />
         </state>
       </provider>
     </entry>
