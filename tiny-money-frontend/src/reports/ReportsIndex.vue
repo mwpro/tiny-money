@@ -23,7 +23,7 @@
           </v-container>
         </v-card>
       </v-flex>
-      <v-flex xs12>
+      <v-flex xs6>
         <v-card>
           <v-container
             fill-height
@@ -32,14 +32,14 @@
           >
             <v-layout fill-height>
               <v-flex xs12 align-end flexbox>
-                <span class="headline">wykres słupkowy: y: wydatki (z rozdziałem na kategorie), x: miesiące. tylko dla miesiąc - wsztstkie</span>
+                <span class="headline">Wydatki per kategoria</span>
                 <expenses-by-month-chart />
               </v-flex>
             </v-layout>
           </v-container>
         </v-card>
       </v-flex>
-      <v-flex xs12>
+      <v-flex xs6>
         <v-card>
           <v-container
             fill-height
@@ -48,18 +48,14 @@
           >
             <v-layout fill-height>
               <v-flex xs12 align-end flexbox>
-                <span class="headline">wykres liniowy: y1: wydatki, y2: budżet, x: miesiące. Konfiguracja: tylko dla miesiąc - wszystkie</span>
+                <span class="headline">Budżet vs wydatki</span>
                 <months-summary-chart />
               </v-flex>
             </v-layout>
           </v-container>
         </v-card>
       </v-flex>
-      <v-flex
-        v-for="card in reportsMocks"
-        :key="card.title"
-        v-bind="{ [`xs${card.flex}`]: true }"
-      >
+      <v-flex xs6>
         <v-card>
           <v-container
             fill-height
@@ -68,7 +64,56 @@
           >
             <v-layout fill-height>
               <v-flex xs12 align-end flexbox>
-                <span class="headline" v-text="card.title"></span>
+                <span class="headline">Kategorie sumarycznie</span>
+                <categories-breakdown-chart />
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card>
+      </v-flex>
+      <v-flex xs6>
+        <v-card>
+          <v-container
+            fill-height
+            fluid
+            pa-2
+          >
+            <v-layout fill-height>
+              <v-flex xs12 align-end flexbox>
+                <span class="headline">TOP 50 sprzedawców</span>
+                <top-sellers-table />
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card>
+      </v-flex>
+      <v-flex xs6>
+        <v-card>
+          <v-container
+            fill-height
+            fluid
+            pa-2
+          >
+            <v-layout fill-height>
+              <v-flex xs12 align-end flexbox>
+                <span class="headline">TOP 50 tagów</span>
+                <top-tags-table />
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-card>
+      </v-flex>
+      <v-flex xs6>
+        <v-card>
+          <v-container
+            fill-height
+            fluid
+            pa-2
+          >
+            <v-layout fill-height>
+              <v-flex xs12 align-end flexbox>
+                <span class="headline">TOP 50 transakcji</span>
+                <top-transactions-table />
               </v-flex>
             </v-layout>
           </v-container>
@@ -81,45 +126,15 @@
 <script>
   import ExpensesByMonthChart from './ExpensesByMonthChart.vue';
   import MonthsSummaryChart from "./MonthsSummaryChart.vue";
+  import CategoriesBreakdownChart from "./CategoriesBreakdownChart.vue";
+  import TopSellersTable from "./TopSellersTable.vue";
+  import TopTransactionsTable from "./TopTransactionsTable.vue";
+  import TopTagsTable from "./TopTagsTable.vue";
 
   export default {
     name: "",
-    components: { ExpensesByMonthChart, MonthsSummaryChart },
+    components: { ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart, TopSellersTable, TopTransactionsTable, TopTagsTable },
     data: () => ({
-      reportsMocks: [
-        {
-          title: 'gauge: wydatki total',
-          flex: 4
-        },
-        {
-          title: 'gauge: budżet total',
-          flex: 4
-        },
-        {
-          title: 'gauge: realizacja budżetu +/- i %',
-          flex: 4
-        },
-        {
-          title: 'wykres kołowy: wydatki - zewnętrzne koło kategorie, wewnątrz podział na subkategorie.',
-          flex: 6
-        },
-        {
-          title: 'tabela: top sprzedawcy',
-          flex: 6
-        },
-        {
-          title: 'tabela: top tagi',
-          flex: 6
-        },
-        {
-          title: 'tabela: top transakcje',
-          flex: 6
-        },
-      ]
     }),
   }
 </script>
-
-<style scoped>
-
-</style>
