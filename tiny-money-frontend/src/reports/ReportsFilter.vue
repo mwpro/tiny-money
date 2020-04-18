@@ -8,9 +8,10 @@
       >
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
-            <v-treeview :items="availableMonths" selectable v-model="selectedMonths"></v-treeview>
+            <v-treeview :items="availableMonths" selectable v-model="selectedMonths" v-show="monthPickerVisible"></v-treeview>
             Zakres czasu:
             <span v-for="m in selectedMonthsUi"> {{ m.year }}-{{m.month}} </span>
+            <a @click="monthPickerVisible = true" v-show="!monthPickerVisible">Zmień</a><br>
             <v-btn flat @click="applyFilters()">Zastosuj</v-btn>
           </v-flex>
         </v-layout>
@@ -23,7 +24,8 @@
   export default {
     data: () => {
       return {
-        selectedMonths: []
+        selectedMonths: [],
+        monthPickerVisible: false,
       }
     },
     created() {
@@ -53,6 +55,7 @@
     methods: {
       applyFilters() {
         this.$store.dispatch('reports/setSelectedMonths', this.selectedMonthsUi)
+        this.monthPickerVisible = false;
       }
     }
   }
