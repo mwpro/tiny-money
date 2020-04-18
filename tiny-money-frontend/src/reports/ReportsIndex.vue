@@ -8,22 +8,8 @@
       <expenses-by-month-chart />
       <months-summary-chart />
       <categories-breakdown-chart />
-      <v-flex xs6>
-        <v-card>
-          <v-container
-            fill-height
-            fluid
-            pa-2
-          >
-            <v-layout fill-height>
-              <v-flex xs12 align-end flexbox>
-                <span class="headline">TOP 50 sprzedawców</span>
-                <top-sellers-table />
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
-      </v-flex>
+      <top-vendors-table />
+
       <v-flex xs6>
         <v-card>
           <v-container
@@ -65,17 +51,19 @@
   import ExpensesByMonthChart from './ExpensesByMonthChart.vue';
   import MonthsSummaryChart from "./MonthsSummaryChart.vue";
   import CategoriesBreakdownChart from "./CategoriesBreakdownChart.vue";
-  import TopSellersTable from "./TopSellersTable.vue";
+  import TopVendorsTable from "./TopVendorsTable.vue";
   import TopTransactionsTable from "./TopTransactionsTable.vue";
   import TopTagsTable from "./TopTagsTable.vue";
 
   export default {
     name: "",
-    components: { ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart, TopSellersTable, TopTransactionsTable, TopTagsTable },
+    components: { ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart,
+      TopVendorsTable, TopTransactionsTable, TopTagsTable },
     data: () => ({
     }),
     created() {
       this.$store.dispatch('categories/getCategories');
+      this.$store.dispatch('vendors/getVendorsAction');
     }
   }
 </script>

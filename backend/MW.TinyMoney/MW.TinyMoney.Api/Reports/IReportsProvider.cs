@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using System.Collections.Generic;
@@ -13,6 +13,8 @@ namespace MW.TinyMoney.Api.Reports
         IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
+            IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(
             IEnumerable<DateTime> reportParametersMonths);
     }
 
@@ -73,6 +75,18 @@ namespace MW.TinyMoney.Api.Reports
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months 
             GROUP BY
                    sc.parent_category_id";
+        
+        private const string TopVendorsReportQuery =
+            @"SELECT
+                   t.vendor_id AS `xLabel`,
+                   'expenses' AS `series`,
+                   SUM(amount) AS `value`
+            FROM transaction t 
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months 
+            GROUP BY t.vendor_id
+            ORDER BY SUM(amount) DESC
+            LIMIT 50";
+        
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths)
@@ -105,6 +119,18 @@ namespace MW.TinyMoney.Api.Reports
             {
                 connection.Open();
                 return connection.Query<ReportQueryResult<decimal>>(CategoriesBreakdownReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+        
+        public IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(TopVendorsReportQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });
