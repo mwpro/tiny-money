@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MW.TinyMoney.Api.Controllers;
 
 namespace MW.TinyMoney.Api.Reports
 {
@@ -28,10 +29,12 @@ namespace MW.TinyMoney.Api.Reports
     public class ReportsController : ControllerBase
     {
         private readonly IReportsProvider _reportsProvider;
+        private readonly ITransactionStore _transactionStore;
 
-        public ReportsController(IReportsProvider reportsProvider)
+        public ReportsController(IReportsProvider reportsProvider, ITransactionStore transactionStore)
         {
             _reportsProvider = reportsProvider;
+            _transactionStore = transactionStore;
         }
 
         [HttpGet, Route("availableMonths")]
@@ -102,6 +105,13 @@ namespace MW.TinyMoney.Api.Reports
             var result = BuildReportModel(reportData);
 
             return Ok(result);
+        }
+
+        [HttpGet, Route("topTransactions")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<Transaction.ApiModels.Transaction>))]
+        public async Task<IActionResult> GetTopTransactionsReport([FromQuery]ReportParameters reportParameters)
+        {
+            return Ok(_transactionStore.GetTopTransactions(reportParameters.Months));
         }
 
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)

@@ -10,22 +10,7 @@
       <categories-breakdown-chart />
       <top-vendors-table />
       <top-tags-table />
-      <v-flex xs6>
-        <v-card>
-          <v-container
-            fill-height
-            fluid
-            pa-2
-          >
-            <v-layout fill-height>
-              <v-flex xs12 align-end flexbox>
-                <span class="headline">TOP 50 transakcji</span>
-                <top-transactions-table />
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
-      </v-flex>
+      <top-transactions-table />
     </v-layout>
   </v-container>
 </template>

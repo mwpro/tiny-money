@@ -71,8 +71,6 @@
             this.loaded = true;
           });
       }
-    },
-    async created() {
     }
   }
 </script>
