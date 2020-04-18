@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using System.Collections.Generic;
@@ -15,6 +15,8 @@ namespace MW.TinyMoney.Api.Reports
         IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(
+            IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(
             IEnumerable<DateTime> reportParametersMonths);
     }
 
@@ -87,6 +89,17 @@ namespace MW.TinyMoney.Api.Reports
             ORDER BY SUM(amount) DESC
             LIMIT 50";
         
+        private const string TopTagsReportQuery =
+            @"SELECT
+                tt.tag_id AS `xLabel`,
+                'expenses' AS `series`,
+                SUM(amount) AS `value`
+            FROM transaction t
+                JOIN transaction_tag tt ON tt.transaction_id = t.id
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            GROUP BY tt.tag_id
+            ORDER BY SUM(amount) DESC
+            LIMIT 50";
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths)
@@ -131,6 +144,18 @@ namespace MW.TinyMoney.Api.Reports
             {
                 connection.Open();
                 return connection.Query<ReportQueryResult<decimal>>(TopVendorsReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+        
+        public IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(TopTagsReportQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });

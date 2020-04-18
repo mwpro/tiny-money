@@ -81,13 +81,23 @@ namespace MW.TinyMoney.Api.Reports
             
             return Ok(result);
         }
-        
-        
+
         [HttpGet, Route("topVendors")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
         public async Task<IActionResult> GetTopVendorsReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareTopVendorsReport(reportParameters.Months);
+            
+            var result = BuildReportModel(reportData);
+
+            return Ok(result);
+        }
+        
+        [HttpGet, Route("topTags")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public async Task<IActionResult> GetTopTagsReport([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareTopTagsReport(reportParameters.Months);
             
             var result = BuildReportModel(reportData);
 
