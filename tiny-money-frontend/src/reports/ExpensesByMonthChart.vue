@@ -11,7 +11,7 @@
             <span class="headline">Wydatki per kategoria</span>
             <bar-chart v-if="loaded"
                        :chartdata="chartData"
-                       :options="chartOptions" />
+                       :options="chartOptions"/>
             <v-progress-linear v-if="!loaded" :indeterminate="true"></v-progress-linear>
 
           </v-flex>
@@ -22,13 +22,15 @@
 </template>
 
 <script>
-  import BarChart from './BarChart.vue'
+  import BarChart from './charts/BarChart.vue'
   import axios from 'axios';
   import ColorPalette from './ColorPalette.js';
-  import { mapState } from 'vuex';
+  import {mapState} from 'vuex';
+
+  const qs = require('qs');
 
   export default {
-    components: { BarChart },
+    components: {BarChart},
     data: () => ({
       loaded: false,
       chartData: {},
@@ -51,12 +53,26 @@
       }
     }),
     computed: {
-      ...mapState('categories', { categories: 'categoriesList' }),
+      ...mapState('categories', {categories: 'categoriesList'}),
+      ...mapState('reports', {selectedMonths: 'selectedMonths'}),
     },
-    async mounted() {
-      this.$store.dispatch('categories/getCategories').then(x => {
+    watch: {
+      selectedMonths () {
+        this.loadChart();
+      }
+    },
+    methods: {
+      loadChart() {
+        let selectedMonths = this.selectedMonths
+          .map(m => `${m.year}-${m.month}-01`);
         axios // todo use store here
-          .get(`${process.env.VUE_APP_API_NEW}/api/reports/expensesByMonth`)
+          .get(`${process.env.VUE_APP_API_NEW}/api/reports/expensesByMonth`, {
+              params: {months: selectedMonths},
+              paramsSerializer: function(params) {
+                return qs.stringify(params, {arrayFormat: 'repeat'})
+              },
+            }
+          )
           .then((response) => {
             if (response.status !== 200) throw Error(response.message);
             this.chartData = response.data;
@@ -67,7 +83,7 @@
             });
             this.loaded = true;
           });
-      });
+      }
     }
   }
 </script>

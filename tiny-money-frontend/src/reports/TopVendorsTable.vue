@@ -12,7 +12,7 @@
             <v-data-table
               :loading="!loaded"
               :headers="headers"
-              :items="topTags"
+              :items="topVendors"
               :pagination.sync="pagination"
               class="elevation-1"
             >
@@ -51,12 +51,13 @@
           },
           {text: 'Suma', value: 'sum'},
         ],
-        topTags: []
+        topVendors: [
+        ]
       }
     },
     computed: {
       ...mapState('reports', {selectedMonths: 'selectedMonths'}),
-      ...mapGetters('tags', { tags: 'tags' }),
+      ...mapGetters('vendors', { vendors: 'vendors' }),
     },
     watch: {
       selectedMonths() {
@@ -68,7 +69,7 @@
         let selectedMonths = this.selectedMonths
           .map(m => `${m.year}-${m.month}-01`);
         axios // todo use store here
-          .get(`${process.env.VUE_APP_API_NEW}/api/reports/topTags`, {
+          .get(`${process.env.VUE_APP_API_NEW}/api/reports/topVendors`, {
               params: {months: selectedMonths},
               paramsSerializer: function (params) {
                 return qs.stringify(params, {arrayFormat: 'repeat'})
@@ -78,9 +79,9 @@
           .then((response) => {
             if (response.status !== 200) throw Error(response.message);
 
-            this.topTags = response.data.labels.map((tagId, i) => {
+            this.topVendors = response.data.labels.map((vendorId, i) => {
               return {
-                name: this.tags.filter(v => v.id == tagId)[0].name,
+                name: this.vendors.filter(v => v.id == vendorId)[0].name,
                 sum: response.data.datasets[0].data[i]
               };
             });

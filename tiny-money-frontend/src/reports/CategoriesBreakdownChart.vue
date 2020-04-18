@@ -1,30 +1,76 @@
+<template>
+  <v-flex xs6>
+    <v-card>
+      <v-container
+        fill-height
+        fluid
+        pa-2
+      >
+        <v-layout fill-height>
+          <v-flex xs12 align-end flexbox>
+            <span class="headline">Kategorie sumarycznie</span>
+            <doughnut-chart v-if="loaded"
+                        :chartdata="chartData"
+                        :options="chartOptions"/>
+            <v-progress-linear v-if="!loaded" :indeterminate="true"></v-progress-linear>
+
+          </v-flex>
+        </v-layout>
+      </v-container>
+    </v-card>
+  </v-flex>
+</template>
+
 <script>
-  import {Doughnut} from "vue-chartjs";
+  import DoughnutChart from "./charts/DoughnutChart.vue";
+  import {mapState} from "vuex";
+  import axios from "axios";
+  import ColorPalette from "./ColorPalette";
+  const qs = require('qs');
 
   export default {
-    extends: Doughnut,
+    components: {DoughnutChart},
     data: () => ({
-      chartData: {
-        labels: [ "Jedzenie", "Opłaty", "Abonamenty", "Sprzęty", "Zwierzęta", "Inne"],
-        datasets: [{
-          label: 'Budżet',
-          fill: false,
-          data: [2300, 1500, 540, 2000, 450, 432],
-          backgroundColor: [
-            'rgba(255, 99, 132, 0.5)',
-            'rgba(255, 206, 86, 0.5)',
-            'rgba(75, 192, 192, 0.5)',
-            'rgba(192, 75, 192, 0.5)',
-            'rgba(11, 75, 192, 0.5)',
-            'rgba(192, 192, 75, 0.5)'
-          ],
-        }],
-      },
-      chartOptions: {
-      }
+      loaded: false,
+      chartData: {},
+      chartOptions: {}
     }),
-    mounted() {
-      this.renderChart(this.chartData, this.chartOptions)
+    computed: {
+      ...mapState('categories', {categories: 'categoriesList'}),
+      ...mapState('reports', {selectedMonths: 'selectedMonths'}),
+    },
+    watch: {
+      selectedMonths () {
+        this.loadChart();
+      }
+    },
+    methods: {
+      loadChart() {
+        let selectedMonths = this.selectedMonths
+          .map(m => `${m.year}-${m.month}-01`);
+        axios // todo use store here
+          .get(`${process.env.VUE_APP_API_NEW}/api/reports/categoriesBreakdown`, {
+              params: {months: selectedMonths},
+              paramsSerializer: function(params) {
+                return qs.stringify(params, {arrayFormat: 'repeat'})
+              },
+            }
+          )
+          .then((response) => {
+            if (response.status !== 200) throw Error(response.message);
+            this.chartData = response.data;
+            let i = 0;
+            this.chartData.datasets.forEach(ds => {
+              ds.backgroundColor = ds.data.map(d => ColorPalette.getColor(i++));
+            });
+            this.chartData.labels = this.chartData.labels
+              .map(l =>
+                this.categories.filter(c => c.id == l)[0].name
+              );
+
+            this.loaded = true;
+          });
+      }
     }
   }
 </script>
