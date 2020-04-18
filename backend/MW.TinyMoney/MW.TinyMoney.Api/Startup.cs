@@ -16,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Controllers;
 using MW.TinyMoney.Api.Infrasatructure;
+using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Vendors;
 
@@ -65,6 +66,7 @@ namespace MW.TinyMoney.Api
             services.AddTransient<ITransactionStore, MySqlTransactionStore>();
             services.AddTransient<IVendorStore, MySqlVendorStore>();
             services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
+            services.AddTransient<IReportsProvider, MySqlReportsProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

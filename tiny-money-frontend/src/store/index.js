@@ -7,6 +7,7 @@ import transactionsModule from './transactions';
 import budgetsModule from './budgets';
 import tagsModule from './tags';
 import vendorsModule from './vendors';
+import reportsModule from "./reports";
 
 Vue.use(Vuex);
 
@@ -19,6 +20,7 @@ export default new Vuex.Store({
     budgets: budgetsModule,
     tags: tagsModule,
     vendors: vendorsModule,
+    reports: reportsModule,
   },
   state: {
     snackText: '',

@@ -87,6 +87,7 @@ export default {
           icon: 'format_list_bulleted',
           route: '/categories',
         },
+        { title: 'Raporty', icon: 'bar_chart', route: '/reports' },
       ],
     };
   },
