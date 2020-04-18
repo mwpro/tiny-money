@@ -102,5 +102,32 @@ namespace MW.TinyMoney.Api.Reports
             
             return Ok(result);
         }
+        
+        [HttpGet, Route("categoriesBreakdown")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public async Task<IActionResult> GetCategoriesBreakdownReport([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareCategoriesBreakdownReport(reportParameters.Months);
+            
+            var labels = reportData.Select(x => x.XLabel).Distinct();
+            var result = new ReportModel<decimal>()
+            {
+                Labels = labels,
+                Datasets = reportData.GroupBy(x => x.Series).Select(series =>
+                {
+                    var dataSet = new ReportDataSet<decimal>()
+                    {
+                        Label = series.Key,
+                        Data = labels.Select(xLabel =>
+                        {
+                            return series.FirstOrDefault(x => x.XLabel == xLabel)?.Value ?? 0;
+                        })
+                    };
+                    return dataSet;
+                }) 
+            };
+            
+            return Ok(result);
+        }
     }
 }

@@ -84,9 +84,6 @@
             this.loaded = true;
           });
       }
-    },
-    async created() {
-      this.$store.dispatch('categories/getCategories');
     }
   }
 </script>

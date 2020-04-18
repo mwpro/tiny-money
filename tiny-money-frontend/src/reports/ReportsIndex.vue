@@ -7,22 +7,7 @@
       <reports-filter />
       <expenses-by-month-chart />
       <months-summary-chart />
-      <v-flex xs6>
-        <v-card>
-          <v-container
-            fill-height
-            fluid
-            pa-2
-          >
-            <v-layout fill-height>
-              <v-flex xs12 align-end flexbox>
-                <span class="headline">Kategorie sumarycznie</span>
-                <categories-breakdown-chart />
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
-      </v-flex>
+      <categories-breakdown-chart />
       <v-flex xs6>
         <v-card>
           <v-container
@@ -88,6 +73,9 @@
     name: "",
     components: { ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart, TopSellersTable, TopTransactionsTable, TopTagsTable },
     data: () => ({
-    })
+    }),
+    created() {
+      this.$store.dispatch('categories/getCategories');
+    }
   }
 </script>

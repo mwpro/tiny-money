@@ -12,6 +12,8 @@ namespace MW.TinyMoney.Api.Reports
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
             IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
+            IEnumerable<DateTime> reportParametersMonths);
     }
 
     public class ReportQueryResult<TValue>
@@ -60,6 +62,17 @@ namespace MW.TinyMoney.Api.Reports
                        DATE_FORMAT(transaction_date, '%Y-%m'),
                        sc.parent_category_id
                 ORDER BY transaction_date";
+        
+        private const string CategoriesBreakdownReportQuery =
+            @"SELECT
+                   sc.parent_category_id AS `xLabel`,
+                   'expenses' AS `series`,
+                   SUM(amount) AS `value`
+            FROM transaction t 
+            LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months 
+            GROUP BY
+                   sc.parent_category_id";
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths)
@@ -80,6 +93,18 @@ namespace MW.TinyMoney.Api.Reports
             {
                 connection.Open();
                 return connection.Query<ReportQueryResult<decimal>>(MonthsSummaryReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+        
+        public IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(CategoriesBreakdownReportQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });
