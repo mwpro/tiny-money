@@ -10,28 +10,38 @@ namespace MW.TinyMoney.Api.Reports
     [ApiController, Route("/api/reports"), Authorize]
     public class ReportsController : ControllerBase
     {
-        private readonly IReportsProvider _categoriesStore;
+        private readonly IReportsProvider _reportsProvider;
 
-        public ReportsController(IReportsProvider categoriesStore)
+        public ReportsController(IReportsProvider reportsProvider)
         {
-            _categoriesStore = categoriesStore;
+            _reportsProvider = reportsProvider;
         }
 
         [HttpGet, Route("expensesByMonth")]
-        //[ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
         public async Task<IActionResult> GetExpensesByMonthReport()
         {
-//            var result = _categoriesStore.GetCategories().Select(x => new CategoryDto() 
-//            {
-//                Id = x.Id,
-//                Name = x.Name,
-//                Subcategories = x.Subcategories.Select(s => new SubcategoryDto()
-//                {
-//                    Id = s.Id,
-//                    Name = s.Name
-//                })
-//            });
-            return Ok();
+            var reportData = _reportsProvider.PrepareExpensesByMonthReport();
+            
+            var labels = reportData.Select(x => x.XLabel).Distinct();
+            var result = new ReportModel<decimal>()
+            {
+                Labels = labels,
+                Datasets = reportData.GroupBy(x => x.Series).Select(series =>
+                {
+                    var dataSet = new ReportDataSet<decimal>()
+                    {
+                        Label = series.Key,
+                        Data = labels.Select(xLabel =>
+                        {
+                            return series.FirstOrDefault(x => x.XLabel == xLabel)?.Value ?? 0;
+                        })
+                    };
+                    return dataSet;
+                }) 
+            };
+            
+            return Ok(result);
         }
     }
 }

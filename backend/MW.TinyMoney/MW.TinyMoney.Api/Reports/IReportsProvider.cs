@@ -7,7 +7,14 @@ namespace MW.TinyMoney.Api.Reports
 {
     public interface IReportsProvider
     {
-        void ExpensesByMonthReport();
+        IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport();
+    }
+
+    public class ReportQueryResult<TValue>
+    {
+        public string XLabel { get; set; }
+        public string Series { get; set; }
+        public TValue Value { get; set; }
     }
 
     public class MySqlReportsProvider : IReportsProvider
@@ -21,36 +28,21 @@ namespace MW.TinyMoney.Api.Reports
         
         private const string ExpensesByMonthReportQuery =
               @"SELECT
-                       YEAR(transaction_date),
-                       MONTH(transaction_date), 
-                       sc.parent_category_id,
-                       SUM(amount) 
+                       DATE_FORMAT(transaction_date, '%Y-%m') AS `xLabel`,
+                       sc.parent_category_id AS `series`,
+                       SUM(amount) AS `value`
                 FROM transaction t 
                 LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
-                GROUP BY 
-                         YEAR(transaction_date),
-                         MONTH(transaction_date),
-                         sc.parent_category_id";
+                GROUP BY
+                       DATE_FORMAT(transaction_date, '%Y-%m'),
+                       sc.parent_category_id";
 
-        public void ExpensesByMonthReport()
+        public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport()
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
-//                var categoriesDictionary = new Dictionary<int, Category>();
-//
-//                connection.Open();
-//                return connection.Query<Category, Subcategory, Category>(GetCategoriesQuery, (category, subcategory) =>
-//                {
-//                    if (!categoriesDictionary.TryGetValue(category.Id, out Category categoryEntry))
-//                    {
-//                        categoryEntry = category;
-//                        categoryEntry.Subcategories = new List<Subcategory>();
-//                        categoriesDictionary.Add(categoryEntry.Id, categoryEntry);
-//                    }
-//
-//                    categoryEntry.Subcategories.Add(subcategory);
-//                    return categoryEntry;
-//                }).Distinct().ToList();
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(ExpensesByMonthReportQuery);
             }
         }
     }

@@ -1,27 +1,13 @@
 <script>
   import { Bar } from 'vue-chartjs'
+  import axios from 'axios';
+  import ColorPalette from './ColorPalette.js';
+  import { mapState } from 'vuex';
 
   export default {
     extends: Bar,
     data: () => ({
-      chartData: {
-        labels: [new Date(2020, 0, 1), new Date(2020, 1, 1), new Date(2020, 2, 1), new Date(2020, 3, 1), new Date(2020, 4, 1), new Date(2020, 5, 1)],
-        datasets: [{
-          label: 'Kategoria 1',
-          data: [3000, 5000, 1000, 3032, 1349, 4242],
-          backgroundColor: 'rgba(255, 99, 132, 0.5)',
-        },
-        {
-          label: 'Kategoria 2',
-          data: [400, 21, 505, 420, 0, 15],
-          backgroundColor: 'rgba(255, 206, 86, 0.5)',
-        },
-        {
-          label: 'Kategoria 3',
-          data: [0, 3, 0, 0, 4000, 0],
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        }],
-      },
+      chartData: {},
       chartOptions: {
         scales: {
           xAxes: [{
@@ -40,8 +26,25 @@
         }
       }
     }),
-    mounted() {
-      this.renderChart(this.chartData, this.chartOptions)
+    computed: {
+      ...mapState('categories', { categories: 'categoriesList' }),
+    },
+    async mounted() {
+      this.$store.dispatch('categories/getCategories').then(x => {
+        axios // todo use store here
+          .get(`${process.env.VUE_APP_API_NEW}/api/reports/expensesByMonth`)
+          .then((response) => {
+            if (response.status !== 200) throw Error(response.message);
+            this.chartData = response.data;
+            let i = 0;
+            this.chartData.datasets.forEach(ds => {
+              ds.backgroundColor= ColorPalette.colors[i++%20];
+              ds.label = this.categories.filter(c => c.id == ds.label)[0].name;
+            });
+            this.renderChart(this.chartData, this.chartOptions);
+            console.log(this.categories);
+          });
+      });
     }
   }
 </script>
