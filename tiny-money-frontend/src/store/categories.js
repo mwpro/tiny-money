@@ -3,7 +3,6 @@ import axios from 'axios';
 export default {
   namespaced: true,
   state: {
-    mockIdGenerator: 100,
     categoriesList: [
     ],
   },

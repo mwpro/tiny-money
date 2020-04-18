@@ -1,19 +1,42 @@
 import axios from 'axios';
-import Vue from 'vue';
 
-//  TODO
 export default {
   namespaced: true,
   state: {
-    foo: 'bar'
+    availableMonths: [],
+    selectedMonths: [],
   },
   mutations: {
-    fooMutation(state, data) {
+    getAvailableMonths(state, data) {
+      state.availableMonths = data
+    },
+    setSelectedMonths(state, data) {
+      state.selectedMonths = data
     }
   },
   actions: {
-    fooAction({ commit }, data) {
+    getAvailableMonths({ commit, dispatch }) {
+      return axios
+        .get(`${process.env.VUE_APP_API_NEW}/api/reports/availableMonths`)
+        .then((response) => {
+          if (response.status !== 200) throw Error(response.message);
+          let availableMonths = response.data.availableMonths;
+          if (typeof availableMonths !== 'object') {
+            availableMonths = [];
+          }
 
+          commit('getAvailableMonths', availableMonths);
+        }).catch((error) => {
+          console.error(error);
+          dispatch(
+            'displayErrorSnack',
+            'Błąd przy pobieraniu miesięcy dostępnych dla raportów',
+            {root: true},
+          );
+        });
+    },
+    setSelectedMonths({ commit }, selectedMonths) {
+      commit('setSelectedMonths', selectedMonths);
     },
   },
 };

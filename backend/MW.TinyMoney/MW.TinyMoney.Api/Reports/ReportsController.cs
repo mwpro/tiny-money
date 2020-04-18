@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -7,6 +8,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MW.TinyMoney.Api.Reports
 {
+    public class AvailableMonthsModel
+    {
+        public Dictionary<int, IEnumerable<int>> AvailableMonths { get; set; }
+    }
+    
+    public class ReportParameters
+    {
+        // time
+        public IEnumerable<DateTime> Months { get; set; }
+        
+        // todo categories?
+        // todo subcategories?
+        // todo tags?
+        // todo vendors?
+    }
+    
     [ApiController, Route("/api/reports"), Authorize]
     public class ReportsController : ControllerBase
     {
@@ -17,11 +34,27 @@ namespace MW.TinyMoney.Api.Reports
             _reportsProvider = reportsProvider;
         }
 
-        [HttpGet, Route("expensesByMonth")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetExpensesByMonthReport()
+        [HttpGet, Route("availableMonths")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(AvailableMonthsModel))]
+        public async Task<IActionResult> GetAvailableMonths()
         {
-            var reportData = _reportsProvider.PrepareExpensesByMonthReport();
+            return Ok(new AvailableMonthsModel()
+            {
+                // TODO get from db
+                AvailableMonths = new Dictionary<int, IEnumerable<int>>()
+                {
+                    {2019, Enumerable.Range(1, 12)},
+                    {2020, Enumerable.Range(1, 4)}
+                }
+            });
+        }
+        
+        [HttpGet, Route("expensesByMonth")]
+        [AllowAnonymous]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public async Task<IActionResult> GetExpensesByMonthReport([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareExpensesByMonthReport(reportParameters.Months);
             
             var labels = reportData.Select(x => x.XLabel).Distinct();
             var result = new ReportModel<decimal>()

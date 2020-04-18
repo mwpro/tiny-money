@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System;
+using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,8 @@ namespace MW.TinyMoney.Api.Reports
 {
     public interface IReportsProvider
     {
-        IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport();
+        IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
+            IEnumerable<DateTime> reportParametersMonths);
     }
 
     public class ReportQueryResult<TValue>
@@ -33,17 +35,22 @@ namespace MW.TinyMoney.Api.Reports
                        SUM(amount) AS `value`
                 FROM transaction t 
                 LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
+                WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
                 GROUP BY
                        DATE_FORMAT(transaction_date, '%Y-%m'),
                        sc.parent_category_id
                 ORDER BY transaction_date";
 
-        public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport()
+        public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
-                return connection.Query<ReportQueryResult<decimal>>(ExpensesByMonthReportQuery);
+                return connection.Query<ReportQueryResult<decimal>>(ExpensesByMonthReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
             }
         }
     }

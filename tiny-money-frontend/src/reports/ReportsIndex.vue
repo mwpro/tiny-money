@@ -3,26 +3,8 @@
     fluid
     grid-list-md
   >
-    <h1>Raporty</h1>
-
     <v-layout row wrap>
-      <v-flex
-        v-bind="{ [`xs12`]: true }"
-      >
-        <v-card>
-          <v-container
-            fill-height
-            fluid
-            pa-2
-          >
-            <v-layout fill-height>
-              <v-flex xs12 align-end flexbox>
-                <span class="headline">Konfiguracja: rok (wszystkie)/miesiąc (wszystkie)</span>
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
-      </v-flex>
+      <reports-filter />
       <expenses-by-month-chart />
       <v-flex xs6>
         <v-card>
@@ -109,6 +91,7 @@
 </template>
 
 <script>
+  import ReportsFilter from './ReportsFilter.vue';
   import ExpensesByMonthChart from './ExpensesByMonthChart.vue';
   import MonthsSummaryChart from "./MonthsSummaryChart.vue";
   import CategoriesBreakdownChart from "./CategoriesBreakdownChart.vue";
@@ -118,8 +101,8 @@
 
   export default {
     name: "",
-    components: { ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart, TopSellersTable, TopTransactionsTable, TopTagsTable },
+    components: { ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart, TopSellersTable, TopTransactionsTable, TopTagsTable },
     data: () => ({
-    }),
+    })
   }
 </script>
