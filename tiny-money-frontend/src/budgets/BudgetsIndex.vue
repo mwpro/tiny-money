@@ -101,19 +101,17 @@
         </v-data-table>
       </v-flex>
     </v-layout>
-    <apexchart type="pie" width="500" :options="chartOptions" :series="budgetsSeries"/>
     <v-flex class="no-data">
       <v-btn color="info" @click="isInitializeBudgetOpen = !isInitializeBudgetOpen">Skopiuj</v-btn>
     </v-flex>
   </v-container>
 </template>
 <script>
-import VueApexCharts from 'vue-apexcharts';
 import InitializeBudget from './InitializeBudget.vue';
 
 export default {
   name: 'budgets-index',
-  components: { InitializeBudget, apexchart: VueApexCharts },
+  components: { InitializeBudget },
   data() {
     return {
       selectedMonth: new Date().toISOString().substr(0, 7),
@@ -135,26 +133,6 @@ export default {
   computed: {
     budgets() {
       return this.$store.state.budgets.budgetsList;
-    },
-    budgetsSeries() {
-      return this.$store.state.budgets.budgetsList
-        .map(budget => budget.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b));
-    },
-    chartOptions() {
-      return {
-        labels: this.$store.state.budgets.budgetsList.map(budget => budget.name),
-        responsive: [{
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 200,
-            },
-            legend: {
-              position: 'bottom',
-            },
-          },
-        }],
-      };
     },
   },
   created() {
