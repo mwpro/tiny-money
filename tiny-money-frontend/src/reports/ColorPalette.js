@@ -20,5 +20,11 @@ export default {
     '#D4A6C8',
     '#9D7660',
     '#D7B5A6',
-  ]
+  ],
+  getColor(itemId) {
+    if (itemId > this.colors.length) {
+      console.warn(`Color for item ${itemId} will be reused`)
+    }
+    return this.colors[itemId % this.colors.length];
+  }
 }

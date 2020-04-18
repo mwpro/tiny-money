@@ -35,7 +35,8 @@ namespace MW.TinyMoney.Api.Reports
                 LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
                 GROUP BY
                        DATE_FORMAT(transaction_date, '%Y-%m'),
-                       sc.parent_category_id";
+                       sc.parent_category_id
+                ORDER BY transaction_date";
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport()
         {
