@@ -3,11 +3,13 @@ using Dapper;
 using MW.TinyMoney.Api.Infrasatructure;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace MW.TinyMoney.Api.Reports
 {
     public interface IReportsProvider
     {
+        Dictionary<int, IEnumerable<int>> GetAvailableMonths();
         IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
@@ -35,6 +37,12 @@ namespace MW.TinyMoney.Api.Reports
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
         }
+
+        private const string GetAvailableMonthsQuery = @"
+            SELECT DISTINCT 
+                YEAR(transaction_date) AS `year`,
+                MONTH(transaction_date) AS `month`
+            FROM transaction";
 
         private const string MonthsSummaryReportQuery = @"
             SELECT
@@ -101,6 +109,18 @@ namespace MW.TinyMoney.Api.Reports
             ORDER BY SUM(amount) DESC
             LIMIT 50";
 
+        public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                var queryResult = connection.Query(GetAvailableMonthsQuery);
+                return queryResult.GroupBy(x => x.year)
+                    .ToDictionary(x => (int)x.Key, 
+                        x => x.Select(v => (int)v.month));
+            }
+        }
+        
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths)
         {

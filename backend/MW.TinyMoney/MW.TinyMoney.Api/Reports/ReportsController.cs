@@ -43,12 +43,7 @@ namespace MW.TinyMoney.Api.Reports
         {
             return Ok(new AvailableMonthsModel()
             {
-                // TODO get from db
-                AvailableMonths = new Dictionary<int, IEnumerable<int>>()
-                {
-                    {2019, Enumerable.Range(1, 12)},
-                    {2020, Enumerable.Range(1, 4)}
-                }
+                AvailableMonths = _reportsProvider.GetAvailableMonths()
             });
         }
         
