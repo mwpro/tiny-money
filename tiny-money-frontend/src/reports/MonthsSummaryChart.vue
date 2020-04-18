@@ -97,17 +97,10 @@
               ds.label = ds.label === 'budget' ? "Budżet"
                 : (ds.label === 'expenses' ? "Wydatki" : ds.label);
               ds.fill = false;
-
-            //  ds.label = this.categories.filter(c => c.id == ds.label)[0].name;
             });
             this.loaded = true;
           });
       }
     },
-    async mounted() {
-      this.$store.dispatch('categories/getCategories').then(x => {
-        this.loadChart();
-      });
-    }
   }
 </script>

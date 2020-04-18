@@ -85,10 +85,8 @@
           });
       }
     },
-    async mounted() {
-      this.$store.dispatch('categories/getCategories').then(x => {
-        this.loadChart();
-      });
+    async created() {
+      this.$store.dispatch('categories/getCategories');
     }
   }
 </script>
