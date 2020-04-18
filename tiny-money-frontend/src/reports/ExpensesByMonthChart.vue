@@ -22,7 +22,7 @@
 </template>
 
 <script>
-  import BarChart from './BarChart.vue'
+  import BarChart from './charts/BarChart.vue'
   import axios from 'axios';
   import ColorPalette from './ColorPalette.js';
   import {mapState} from 'vuex';
@@ -58,7 +58,6 @@
     },
     watch: {
       selectedMonths () {
-        console.log('ud');
         this.loadChart();
       }
     },

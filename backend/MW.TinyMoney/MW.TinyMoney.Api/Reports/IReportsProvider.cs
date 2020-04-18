@@ -10,6 +10,8 @@ namespace MW.TinyMoney.Api.Reports
     {
         IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
+            IEnumerable<DateTime> reportParametersMonths);
     }
 
     public class ReportQueryResult<TValue>
@@ -27,9 +29,27 @@ namespace MW.TinyMoney.Api.Reports
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
         }
-        
+
+        private const string MonthsSummaryReportQuery = @"
+            SELECT
+                DATE_FORMAT(transaction_date, '%Y-%m') AS `xLabel`,
+                'expenses' AS `series`,
+                SUM(amount) AS `value`
+            FROM transaction t
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+            UNION
+            SELECT
+                DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS `xLabel`,
+                'budget' AS `series`,
+                SUM(amount) AS `value`
+            FROM budget b
+            WHERE DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') IN @months
+            GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')
+            ORDER BY STR_TO_DATE(xLabel, '%Y-%m')";
+
         private const string ExpensesByMonthReportQuery =
-              @"SELECT
+            @"SELECT
                        DATE_FORMAT(transaction_date, '%Y-%m') AS `xLabel`,
                        sc.parent_category_id AS `series`,
                        SUM(amount) AS `value`
@@ -48,6 +68,18 @@ namespace MW.TinyMoney.Api.Reports
             {
                 connection.Open();
                 return connection.Query<ReportQueryResult<decimal>>(ExpensesByMonthReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(MonthsSummaryReportQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });

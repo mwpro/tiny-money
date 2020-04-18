@@ -6,22 +6,7 @@
     <v-layout row wrap>
       <reports-filter />
       <expenses-by-month-chart />
-      <v-flex xs6>
-        <v-card>
-          <v-container
-            fill-height
-            fluid
-            pa-2
-          >
-            <v-layout fill-height>
-              <v-flex xs12 align-end flexbox>
-                <span class="headline">Budżet vs wydatki</span>
-                <months-summary-chart />
-              </v-flex>
-            </v-layout>
-          </v-container>
-        </v-card>
-      </v-flex>
+      <months-summary-chart />
       <v-flex xs6>
         <v-card>
           <v-container

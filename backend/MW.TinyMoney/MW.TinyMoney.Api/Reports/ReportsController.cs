@@ -50,11 +50,37 @@ namespace MW.TinyMoney.Api.Reports
         }
         
         [HttpGet, Route("expensesByMonth")]
-        [AllowAnonymous]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
         public async Task<IActionResult> GetExpensesByMonthReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareExpensesByMonthReport(reportParameters.Months);
+            
+            var labels = reportData.Select(x => x.XLabel).Distinct();
+            var result = new ReportModel<decimal>()
+            {
+                Labels = labels,
+                Datasets = reportData.GroupBy(x => x.Series).Select(series =>
+                {
+                    var dataSet = new ReportDataSet<decimal>()
+                    {
+                        Label = series.Key,
+                        Data = labels.Select(xLabel =>
+                        {
+                            return series.FirstOrDefault(x => x.XLabel == xLabel)?.Value ?? 0;
+                        })
+                    };
+                    return dataSet;
+                }) 
+            };
+            
+            return Ok(result);
+        }
+        
+        [HttpGet, Route("monthsSummary")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public async Task<IActionResult> GetMonthsSummaryReport([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareMonthsSummaryReport(reportParameters.Months);
             
             var labels = reportData.Select(x => x.XLabel).Distinct();
             var result = new ReportModel<decimal>()
