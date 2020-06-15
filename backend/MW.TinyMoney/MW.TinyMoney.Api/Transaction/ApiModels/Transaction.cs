@@ -20,6 +20,6 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
 
         public int VendorId { get; set; }
         public int SubcategoryId { get; set; }
-        public IEnumerable<int> TagIds { get; set; }
+        public IList<int> TagIds { get; set; }
     }
 }

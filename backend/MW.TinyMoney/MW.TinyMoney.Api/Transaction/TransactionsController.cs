@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,47 +18,12 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetTransactions()
+        public async Task<IActionResult> GetTransactions(DateTime month)
         {
-            throw new NotImplementedException();
+            var transactions = await _transactionStore.GetTransactions(month);
+            return Ok(transactions);
         }
-        //     @GetMapping(path = "")
-        // public ResponseEntity<List<TransactionDto>> getTransactions
-        //         (TransactionSearchOptions searchOptions,
-        //          Principal principal) {
-        //
-        //     List<Transaction> transactions = transactionsRepository.findAll((Specification<Transaction>)
-        //             (root, query, cb) -> {
-        //
-        //                 List<Predicate> predicates = new ArrayList<>();
-        //
-        //                 if (searchOptions.getMonth() != null) {
-        //                     LocalDate date = searchOptions.getMonth().withDayOfMonth(1);
-        //                     predicates.add(cb.between(root.get("transactionDate"), date, date.plusMonths(1)));
-        //                 }
-        //
-        //                 if (searchOptions.getMyTransactionsOnly() != null && searchOptions.getMyTransactionsOnly()) {
-        //                     predicates.add(cb.equal(root.get("createdBy"), principal.getName()));
-        //                 }
-        //
-        //                 query.orderBy(cb.desc(root.get("transactionDate")), cb.desc(root.get("createdDate")));
-        //                 root.fetch("subcategory").fetch("parentCategory");
-        //                 root.fetch("tags", JoinType.LEFT);
-        //                 root.fetch("vendor", JoinType.LEFT);
-        //
-        //                 query.distinct(true);
-        //                 return cb.and(predicates.toArray(new Predicate[0]));
-        //             });
-        //
-        //     return new ResponseEntity<>(transactions.stream()
-        //             .map(t -> mapToDto(t)).collect(Collectors.toList()), HttpStatus.OK);
-        // }
-        //
-        // private TransactionDto mapToDto(Transaction t) {
-        //     TransactionDto transactionDto = modelMapper.map(t, TransactionDto.class);
-        //     return transactionDto;
-        // }
-
+        
         [HttpGet("{transactionId}")]
         public async Task<IActionResult> GetTransaction([FromRoute] int transactionId)
         {
@@ -70,18 +36,6 @@ namespace MW.TinyMoney.Api.Transaction
 
             return Ok(transaction);
         }
-
-        // @GetMapping(path = "/{id}")
-        // public ResponseEntity<TransactionDto> getTransaction
-        //         (@PathVariable("id") Integer transactionId) {
-        //     Optional<Transaction> transaction = transactionsRepository.findById(transactionId);
-        //
-        //     if (!transaction.isPresent())
-        //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        //
-        //     return new ResponseEntity<>(mapToDto(transaction.get()), HttpStatus.OK);
-        // }
-        //
         
         [HttpPost("{transactionId}")]
         public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] ApiModels.Transaction transaction)
