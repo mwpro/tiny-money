@@ -8,7 +8,7 @@
       >
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
-            <span class="headline">TOP 50 sprzedawców</span>
+            <span class="headline">TOP 50 tagów</span>
             <v-data-table
               :loading="!loaded"
               :headers="headers"

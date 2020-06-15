@@ -10,6 +10,7 @@ using MW.TinyMoney.Api.Controllers;
 using MW.TinyMoney.Api.Infrasatructure;
 using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
+using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api

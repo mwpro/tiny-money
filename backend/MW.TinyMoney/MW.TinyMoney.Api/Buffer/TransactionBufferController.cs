@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Tags;
+using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api.Controllers
@@ -57,7 +58,7 @@ namespace MW.TinyMoney.Api.Controllers
             if (bufferedTransaction == null)
                 return NotFound();
 
-            var resposne = new ApprovedTransactionResponse();
+            var response = new ApprovedTransactionResponse();
             if (approval.Vendor.Id == null) // todo to be moved
             {
                 var vendor = new Vendor()
@@ -68,7 +69,7 @@ namespace MW.TinyMoney.Api.Controllers
                 _vendorStore.SaveVendor(vendor);
                 approval.Vendor.Id = vendor.Id;
                 approval.Vendor.DefaultSubcategoryId = approval.SubcategoryId;
-                resposne.NewVendor = approval.Vendor;
+                response.NewVendor = approval.Vendor;
             }
 
             foreach (var newTag in approval.Tags.Where(x => x.Id is null))
@@ -80,17 +81,17 @@ namespace MW.TinyMoney.Api.Controllers
                 _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
-                resposne.NewTags.Add(newTag);
+                response.NewTags.Add(newTag);
             }
 
             var approvedTransaction = bufferedTransaction.Approve(approval);
             _transactionStore.SaveTransaction(approvedTransaction);
 
-            resposne.Transaction = approvedTransaction;
+            response.Transaction = approvedTransaction;
 
             _bufferedTransactionStore.DeleteBufferedTransaction(id);
 
-            return Ok(resposne);
+            return Ok(response);
         }
 
         [HttpDelete, Route("{id}")]
