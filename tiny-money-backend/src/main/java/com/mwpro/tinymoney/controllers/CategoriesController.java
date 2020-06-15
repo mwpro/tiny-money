@@ -26,15 +26,6 @@ public class CategoriesController {
     @Autowired
     private BudgetsRepository budgetsRepository;
 
-    @GetMapping(path="")
-    public ResponseEntity<Iterable<Category>> getCategories() {
-        return new ResponseEntity<>(categoriesRepository.findAll((Specification<Category>)
-                (root, query, cb) -> {
-                    root.fetch("subcategories", JoinType.LEFT);
-                    return cb.and();
-                }), HttpStatus.OK);
-    }
-
     @PostMapping(path="")
     @ResponseStatus(HttpStatus.CREATED)
     @ResponseBody
