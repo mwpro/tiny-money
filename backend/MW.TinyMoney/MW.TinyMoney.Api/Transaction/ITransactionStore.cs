@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dapper;
-using MW.TinyMoney.Api.Infrasatructure;
 using System.Linq;
 using System.Threading.Tasks;
+using Dapper;
+using MW.TinyMoney.Api.Infrasatructure;
 
-namespace MW.TinyMoney.Api.Controllers
+namespace MW.TinyMoney.Api.Transaction
 {
     public interface ITransactionStore
     {

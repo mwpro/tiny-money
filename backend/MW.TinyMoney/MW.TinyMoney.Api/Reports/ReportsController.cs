@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Controllers;
+using MW.TinyMoney.Api.Transaction;
 
 namespace MW.TinyMoney.Api.Reports
 {
