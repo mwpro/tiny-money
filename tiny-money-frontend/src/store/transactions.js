@@ -31,7 +31,7 @@ export default {
   actions: {
     getTransactionsAction({ commit }, searchOptions) {
       return axios
-        .get('/api/transaction', {
+        .get(`${process.env.VUE_APP_API_NEW}/api/transactions`, {
           params: searchOptions,
         })
         .then((response) => {
@@ -53,8 +53,8 @@ export default {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
       });
-      if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) { 
-        transaction.vendor = { id: null, name: transaction.vendor }; 
+      if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) {
+        transaction.vendor = { id: null, name: transaction.vendor };
       }
 
       return axios.post(
@@ -73,8 +73,8 @@ export default {
         addTransactionResult.addedTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });
-        
-        if (transaction.vendor.id === null) { 
+
+        if (transaction.vendor.id === null) {
           dispatch('vendors/addVendorAction', addTransactionResult.transaction.vendor, { root: true });
         }
         return addTransactionResult;
