@@ -145,7 +145,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
         
         [HttpDelete("{transactionId}")]
-        public async Task<IActionResult> DeleteTransactions([FromRoute] int transactionId)
+        public async Task<IActionResult> DeleteTransaction([FromRoute] int transactionId)
         {
             var transaction = await _transactionStore.GetTransaction(transactionId);
 
