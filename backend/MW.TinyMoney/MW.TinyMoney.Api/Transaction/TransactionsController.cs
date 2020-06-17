@@ -12,7 +12,7 @@ using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api.Transaction
 {
-    [ApiController, Route("/api/transactions"), AllowAnonymous]// todo Authorize]
+    [ApiController, Route("/api/transactions"), Authorize]
     public class TransactionsController : Controller
     {
         private readonly ITransactionStore _transactionStore;
