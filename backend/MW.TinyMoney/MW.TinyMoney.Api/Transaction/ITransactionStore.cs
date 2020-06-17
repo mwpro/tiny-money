@@ -10,9 +10,11 @@ namespace MW.TinyMoney.Api.Transaction
     public interface ITransactionStore
     {
         void SaveTransaction(Transaction.ApiModels.Transaction transaction);
+        Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopTransactions(IEnumerable<DateTime> reportParametersMonths);
         Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime month);
+        Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -86,6 +88,10 @@ namespace MW.TinyMoney.Api.Transaction
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
             ORDER BY t.transaction_date";
 
+        private const string DeleteTransactionQuery =
+            @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId; 
+              DELETE FROM transaction WHERE id = @transactionId;";
+        
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -101,6 +107,14 @@ namespace MW.TinyMoney.Api.Transaction
                     dbTransaction.Commit();
                 }
             }
+        }
+
+        public Task UpdateTransaction(ApiModels.Transaction transaction)
+        {
+            // todo save transaction details
+            // todo remove removed tags
+            // todo add new tags
+            throw new NotImplementedException();
         }
 
         public async Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId)
@@ -181,6 +195,14 @@ namespace MW.TinyMoney.Api.Transaction
                     }, splitOn: "tagId");
 
                 return transactionsDictionary.Values;
+            }
+        }
+
+        public async Task DeleteTransaction(ApiModels.Transaction transaction)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                await connection.ExecuteAsync(DeleteTransactionQuery, new {transactionId = transaction.Id});
             }
         }
     }

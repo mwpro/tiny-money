@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MW.TinyMoney.Api.Buffer.ApiModels;
-using MW.TinyMoney.Api.Controllers;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
@@ -47,80 +44,56 @@ namespace MW.TinyMoney.Api.Transaction
         }
         
         [HttpPost("{transactionId}")]
-        public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] ApiModels.Transaction transaction)
+        public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] AddTransactionDto updatedTransaction)
         {
-            throw new NotImplementedException();
+            // TODO validation, should be a single transaction scope
+            var transaction = await _transactionStore.GetTransaction(transactionId);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+            
+            var response = new AddTransactionResponse();
+            if (updatedTransaction.Vendor.Id == null) // todo to be moved
+            {
+                var vendor = new Vendor()
+                {
+                    Name = updatedTransaction.Vendor.Name,
+                    DefaultSubcategoryId = updatedTransaction.SubcategoryId
+                };
+                _vendorStore.SaveVendor(vendor);
+                updatedTransaction.Vendor.Id = vendor.Id;
+                updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
+                response.NewVendor = updatedTransaction.Vendor;
+            }
+
+            foreach (var newTag in updatedTransaction.Tags.Where(x => x.Id is null))
+            {
+                var tag = new Tag()
+                {
+                    Name = newTag.Name,
+                };
+                _tagStore.SaveTag(tag);
+                newTag.Id = tag.Id;
+
+                response.NewTags.Add(newTag);
+            }
+
+            transaction.Amount = updatedTransaction.Amount;
+            transaction.Description = updatedTransaction.Description;
+            transaction.ModifiedDate = DateTime.UtcNow;
+            transaction.SubcategoryId = updatedTransaction.SubcategoryId;
+            transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
+            transaction.TransactionDate = updatedTransaction.TransactionDate;
+            transaction.VendorId = updatedTransaction.Vendor.Id.Value;
+            
+            await _transactionStore.UpdateTransaction(transaction);
+
+            response.Transaction = transaction;
+
+            return Ok(response);
         }
-        
-        // @PostMapping(path = "/{id}")
-        // public ResponseEntity<AddTransactionResultDto> editTransaction
-        //         (@PathVariable("id") Integer transactionId,
-        //          @Valid @RequestBody AddTransactionDto addTransactionDto,
-        //          Principal principal) {
-        //
-        //     Optional<Transaction> transactionOption = transactionsRepository.findById(transactionId);
-        //
-        //     if (!transactionOption.isPresent()) {
-        //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        //     }
-        //
-        //     Subcategory subcategory = subcategoriesRepository.findById(addTransactionDto.getSubcategoryId()).get();
-        //
-        //     Transaction transaction = transactionOption.get();
-        //
-        //     Vendor vendor;
-        //     if (addTransactionDto.getVendor().getId() == null) {
-        //         vendor = new Vendor();
-        //         vendor.setName(addTransactionDto.getVendor().getName());
-        //         vendor.setDefaultSubcategory(subcategory);
-        //         vendorsRepository.save(vendor);
-        //     } else {
-        //         vendor = vendorsRepository.getOne(addTransactionDto.getVendor().getId());
-        //     }
-        //     transaction.setVendor(vendor);
-        //
-        //     transaction.setSubcategory(subcategory);
-        //     transaction.setAmount(addTransactionDto.getAmount());
-        //     transaction.setTransactionDate(addTransactionDto.getTransactionDate().plusDays(1)); // todo plusDays(1) hack for MySql issues
-        //     transaction.setIsExpense(addTransactionDto.getIsExpense());
-        //     transaction.setDescription(addTransactionDto.getDescription());
-        //
-        //     Set<Tag> newTagsToSave = new HashSet<>();
-        //     transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
-        //     transaction.getTags().clear();
-        //     for (TagDto tagDto : addTransactionDto.getTags()) {
-        //         Tag tag;
-        //         if (tagDto.getId() == null) {
-        //             // adding new tag
-        //             tag = new Tag();
-        //             tag.setName(tagDto.getName());
-        //             newTagsToSave.add(tag);
-        //         } else {
-        //             // existing tag
-        //             tag = tagsRepository.getOne(tagDto.getId());
-        //         }
-        //         tag.getTransactions().add(transaction);
-        //         transaction.getTags().add(tag);
-        //     }
-        //
-        //     transactionsRepository.save(transaction);
-        //     tagsRepository.saveAll(newTagsToSave);
-        //
-        //     AddTransactionResultDto result = new AddTransactionResultDto();
-        //     result.setAddedTags(newTagsToSave.stream().map(t -> mapToDto(t)).collect(Collectors.toSet()));
-        //     transaction.setTransactionDate(transaction.getTransactionDate().minusDays(1)); // todo .minusDays(1) hack for MySql issues
-        //     result.setTransaction(transaction);
-        //
-        //     return new ResponseEntity<>(result, HttpStatus.OK);
-        // }
-        //
-        // private TagDto mapToDto(Tag t) {
-        //     TagDto tagDto = new TagDto();
-        //     tagDto.setId(t.getId());
-        //     tagDto.setName(t.getName());
-        //     return tagDto;
-        // }
-        
+
         [HttpPost("")]
         public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
         {
@@ -174,19 +147,16 @@ namespace MW.TinyMoney.Api.Transaction
         [HttpDelete("{transactionId}")]
         public async Task<IActionResult> DeleteTransactions([FromRoute] int transactionId)
         {
-            throw new NotImplementedException();
+            var transaction = await _transactionStore.GetTransaction(transactionId);
+
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+
+            await _transactionStore.DeleteTransaction(transaction);
+            
+            return Ok();
         }
-        
-        // @DeleteMapping(path = "/{id}")
-        // public ResponseEntity deleteTransaction(@PathVariable("id") Integer transactionId) {
-        //     Transaction transaction = transactionsRepository.getOne(transactionId);
-        //     if (transaction == null){
-        //         return new ResponseEntity(HttpStatus.NOT_FOUND);
-        //     }
-        //     transaction.getTags().forEach(t -> t.getTransactions().remove(transaction));
-        //     transaction.getTags().clear();
-        //     transactionsRepository.delete(transaction);
-        //     return new ResponseEntity(HttpStatus.OK);
-        // }
     }
 }
