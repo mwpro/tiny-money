@@ -83,7 +83,8 @@ namespace MW.TinyMoney.Api.Transaction
                 tt.tag_id AS 'tagId'
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month";
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
+            ORDER BY t.transaction_date";
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
