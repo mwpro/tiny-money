@@ -39,25 +39,26 @@
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
-    <v-layout row wrap>
+    <v-layout row wrap :if="budgets.find(x => x.amount)">
       <v-flex xs4>Budżet:
         <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.amount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
+        {{ budgets.map(x => x.amount).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
       </v-flex>
       <v-flex xs4>Rzeczywiste wydatki:
         <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
+        {{ budgets.map(x => x.usedAmount).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
       </v-flex>
       <v-flex xs4>Różnica:
         <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.amount - x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
+        {{ budgets.map(x => x.amount - x.usedAmount).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
       </v-flex>
     </v-layout>
     <v-layout row wrap>
       <v-flex>
         <v-data-table
+          :loading="!loaded"
           :headers="headers"
-          :items="budgets"
+          :items="categories"
           :hide-actions="true"
           class="elevation-1"
           pagination.rowsPerPage="10"
@@ -67,35 +68,48 @@
               <th class="text-xs-left">{{ props.item.name }}</th>
               <th
                 class="text-xs-left"
-              >{{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              >{{ props.item.subcategories.map(x => budgets.find(b => b.subcategoryId == x.id).amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
               <th
                 class="text-xs-left"
-              >{{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              >{{ props.item.subcategories.map(x => budgets.find(b => b.subcategoryId == x.id).usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
               <th
                 class="text-xs-left"
-                :class="props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''"
-              >{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+                :class="props.item.subcategories.map(x => budgets.find(b => b.subcategoryId == x.id).amount - budgets.find(b => b.subcategoryId == x.id).usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''"
+              >{{ props.item.subcategories.map(x => budgets.find(b => b.subcategoryId == x.id).amount - budgets.find(b => b.subcategoryId == x.id).usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
+              <th></th>
             </tr>
-            <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
-              <td class="text-xs-left">{{ subcategory.subcategoryName }}</td>
+            <tr v-for="subcategory in props.item.subcategories" :key="subcategory.id" :if="budgets.find(b => b.subcategoryId == subcategory.id) && budgets.find(b => b.subcategoryId == subcategory.id).amount">
+              <td class="text-xs-left">{{ subcategory.name }}</td>
               <td class="text-xs-left">
                 <v-edit-dialog @open="editBudget(subcategory)" @save="saveBudget()">
-                  {{ subcategory.amount | toFixed(2) | currency }}
+                  {{ budgets.find(b => b.subcategoryId == subcategory.id).amount | toFixed(2) | currency }}
                   <v-text-field
                     slot="input"
                     v-model="editedBudgetAmount"
-                    label="Edit"
+                    label="Ustaw budżet"
                     type="number"
                     single-line
                     counter
                   ></v-text-field>
                 </v-edit-dialog>
               </td>
-              <td class="text-xs-left">{{ subcategory.usedAmount | toFixed(2) | currency }}</td>
+              <td class="text-xs-left">{{ budgets.find(b => b.subcategoryId == subcategory.id).usedAmount | toFixed(2) | currency }}</td>
               <td
                 class="text-xs-left"
-                :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : ''"
-              >{{ (subcategory.amount - subcategory.usedAmount) | toFixed(2) | currency }}</td>
+                :class="budgets.find(b => b.subcategoryId == subcategory.id).usedAmount > budgets.find(b => b.subcategoryId == subcategory.id).amount ? 'red--text' : ''"
+              >{{ (budgets.find(b => b.subcategoryId == subcategory.id).amount - budgets.find(b => b.subcategoryId == subcategory.id).usedAmount) | toFixed(2) | currency }}</td>
+              <td class="text-xs-left">
+                <v-edit-dialog @open="editBudgetNotes(subcategory)" @save="saveBudgetNotes()">
+                  {{ budgets.find(b => b.subcategoryId == subcategory.id).notes }}
+                  <v-text-field
+                    slot="input"
+                    v-model="editedBudgetNotes"
+                    label="Dodaj notatkę"
+                    type="text"
+                    single-line
+                  ></v-text-field>
+                </v-edit-dialog>
+                </td>
             </tr>
           </template>
         </v-data-table>
@@ -107,6 +121,7 @@
   </v-container>
 </template>
 <script>
+import { mapGetters, mapState } from 'vuex';
 import InitializeBudget from './InitializeBudget.vue';
 
 export default {
@@ -124,19 +139,24 @@ export default {
         { text: 'Plan', value: 'amount', sortable: false },
         { text: 'Realizacja', value: 'amount', sortable: false },
         { text: 'Różnica', value: 'amount', sortable: false },
+        { text: 'Notatki', value: 'notes', sortable: false },
       ],
       editedBudgetAmount: 0,
+      editedBudgetNotes: null,
       editedBudgetSubcategory: null,
       isInitializeBudgetOpen: false,
     };
   },
   computed: {
+    loaded() { return this.budgets && this.categories; },
     budgets() {
       return this.$store.state.budgets.budgetsList;
     },
+    ...mapState('categories', { categories: 'categoriesList' }),
   },
   created() {
     this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
+    this.$store.dispatch('categories/getCategories');
   },
   methods: {
     selectMonth() {
@@ -144,7 +164,11 @@ export default {
       this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
     },
     editBudget(subcategory) {
-      this.editedBudgetAmount = subcategory.amount;
+      this.editedBudgetAmount = this.budgets.find(b => b.subcategoryId == subcategory.id).amount;
+      this.editedBudgetSubcategory = subcategory.subcategoryId;
+    },
+    editBudgetNotes(subcategory) {
+      this.editedBudgetNotes = this.budgets.find(b => b.subcategoryId == subcategory.id).notes;
       this.editedBudgetSubcategory = subcategory.subcategoryId;
     },
     saveBudget() {

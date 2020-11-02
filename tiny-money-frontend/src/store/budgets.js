@@ -9,7 +9,7 @@ export default {
   },
   mutations: {
     getBudgets(state, budgets) {
-      state.budgetsList = budgets;
+      state.budgetsList = budgets.budgetEntries;
     },
     saveBudget(state, budget) {
       for (const category of state.budgetsList) {
@@ -25,7 +25,7 @@ export default {
     getBudgetsAction({ commit }, selectedMonth) {
       // TODO appending '-01' does not seem to be the best practice :)
       return axios
-        .get(`/api/budget/${selectedMonth.substr(0, 4)}/${selectedMonth.substr(5, 7)}`)
+        .get(`${process.env.VUE_APP_API_NEW}/api/budget/${selectedMonth.substr(0, 4)}/${selectedMonth.substr(5, 7)}`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let budgets = response.data;
