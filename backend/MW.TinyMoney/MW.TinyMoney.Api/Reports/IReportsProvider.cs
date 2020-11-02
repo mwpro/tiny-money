@@ -1,8 +1,8 @@
 ﻿using System;
 using Dapper;
-using MW.TinyMoney.Api.Infrasatructure;
 using System.Collections.Generic;
 using System.Linq;
+using MW.TinyMoney.Api.Infrastructure;
 using Newtonsoft.Json.Linq;
 
 namespace MW.TinyMoney.Api.Reports
