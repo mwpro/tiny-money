@@ -4,13 +4,9 @@ using System.Threading.Tasks;
 
 namespace MW.TinyMoney.Api.Budget.ApiModels
 {
-    public class SetBudgetAmount
+    public class SetBudget
     {
         public decimal BudgetAmount { get; set; }
-    }
-
-    public class SetBudgetNotes
-    {
         public string Notes { get; set; }
     }
 }

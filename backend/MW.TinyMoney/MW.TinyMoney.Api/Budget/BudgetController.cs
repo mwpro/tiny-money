@@ -23,25 +23,18 @@ namespace MW.TinyMoney.Api.Budget
             return Ok(new BudgetResponse() { BudgetEntries = monthlyBudget });
         }
 
-        [HttpPost("{year}/{month}/subcategory/{subcategoryId}/amount")]
-        public async Task<IActionResult> SetBudgetAmount([FromRoute]int year, [FromRoute]int month, [FromRoute]int subcategoryId, [FromBody]SetBudgetAmount budgetAmount)
+        [HttpPost("{year}/{month}/subcategory/{subcategoryId}")]
+        public async Task<IActionResult> SetBudget([FromRoute]int year, [FromRoute]int month, [FromRoute]int subcategoryId, [FromBody]SetBudget budget)
         {
-            throw new NotImplementedException();
-            return Ok();
-        }
-
-        [HttpPost("{year}/{month}/subcategory/{subcategoryId}/notes")]
-        public async Task<IActionResult> SetBudgetNotes([FromRoute]int year, [FromRoute]int month, [FromRoute]int subcategoryId, [FromBody]SetBudgetNotes budgetNotes)
-        {
-            throw new NotImplementedException();
-            return Ok();
+            await _budgetStore.SetBudget(year, month, subcategoryId, budget.BudgetAmount, budget.Notes);
+            return Accepted();
         }
 
         [HttpPost("{yearFrom}/{monthFrom}/copy/{yearTo}/{monthTo}")]
-        public async Task<IActionResult> SetBudget([FromRoute]int year, [FromRoute]int month, [FromRoute]int yearTo, [FromRoute] int monthTo)
+        public async Task<IActionResult> CopyBudget([FromRoute]int yearFrom, [FromRoute]int monthFrom, [FromRoute]int yearTo, [FromRoute] int monthTo)
         {
-            throw new NotImplementedException();
-            return Ok();
+            await _budgetStore.CopyBudget(yearFrom, monthFrom, yearTo, monthTo);
+            return CreatedAtAction(nameof(GetBudget), new { year = yearTo, month = monthTo }, null);
         }
     }
 
