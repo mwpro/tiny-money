@@ -99,7 +99,7 @@
                 :class="budgets.find(b => b.subcategoryId == subcategory.id).usedAmount > budgets.find(b => b.subcategoryId == subcategory.id).amount ? 'red--text' : ''"
               >{{ (budgets.find(b => b.subcategoryId == subcategory.id).amount - budgets.find(b => b.subcategoryId == subcategory.id).usedAmount) | toFixed(2) | currency }}</td>
               <td class="text-xs-left">
-                <v-edit-dialog @open="editBudgetNotes(subcategory)" @save="saveBudgetNotes()">
+                <v-edit-dialog @open="editBudget(subcategory)" @save="saveBudget()">
                   {{ budgets.find(b => b.subcategoryId == subcategory.id).notes }}
                   <v-text-field
                     slot="input"
@@ -165,11 +165,8 @@ export default {
     },
     editBudget(subcategory) {
       this.editedBudgetAmount = this.budgets.find(b => b.subcategoryId == subcategory.id).amount;
-      this.editedBudgetSubcategory = subcategory.subcategoryId;
-    },
-    editBudgetNotes(subcategory) {
       this.editedBudgetNotes = this.budgets.find(b => b.subcategoryId == subcategory.id).notes;
-      this.editedBudgetSubcategory = subcategory.subcategoryId;
+      this.editedBudgetSubcategory = subcategory.id;
     },
     saveBudget() {
       this.$store
@@ -178,9 +175,13 @@ export default {
           subcategoryId: this.editedBudgetSubcategory,
           year: this.selectedMonth.substr(0, 4),
           month: this.selectedMonth.substr(5, 7),
+          notes: this.editedBudgetNotes,
         })
         .then(() => {
           this.$store.dispatch('displaySuccessSnack', 'Budżet zapisany', { root: true });
+        })
+        .catch(() => {
+          this.$store.dispatch('displayErrorSnack', 'Błąd zapisu budżetu', { root: true });
         });
     },
   },
