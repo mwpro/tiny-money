@@ -23,7 +23,6 @@ namespace MW.TinyMoney.Api.Budget
 	            COALESCE(b.amount, 0) AS `Amount`,
                 COALESCE(SUM(t.amount), 0) AS `UsedAmount`
                 FROM subcategory s 
-	            JOIN category c ON s.parent_category_id = c.id
 	            LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
 	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id
 	            GROUP BY s.id, b.amount, b.notes";
@@ -57,13 +56,13 @@ namespace MW.TinyMoney.Api.Budget
             }
         }
 
-        public Task SetBudget(int year, int month, int subcategoryId, decimal budgetAmount, string budgetNotes)
+        public async Task SetBudget(int year, int month, int subcategoryId, decimal budgetAmount, string budgetNotes)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
-                return connection.ExecuteAsync(SetBudgetQuery, new
+                await connection.ExecuteAsync(SetBudgetQuery, new
                 {
                     year = year, month = month, subcategoryId = subcategoryId, 
                     budgetAmount = budgetAmount, notes = budgetNotes,
@@ -72,13 +71,13 @@ namespace MW.TinyMoney.Api.Budget
             }
         }
 
-        public Task CopyBudget(int yearFrom, int monthFrom, int yearTo, int monthTo)
+        public async Task CopyBudget(int yearFrom, int monthFrom, int yearTo, int monthTo)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
-                return connection.ExecuteAsync(CopyBudgetQuery, new
+                await connection.ExecuteAsync(CopyBudgetQuery, new
                 {
                     yearFrom = yearFrom,
                     monthFrom = monthFrom,
