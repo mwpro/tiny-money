@@ -39,44 +39,7 @@
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
-    <v-layout row wrap v-if="loaded">
-      <v-flex xs4
-        >Budżet:
-        <br />
-        {{
-          budgets
-            .map((x) => x.amount)
-            .flat()
-            .reduce((a, b) => a + b, 0)
-            | toFixed(2)
-            | currency
-        }}
-      </v-flex>
-      <v-flex xs4
-        >Rzeczywiste wydatki:
-        <br />
-        {{
-          budgets
-            .map((x) => x.usedAmount)
-            .flat()
-            .reduce((a, b) => a + b, 0)
-            | toFixed(2)
-            | currency
-        }}
-      </v-flex>
-      <v-flex xs4
-        >Różnica:
-        <br />
-        {{
-          budgets
-            .map((x) => x.amount - x.usedAmount)
-            .flat()
-            .reduce((a, b) => a + b, 0)
-            | toFixed(2)
-            | currency
-        }}
-      </v-flex>
-    </v-layout>
+    <budget-summary v-if="loaded" :budgets="budgets" />
     <v-layout row wrap v-if="loaded">
       <v-flex>
         <v-data-table
@@ -88,116 +51,8 @@
           pagination.rowsPerPage="10"
         >
           <template slot="items" slot-scope="props">
-            <tr>
-              <th class="text-xs-left">{{ props.item.name }}</th>
-              <th class="text-xs-left">
-                {{
-                  props.item.subcategories
-                    .map(
-                      (x) => budgets.find((b) => b.subcategoryId == x.id).amount
-                    )
-                    .reduce((a, b) => a + b)
-                    | toFixed(2)
-                    | currency
-                }}
-              </th>
-              <th class="text-xs-left">
-                {{
-                  props.item.subcategories
-                    .map(
-                      (x) =>
-                        budgets.find((b) => b.subcategoryId === x.id).usedAmount
-                    )
-                    .reduce((a, b) => a + b)
-                    | toFixed(2)
-                    | currency
-                }}
-              </th>
-              <th
-                class="text-xs-left"
-                :class="props.item.subcategories.map((x) => budgets.find((b) => b.subcategoryId === x.id).amount - budgets.find((b) => b.subcategoryId == x.id).usedAmount).reduce((a, b) => a + b) < 0
-                  ? 'red--text' : ''"
-              >
-                {{
-                  props.item.subcategories
-                    .map(
-                      (x) =>
-                        budgets.find((b) => b.subcategoryId === x.id).amount -
-                        budgets.find((b) => b.subcategoryId == x.id).usedAmount
-                    )
-                    .reduce((a, b) => a + b)
-                    | toFixed(2)
-                    | currency
-                }}
-              </th>
-              <th></th>
-            </tr>
-            <tr
-              v-for="subcategory in props.item.subcategories"
-              :key="subcategory.id"
-            >
-              <td class="text-xs-left">{{ subcategory.name }}</td>
-              <td class="text-xs-left">
-                <v-edit-dialog
-                  @open="editBudget(subcategory)"
-                  @save="saveBudget()"
-                >
-                  {{
-                    budgets.find((b) => b.subcategoryId == subcategory.id)
-                      .amount
-                      | toFixed(2)
-                      | currency
-                  }}
-                  <v-text-field
-                    slot="input"
-                    v-model="editedBudgetAmount"
-                    label="Ustaw budżet"
-                    type="number"
-                    single-line
-                    counter
-                  ></v-text-field>
-                </v-edit-dialog>
-              </td>
-              <td class="text-xs-left">
-                {{
-                  budgets.find((b) => b.subcategoryId == subcategory.id)
-                    .usedAmount
-                    | toFixed(2)
-                    | currency
-                }}
-              </td>
-              <td
-                class="text-xs-left"
-                :class="budgets.find((b) => b.subcategoryId == subcategory.id).usedAmount > budgets.find((b) => b.subcategoryId == subcategory.id).amount
-                    ? 'red--text' : ''"
-              >
-                {{
-                  (budgets.find((b) => b.subcategoryId == subcategory.id)
-                    .amount -
-                    budgets.find((b) => b.subcategoryId == subcategory.id)
-                      .usedAmount)
-                    | toFixed(2)
-                    | currency
-                }}
-              </td>
-              <td class="text-xs-left">
-                <v-edit-dialog
-                  @open="editBudget(subcategory)"
-                  @save="saveBudget()"
-                >
-                  {{
-                    budgets.find((b) => b.subcategoryId == subcategory.id).notes
-                  }}
-                  <v-text-field
-                    slot="input"
-                    v-model="editedBudgetNotes"
-                    label="Dodaj notatkę"
-                    type="text"
-                    single-line
-                  ></v-text-field>
-                </v-edit-dialog>
-              </td>
-            </tr>
+            <budget-category-row :category="props.item" />
+            <budget-subcategory-row v-for="subcategory in props.item.subcategories" :subcategory="subcategory" :selectedMonth="selectedMonth" :key="subcategory.id" />
           </template>
         </v-data-table>
       </v-flex>
@@ -213,11 +68,16 @@
 </template>
 <script>
 import { mapState } from 'vuex';
+import BudgetCategoryRow from './BudgetCategoryRow.vue';
+import BudgetSubcategoryRow from './BudgetSubcategoryRow.vue';
+import BudgetSummary from './BudgetSummary.vue';
 import InitializeBudget from './InitializeBudget.vue';
 
 export default {
   name: 'budgets-index',
-  components: { InitializeBudget },
+  components: {
+    InitializeBudget, BudgetCategoryRow, BudgetSubcategoryRow, BudgetSummary,
+  },
   data() {
     return {
       selectedMonth: new Date().toISOString().substr(0, 7),
@@ -232,9 +92,6 @@ export default {
         { text: 'Różnica', value: 'amount', sortable: false },
         { text: 'Notatki', value: 'notes', sortable: false },
       ],
-      editedBudgetAmount: 0,
-      editedBudgetNotes: null,
-      editedBudgetSubcategory: null,
       isInitializeBudgetOpen: false,
     };
   },
@@ -265,35 +122,6 @@ export default {
     selectMonth() {
       this.$refs.menu.save(this.selectedMonth);
       this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
-    },
-    editBudget(subcategory) {
-      this.editedBudgetAmount = this.budgets.find(
-        b => b.subcategoryId === subcategory.id,
-      ).amount;
-      this.editedBudgetNotes = this.budgets.find(
-        b => b.subcategoryId === subcategory.id,
-      ).notes;
-      this.editedBudgetSubcategory = subcategory.id;
-    },
-    saveBudget() {
-      this.$store
-        .dispatch('budgets/saveBudgetAction', {
-          amount: Number(this.editedBudgetAmount),
-          subcategoryId: this.editedBudgetSubcategory,
-          year: this.selectedMonth.substr(0, 4),
-          month: this.selectedMonth.substr(5, 7),
-          notes: this.editedBudgetNotes,
-        })
-        .then(() => {
-          this.$store.dispatch('displaySuccessSnack', 'Budżet zapisany', {
-            root: true,
-          });
-        })
-        .catch(() => {
-          this.$store.dispatch('displayErrorSnack', 'Błąd zapisu budżetu', {
-            root: true,
-          });
-        });
     },
   },
 };
