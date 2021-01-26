@@ -2,7 +2,6 @@
 using Dapper;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Infrastructure;
-using MySql.Data.MySqlClient;
 
 namespace MW.TinyMoney.Api.Controllers
 {

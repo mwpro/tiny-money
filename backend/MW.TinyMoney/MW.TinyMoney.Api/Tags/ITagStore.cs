@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
 using MW.TinyMoney.Api.Infrastructure;
 
