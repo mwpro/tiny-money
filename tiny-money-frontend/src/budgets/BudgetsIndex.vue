@@ -121,7 +121,11 @@ export default {
   methods: {
     selectMonth() {
       this.$refs.menu.save(this.selectedMonth);
-      this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
+      this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth).catch(() => {
+        this.$store.dispatch('displayErrorSnack', 'Błąd ładowania budżetu', {
+          root: true,
+        });
+      });
     },
   },
 };
