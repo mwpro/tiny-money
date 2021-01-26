@@ -1,7 +1,6 @@
 ﻿using Dapper;
-using MW.TinyMoney.Api.Infrasatructure;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Tags
 {

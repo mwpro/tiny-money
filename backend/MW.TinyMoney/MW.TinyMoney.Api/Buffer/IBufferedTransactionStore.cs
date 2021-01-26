@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using Dapper;
 using MW.TinyMoney.Api.Buffer.ApiModels;
-using MW.TinyMoney.Api.Infrasatructure;
-using MySql.Data.MySqlClient;
+using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Controllers
 {

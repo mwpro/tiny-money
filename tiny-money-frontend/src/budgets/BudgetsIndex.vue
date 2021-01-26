@@ -3,7 +3,7 @@
     <initialize-budget
       :is-open="isInitializeBudgetOpen"
       :target-month="selectedMonth"
-      @closed="isInitializeBudgetOpen=false"
+      @closed="isInitializeBudgetOpen = false"
     ></initialize-budget>
     <v-layout row wrap>
       <v-flex xs11 sm5>
@@ -39,79 +39,45 @@
       </v-flex>
       <v-spacer></v-spacer>
     </v-layout>
-    <v-layout row wrap>
-      <v-flex xs4>Budżet:
-        <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.amount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-      </v-flex>
-      <v-flex xs4>Rzeczywiste wydatki:
-        <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-      </v-flex>
-      <v-flex xs4>Różnica:
-        <br>
-        {{ budgets.map(x => x.subcategories.map(x => x.amount - x.usedAmount)).flat().reduce((a, b) => a + b, 0) | toFixed(2) | currency }}
-      </v-flex>
-    </v-layout>
-    <v-layout row wrap>
+    <budget-summary v-if="loaded" :budgets="budgets" />
+    <v-layout row wrap v-if="loaded">
       <v-flex>
         <v-data-table
+          :loading="!loaded"
           :headers="headers"
-          :items="budgets"
+          :items="categories"
           :hide-actions="true"
           class="elevation-1"
           pagination.rowsPerPage="10"
         >
           <template slot="items" slot-scope="props">
-            <tr>
-              <th class="text-xs-left">{{ props.item.name }}</th>
-              <th
-                class="text-xs-left"
-              >{{ props.item.subcategories.map(x => x.amount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-              <th
-                class="text-xs-left"
-              >{{ props.item.subcategories.map(x => x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-              <th
-                class="text-xs-left"
-                :class="props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) < 0 ? 'red--text' : ''"
-              >{{ props.item.subcategories.map(x => x.amount - x.usedAmount).reduce((a, b) => a + b) | toFixed(2) | currency }}</th>
-            </tr>
-            <tr v-for="subcategory in props.item.subcategories" :key="subcategory.subcategoryId">
-              <td class="text-xs-left">{{ subcategory.subcategoryName }}</td>
-              <td class="text-xs-left">
-                <v-edit-dialog @open="editBudget(subcategory)" @save="saveBudget()">
-                  {{ subcategory.amount | toFixed(2) | currency }}
-                  <v-text-field
-                    slot="input"
-                    v-model="editedBudgetAmount"
-                    label="Edit"
-                    type="number"
-                    single-line
-                    counter
-                  ></v-text-field>
-                </v-edit-dialog>
-              </td>
-              <td class="text-xs-left">{{ subcategory.usedAmount | toFixed(2) | currency }}</td>
-              <td
-                class="text-xs-left"
-                :class="subcategory.usedAmount > subcategory.amount ? 'red--text' : ''"
-              >{{ (subcategory.amount - subcategory.usedAmount) | toFixed(2) | currency }}</td>
-            </tr>
+            <budget-category-row :category="props.item" />
+            <budget-subcategory-row v-for="subcategory in props.item.subcategories" :subcategory="subcategory" :selectedMonth="selectedMonth" :key="subcategory.id" />
           </template>
         </v-data-table>
       </v-flex>
     </v-layout>
     <v-flex class="no-data">
-      <v-btn color="info" @click="isInitializeBudgetOpen = !isInitializeBudgetOpen">Skopiuj</v-btn>
+      <v-btn
+        color="info"
+        @click="isInitializeBudgetOpen = !isInitializeBudgetOpen"
+        >Skopiuj</v-btn
+      >
     </v-flex>
   </v-container>
 </template>
 <script>
+import { mapState } from 'vuex';
+import BudgetCategoryRow from './BudgetCategoryRow.vue';
+import BudgetSubcategoryRow from './BudgetSubcategoryRow.vue';
+import BudgetSummary from './BudgetSummary.vue';
 import InitializeBudget from './InitializeBudget.vue';
 
 export default {
   name: 'budgets-index',
-  components: { InitializeBudget },
+  components: {
+    InitializeBudget, BudgetCategoryRow, BudgetSubcategoryRow, BudgetSummary,
+  },
   data() {
     return {
       selectedMonth: new Date().toISOString().substr(0, 7),
@@ -124,40 +90,42 @@ export default {
         { text: 'Plan', value: 'amount', sortable: false },
         { text: 'Realizacja', value: 'amount', sortable: false },
         { text: 'Różnica', value: 'amount', sortable: false },
+        { text: 'Notatki', value: 'notes', sortable: false },
       ],
-      editedBudgetAmount: 0,
-      editedBudgetSubcategory: null,
       isInitializeBudgetOpen: false,
     };
   },
   computed: {
+    loaded() {
+      return this.budgets && this.categories;
+    },
     budgets() {
       return this.$store.state.budgets.budgetsList;
     },
+    ...mapState('categories', { categories: 'categoriesList' }),
   },
   created() {
-    this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
+    this.$store
+      .dispatch('budgets/getBudgetsAction', this.selectedMonth)
+      .catch(() => {
+        this.$store.dispatch('displayErrorSnack', 'Błąd ładowania budżetu', {
+          root: true,
+        });
+      });
+    this.$store.dispatch('categories/getCategories').catch(() => {
+      this.$store.dispatch('displayErrorSnack', 'Błąd ładowania kategorii', {
+        root: true,
+      });
+    });
   },
   methods: {
     selectMonth() {
       this.$refs.menu.save(this.selectedMonth);
-      this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth);
-    },
-    editBudget(subcategory) {
-      this.editedBudgetAmount = subcategory.amount;
-      this.editedBudgetSubcategory = subcategory.subcategoryId;
-    },
-    saveBudget() {
-      this.$store
-        .dispatch('budgets/saveBudgetAction', {
-          amount: Number(this.editedBudgetAmount),
-          subcategoryId: this.editedBudgetSubcategory,
-          year: this.selectedMonth.substr(0, 4),
-          month: this.selectedMonth.substr(5, 7),
-        })
-        .then(() => {
-          this.$store.dispatch('displaySuccessSnack', 'Budżet zapisany', { root: true });
+      this.$store.dispatch('budgets/getBudgetsAction', this.selectedMonth).catch(() => {
+        this.$store.dispatch('displayErrorSnack', 'Błąd ładowania budżetu', {
+          root: true,
         });
+      });
     },
   },
 };

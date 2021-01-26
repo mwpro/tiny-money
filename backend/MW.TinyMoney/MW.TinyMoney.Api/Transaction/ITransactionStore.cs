@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using MW.TinyMoney.Api.Infrasatructure;
+using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Transaction
 {
