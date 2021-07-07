@@ -89,7 +89,7 @@ export default {
     },
 
     getTransactionAction({ commit }, transactionId) {
-      return axios.get(`/api/transaction/${transactionId}`).then((response) => {
+      return axios.get(`${process.env.VUE_APP_API_NEW}/api/transactions/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.message);
         let transaction = response.data;
         if (typeof transaction !== 'object') {
