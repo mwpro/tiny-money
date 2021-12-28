@@ -76,17 +76,9 @@ export default {
       drawer: false,
       darkMode: false,
       items: [
-        // { title: 'Home', icon: 'dashboard', route: '/' },
         { title: 'Transakcje', icon: 'attach_money', route: '/transactions' },
         { title: 'Budżety', icon: 'show_chart', route: '/budgets' },
         { title: 'Import', icon: 'cloud_upload', route: '/buffer' },
-        // { title: 'Tagi', icon: '#', route: '/tags' },
-        // { title: 'Sprzedawcy', icon: 'business', route: '/vendors' },
-        {
-          title: 'Kategorie',
-          icon: 'format_list_bulleted',
-          route: '/categories',
-        },
         { title: 'Raporty', icon: 'bar_chart', route: '/reports' },
       ],
     };

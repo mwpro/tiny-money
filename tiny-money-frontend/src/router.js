@@ -6,9 +6,6 @@ import TransactionsIndex from './transactions/TransactionsIndex.vue';
 import BudgetsIndex from './budgets/BudgetsIndex.vue';
 import TagsIndex from './tags/TagsIndex.vue';
 import VendorsIndex from './vendors/VendorsIndex.vue';
-import CategoriesIndex from './categories/CategoriesIndex.vue';
-import EditCategory from './categories/EditCategory.vue';
-import EditSubcategory from './categories/EditSubcategory.vue';
 import Callback from './auth/Callback.vue';
 import Login from './auth/Login.vue';
 import ReportsIndex from './reports/ReportsIndex.vue'
@@ -70,34 +67,6 @@ const router = new Router({
       path: '/vendors',
       name: 'vendors',
       component: VendorsIndex,
-    },
-    {
-      path: '/categories',
-      name: 'categories',
-      component: CategoriesIndex,
-    },
-    {
-      path: '/categories/add',
-      name: 'addCategory',
-      component: EditCategory,
-    },
-    {
-      path: '/categories/:categoryId/edit',
-      name: 'editCategory',
-      props: true,
-      component: EditCategory,
-    },
-    {
-      path: '/categories/:categoryId/subcategories/add',
-      name: 'addSubcategory',
-      props: true,
-      component: EditSubcategory,
-    },
-    {
-      path: '/categories/:categoryId/subcategories/:subcategoryId',
-      name: 'editSubcategory',
-      props: true,
-      component: EditSubcategory,
     },
     {
       path: '/callback',

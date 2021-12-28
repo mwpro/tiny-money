@@ -46,7 +46,6 @@ namespace MW.TinyMoney.Api.Transaction
         [HttpPost("{transactionId}")]
         public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] AddTransactionDto updatedTransaction)
         {
-            // TODO validation, should be a single transaction scope
             var transaction = await _transactionStore.GetTransaction(transactionId);
             if (transaction == null)
             {
