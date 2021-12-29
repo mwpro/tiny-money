@@ -209,8 +209,17 @@ export default {
       if (transactionId) {
         this.$store.dispatch('transactions/getTransactionAction', transactionId)
           .then((t) => {
-            this.transaction = { ...this.$store.state.transactions.transaction };
-            this.transaction.subcategoryId = this.$store.state.transactions.transaction.subcategory.id;
+            const transaction = { ...this.$store.state.transactions.transaction };
+            this.transaction = {
+              id: transaction.id,
+              transactionDate: transaction.transactionDate.substr(0, 10),
+              subcategoryId: transaction.subcategoryId,
+              isExpense: true,
+              amount: transaction.amount,
+              vendor: this.vendors.find(v => v.id === transaction.vendorId),
+              description: transaction.description,
+              tags: this.tags.filter(t => transaction.tagIds.includes(t.id)),
+            };
           });
       } else {
         this.transaction = {

@@ -18,7 +18,7 @@ export default {
       if (currentIndex >= 0) {
         Vue.set(state.transactionsList, currentIndex, transaction);
       } else {
-        state.transactionsList.unshift(transaction);
+        state.transactionsList.push(transaction); // todo should be added in place
       }
     },
     deleteTransaction(state, transactionId) {
@@ -31,11 +31,11 @@ export default {
   actions: {
     getTransactionsAction({ commit }, searchOptions) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/transactions`, {
+        .get("/api/transactions", {
           params: searchOptions,
         })
         .then((response) => {
-          if (response.status !== 200) throw Error(response.message);
+          if (response.status !== 200) throw Error(response.statusText);
           let transactions = response.data;
           if (typeof transactions !== 'object') {
             transactions = [];
@@ -58,11 +58,11 @@ export default {
       }
 
       return axios.post(
-        (isUpdate ? `/api/transaction/${transaction.id}` : '/api/transaction'),
+        (isUpdate ? `/api/transactions/${transaction.id}` : "/api/transactions"),
         transaction,
       ).then((response) => {
         if ((isUpdate && response.status !== 200) || (!isUpdate && response.status !== 201)) {
-          throw Error(response.message);
+          throw Error(response.statusText);
         }
 
         let addTransactionResult = response.data;
@@ -70,27 +70,27 @@ export default {
           addTransactionResult = undefined;
         }
         commit('saveTransaction', addTransactionResult.transaction);
-        addTransactionResult.addedTags.forEach((t) => {
+        addTransactionResult.newTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });
 
-        if (transaction.vendor.id === null) {
-          dispatch('vendors/addVendorAction', addTransactionResult.transaction.vendor, { root: true });
+        if (addTransactionResult.newVendor) {
+          dispatch('vendors/addVendorAction', addTransactionResult.newVendor, { root: true });
         }
         return addTransactionResult;
       });
     },
 
     deleteTransactionAction({ commit }, transactionId) {
-      return axios.delete(`/api/transaction/${transactionId}`).then((response) => {
-        if (response.status !== 200) throw Error(response.message);
+      return axios.delete(`/api/transactions/${transactionId}`).then((response) => {
+        if (response.status !== 200) throw Error(response.statusText);
         commit('deleteTransaction', transactionId);
       });
     },
 
     getTransactionAction({ commit }, transactionId) {
-      return axios.get(`/api/transaction/${transactionId}`).then((response) => {
-        if (response.status !== 200) throw Error(response.message);
+      return axios.get(`/api/transactions/${transactionId}`).then((response) => {
+        if (response.status !== 200) throw Error(response.statusText);
         let transaction = response.data;
         if (typeof transaction !== 'object') {
           transaction = undefined;

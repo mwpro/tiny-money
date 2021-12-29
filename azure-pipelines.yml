@@ -12,7 +12,7 @@ trigger:
     - tiny-money-backend/*
 
 pool:
-  vmImage: 'Ubuntu-16.04'
+  vmImage: 'ubuntu-latest'
 
 steps:
 - task: Maven@3

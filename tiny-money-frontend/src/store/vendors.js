@@ -20,7 +20,7 @@ export default {
   actions: {
     getVendorsAction({ commit }) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/vendors`)
+        .get("/api/vendors")
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let vendors = response.data;

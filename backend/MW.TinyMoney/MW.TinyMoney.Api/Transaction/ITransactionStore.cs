@@ -10,9 +10,11 @@ namespace MW.TinyMoney.Api.Transaction
     public interface ITransactionStore
     {
         void SaveTransaction(Transaction.ApiModels.Transaction transaction);
+        Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopTransactions(IEnumerable<DateTime> reportParametersMonths);
         Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime month);
+        Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -28,8 +30,24 @@ namespace MW.TinyMoney.Api.Transaction
             @"INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id)
                 VALUES(@amount, @createdBy, @createdDate, @description, @isExpense, @modifiedDate, @transactionDate, @subcategoryId, @vendorId);
                 SELECT LAST_INSERT_ID();";
+        
+        private const string UpdateTransactionQuery =
+            @"UPDATE transaction SET
+                amount = @amount, 
+                created_by = @createdBy,
+                created_date = @createdDate, 
+                description = @description, 
+                is_expense = @isExpense, 
+                modified_date = @modifiedDate, 
+                transaction_date = @transactionDate, 
+                subcategory_id = @subcategoryId, 
+                vendor_id = @vendorId
+                WHERE id = @id;";
 
-        private const string SaveTransactionTag =
+        private const string DeleteTransactionTags =
+            "DELETE FROM transaction_tag WHERE transaction_id = @transactionId;";
+        
+        private const string SaveTransactionTags =
             @"INSERT INTO transaction_tag (transaction_id, tag_id)
                 VALUES(@transactionId, @tagId)";
 
@@ -86,6 +104,10 @@ namespace MW.TinyMoney.Api.Transaction
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
             ORDER BY t.transaction_date";
 
+        private const string DeleteTransactionQuery =
+            @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId; 
+              DELETE FROM transaction WHERE id = @transactionId;";
+        
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -95,10 +117,29 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     transaction.Id = connection.QuerySingle<int>(SaveTransactionQuery, transaction, dbTransaction);
 
-                    connection.Execute(SaveTransactionTag,
+                    connection.Execute(SaveTransactionTags,
                         transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
 
                     dbTransaction.Commit();
+                }
+            }
+        }
+
+        public async Task UpdateTransaction(ApiModels.Transaction transaction)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                await using (var dbTransaction = await connection.BeginTransactionAsync())
+                {
+                    await connection.ExecuteAsync(UpdateTransactionQuery, transaction, dbTransaction);
+
+                    await connection.ExecuteAsync(DeleteTransactionTags, new {transactionId = transaction.Id}, dbTransaction);
+
+                    await connection.ExecuteAsync(SaveTransactionTags,
+                        transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
+
+                    await dbTransaction.CommitAsync();
                 }
             }
         }
@@ -181,6 +222,14 @@ namespace MW.TinyMoney.Api.Transaction
                     }, splitOn: "tagId");
 
                 return transactionsDictionary.Values;
+            }
+        }
+
+        public async Task DeleteTransaction(ApiModels.Transaction transaction)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                await connection.ExecuteAsync(DeleteTransactionQuery, new {transactionId = transaction.Id});
             }
         }
     }
