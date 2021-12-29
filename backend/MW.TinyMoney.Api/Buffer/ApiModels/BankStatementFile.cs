@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace MW.TinyMoney.Api.Buffer.ApiModels
+﻿namespace MW.TinyMoney.Api.Buffer.ApiModels
 {
     public class BankStatementFile
     {

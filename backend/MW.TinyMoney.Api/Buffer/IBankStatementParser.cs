@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 
-namespace MW.TinyMoney.Api.Controllers
+namespace MW.TinyMoney.Api.Buffer
 {
     //public class BufferedTransaction
     //{

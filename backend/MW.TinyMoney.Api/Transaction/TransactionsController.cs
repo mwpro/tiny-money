@@ -95,7 +95,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
+        public IActionResult AddTransaction([FromBody] AddTransactionDto addTransactionDto)
         {
             // TODO validation, should be a single transaction scope
             var response = new AddTransactionResponse();

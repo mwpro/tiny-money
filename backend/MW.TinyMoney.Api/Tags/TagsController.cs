@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
@@ -20,7 +19,7 @@ namespace MW.TinyMoney.Api.Tags
 
         [HttpGet, Route("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<TagDto>))]
-        public async Task<IActionResult> GetTags()
+        public IActionResult GetTags()
         {
             return Ok(_tagStore.GetTags().Select(x => new TagDto()
             {

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +18,7 @@ namespace MW.TinyMoney.Api.Categories
 
         [HttpGet, Route("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
-        public async Task<IActionResult> GetCategories()
+        public IActionResult GetCategories()
         {
             var result = _categoriesStore.GetCategories().Select(x => new CategoryDto() 
             {

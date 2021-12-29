@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
@@ -9,7 +8,7 @@ using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 
-namespace MW.TinyMoney.Api.Controllers
+namespace MW.TinyMoney.Api.Buffer
 {
     [ApiController, Route("/api/transaction/buffer"), Authorize]
     public class TransactionBufferController : ControllerBase
@@ -30,7 +29,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
-        public async Task<IActionResult> PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
+        public IActionResult PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
         {
             IBankStatementParser parser = new GetinPdfBankStatementParser();
             var parsingResult = parser.Parse(bankStatementFile.FileContent);
@@ -44,14 +43,14 @@ namespace MW.TinyMoney.Api.Controllers
 
         [HttpGet, Route("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<BufferedTransaction>))]
-        public async Task<IActionResult> GetBufferedTransactions()
+        public IActionResult GetBufferedTransactions()
         {
             return Ok(_bufferedTransactionStore.GetBufferedTransactions());
         }
 
         [HttpPost, Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        public async Task<IActionResult> AcceptBufferedTransaction([FromRoute]int id, [FromBody]BufferedTransactionApproval approval)
+        public IActionResult AcceptBufferedTransaction([FromRoute]int id, [FromBody]BufferedTransactionApproval approval)
         {
             // TODO validation, should be a single transaction scope
             var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
@@ -96,7 +95,7 @@ namespace MW.TinyMoney.Api.Controllers
 
         [HttpDelete, Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        public async Task<IActionResult> RejectBufferedTransaction([FromRoute]int id)
+        public IActionResult RejectBufferedTransaction([FromRoute]int id)
         {
             var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
             if (bufferedTransaction == null)

@@ -3,7 +3,7 @@ using Dapper;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Infrastructure;
 
-namespace MW.TinyMoney.Api.Controllers
+namespace MW.TinyMoney.Api.Buffer
 {
 
     public interface IBufferedTransactionStore

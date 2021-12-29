@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MW.TinyMoney.Api.Controllers;
 using MW.TinyMoney.Api.Transaction;
 
 namespace MW.TinyMoney.Api.Reports
@@ -40,7 +38,7 @@ namespace MW.TinyMoney.Api.Reports
 
         [HttpGet, Route("availableMonths")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(AvailableMonthsModel))]
-        public async Task<IActionResult> GetAvailableMonths()
+        public IActionResult GetAvailableMonths()
         {
             return Ok(new AvailableMonthsModel()
             {
@@ -50,7 +48,7 @@ namespace MW.TinyMoney.Api.Reports
         
         [HttpGet, Route("expensesByMonth")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetExpensesByMonthReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetExpensesByMonthReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareExpensesByMonthReport(reportParameters.Months);
             
@@ -61,7 +59,7 @@ namespace MW.TinyMoney.Api.Reports
         
         [HttpGet, Route("monthsSummary")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetMonthsSummaryReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetMonthsSummaryReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareMonthsSummaryReport(reportParameters.Months);
             
@@ -72,7 +70,7 @@ namespace MW.TinyMoney.Api.Reports
         
         [HttpGet, Route("categoriesBreakdown")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetCategoriesBreakdownReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetCategoriesBreakdownReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareCategoriesBreakdownReport(reportParameters.Months);
 
@@ -83,7 +81,7 @@ namespace MW.TinyMoney.Api.Reports
 
         [HttpGet, Route("topVendors")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetTopVendorsReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetTopVendorsReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareTopVendorsReport(reportParameters.Months);
             
@@ -94,7 +92,7 @@ namespace MW.TinyMoney.Api.Reports
         
         [HttpGet, Route("topTags")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
-        public async Task<IActionResult> GetTopTagsReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetTopTagsReport([FromQuery]ReportParameters reportParameters)
         {
             var reportData = _reportsProvider.PrepareTopTagsReport(reportParameters.Months);
             
@@ -105,7 +103,7 @@ namespace MW.TinyMoney.Api.Reports
 
         [HttpGet, Route("topTransactions")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<Transaction.ApiModels.Transaction>))]
-        public async Task<IActionResult> GetTopTransactionsReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetTopTransactionsReport([FromQuery]ReportParameters reportParameters)
         {
             return Ok(_transactionStore.GetTopTransactions(reportParameters.Months));
         }

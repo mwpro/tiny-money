@@ -1,8 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace MW.TinyMoney.Api.Budget.ApiModels
+﻿namespace MW.TinyMoney.Api.Budget.ApiModels
 {
     public class SetBudget
     {
