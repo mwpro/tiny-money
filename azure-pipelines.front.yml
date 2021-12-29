@@ -6,7 +6,7 @@ trigger:
     - master
   paths:
     include:
-    - tiny-money-frontend/*
+    - frontend/*
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -20,23 +20,23 @@ steps:
   displayName: 'npm install'
   inputs:
     command: install
-    workingDir: 'tiny-money-frontend'
+    workingDir: 'frontend'
 
 - task: Npm@1
   displayName: 'npm test'
   inputs:
     command: custom
     customCommand: 'test'
-    workingDir: 'tiny-money-frontend'
+    workingDir: 'frontend'
 
 - task: Npm@1
   displayName: 'npm build'
   inputs:
     command: custom
     customCommand: 'run build'
-    workingDir: 'tiny-money-frontend'
+    workingDir: 'frontend'
 
 - task: PublishBuildArtifacts@1
   inputs:
     artifactName: 'website'
-    pathtoPublish: '$(System.DefaultWorkingDirectory)/tiny-money-frontend/dist'
+    pathtoPublish: '$(System.DefaultWorkingDirectory)/frontend/dist'
