@@ -30,8 +30,24 @@ namespace MW.TinyMoney.Api.Transaction
             @"INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id)
                 VALUES(@amount, @createdBy, @createdDate, @description, @isExpense, @modifiedDate, @transactionDate, @subcategoryId, @vendorId);
                 SELECT LAST_INSERT_ID();";
+        
+        private const string UpdateTransactionQuery =
+            @"UPDATE transaction SET
+                amount = @amount, 
+                created_by = @createdBy,
+                created_date = @createdDate, 
+                description = @description, 
+                is_expense = @isExpense, 
+                modified_date = @modifiedDate, 
+                transaction_date = @transactionDate, 
+                subcategory_id = @subcategoryId, 
+                vendor_id = @vendorId
+                WHERE id = @id;";
 
-        private const string SaveTransactionTag =
+        private const string DeleteTransactionTags =
+            "DELETE FROM transaction_tag WHERE transaction_id = @transactionId;";
+        
+        private const string SaveTransactionTags =
             @"INSERT INTO transaction_tag (transaction_id, tag_id)
                 VALUES(@transactionId, @tagId)";
 
@@ -101,7 +117,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     transaction.Id = connection.QuerySingle<int>(SaveTransactionQuery, transaction, dbTransaction);
 
-                    connection.Execute(SaveTransactionTag,
+                    connection.Execute(SaveTransactionTags,
                         transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
 
                     dbTransaction.Commit();
@@ -109,12 +125,23 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
 
-        public Task UpdateTransaction(ApiModels.Transaction transaction)
+        public async Task UpdateTransaction(ApiModels.Transaction transaction)
         {
-            // todo save transaction details
-            // todo remove removed tags
-            // todo add new tags
-            throw new NotImplementedException();
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                await using (var dbTransaction = await connection.BeginTransactionAsync())
+                {
+                    await connection.ExecuteAsync(UpdateTransactionQuery, transaction, dbTransaction);
+
+                    await connection.ExecuteAsync(DeleteTransactionTags, new {transactionId = transaction.Id}, dbTransaction);
+
+                    await connection.ExecuteAsync(SaveTransactionTags,
+                        transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
+
+                    await dbTransaction.CommitAsync();
+                }
+            }
         }
 
         public async Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId)

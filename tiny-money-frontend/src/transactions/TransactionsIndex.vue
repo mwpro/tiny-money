@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <edit-transaction :isOpen="isEditTransactionActive" :editedTransactionId="editedTransactionId"
-                      @closed="isEditTransactionActive=false"/>
+                      @closed="onClosedEditTransaction"/>
     <v-dialog v-model="isDeleteTransactionActive" persistent max-width="400">
       <v-card>
         <v-card-title class="headline">Czy na pewno chcesz usunąć transakcję?</v-card-title>
@@ -166,6 +166,10 @@
       openAddTransaction() {
         this.editedTransactionId = null;
         this.isEditTransactionActive = true;
+      },
+      onClosedEditTransaction() {
+        this.editedTransactionId = null;
+        this.isEditTransactionActive=false;
       },
       openEditTransaction(id) {
         this.editedTransactionId = id;
