@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1cf86a33-f6ee-4052-89b6-e87411d921b0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/.idea.MW.TinyMoney.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/contentModel.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/modules.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MW.TinyMoney/riderModule.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MW.TinyMoney.Api/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MW.TinyMoney.Api/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MW.TinyMoney.Api/Startup.cs" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,8 +16,8 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Buffer/ApiModels/BufferedTransaction.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1abb2696c3e0194fd5bb62254c37a28878e46192b53fe8ad2df3f329e6f77ee/MvcServiceCollectionExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Budget/BudgetStore.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Startup.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Budget/ApiModels/SetBudgetAmount.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Budget/BudgetController.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MW.TinyMoney.Api/Buffer/ApiModels/BankStatementFile.cs" root0="FORCE_HIGHLIGHTING" />
@@ -58,6 +55,9 @@
       </list>
     </option>
   </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectId" id="22yPi9rvadi2wJUTTH5weiDegoT" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -69,7 +69,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="SolutionBuilderGeneralOptionsPageId" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
     <property name="vue.rearranger.settings.migration" value="true" />
   </component>
   <component name="RunManager" selected="npm.serve">
@@ -130,40 +130,25 @@
       <workItem from="1640806987439" duration="1641000" />
       <workItem from="1640809211020" duration="648000" />
       <workItem from="1640809873361" duration="1197000" />
-      <workItem from="1640811658620" duration="634000" />
+      <workItem from="1640811658620" duration="2105000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="1946" y="360" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1640809715393">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state x="1946" y="360" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.3440.1410@0.0.3440.1410" timestamp="1640809715393" />
-    <state width="921" height="400" key="GridCell.Tab.0.bottom" timestamp="1640809867309">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state width="921" height="400" key="GridCell.Tab.0.bottom/0.0.3440.1410@0.0.3440.1410" timestamp="1640809867309" />
-    <state width="921" height="400" key="GridCell.Tab.0.center" timestamp="1640809867308">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state width="921" height="400" key="GridCell.Tab.0.center/0.0.3440.1410@0.0.3440.1410" timestamp="1640809867308" />
-    <state width="921" height="400" key="GridCell.Tab.0.left" timestamp="1640809867308">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state width="921" height="400" key="GridCell.Tab.0.left/0.0.3440.1410@0.0.3440.1410" timestamp="1640809867308" />
-    <state width="921" height="400" key="GridCell.Tab.0.right" timestamp="1640809867308">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state width="921" height="400" key="GridCell.Tab.0.right/0.0.3440.1410@0.0.3440.1410" timestamp="1640809867308" />
-    <state x="1993" y="350" key="SettingsEditor" timestamp="1640808976362">
-      <screen x="0" y="0" width="3440" height="1410" />
-    </state>
-    <state x="1993" y="350" key="SettingsEditor/0.0.3440.1410@0.0.3440.1410" timestamp="1640808976362" />
   </component>
 </project>
