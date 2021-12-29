@@ -20,7 +20,7 @@ export default {
   actions: {
     getCategories({ commit }) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/categories`)
+        .get("/api/categories")
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let categories = response.data;

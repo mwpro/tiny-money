@@ -17,7 +17,7 @@ export default {
   actions: {
     getAvailableMonths({ commit, dispatch }) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/reports/availableMonths`)
+        .get("/api/reports/availableMonths")
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let availableMonths = response.data.availableMonths;

@@ -31,7 +31,7 @@ export default {
   actions: {
     getTransactionsAction({ commit }, searchOptions) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/transactions`, {
+        .get("/api/transactions", {
           params: searchOptions,
         })
         .then((response) => {
@@ -58,7 +58,7 @@ export default {
       }
 
       return axios.post(
-        (isUpdate ? `${process.env.VUE_APP_API_NEW}/api/transactions/${transaction.id}` : `${process.env.VUE_APP_API_NEW}/api/transactions`),
+        (isUpdate ? `/api/transactions/${transaction.id}` : "/api/transactions"),
         transaction,
       ).then((response) => {
         if ((isUpdate && response.status !== 200) || (!isUpdate && response.status !== 201)) {
@@ -82,14 +82,14 @@ export default {
     },
 
     deleteTransactionAction({ commit }, transactionId) {
-      return axios.delete(`${process.env.VUE_APP_API_NEW}/api/transactions/${transactionId}`).then((response) => {
+      return axios.delete(`/api/transactions/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.statusText);
         commit('deleteTransaction', transactionId);
       });
     },
 
     getTransactionAction({ commit }, transactionId) {
-      return axios.get(`${process.env.VUE_APP_API_NEW}/api/transactions/${transactionId}`).then((response) => {
+      return axios.get(`/api/transactions/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.statusText);
         let transaction = response.data;
         if (typeof transaction !== 'object') {

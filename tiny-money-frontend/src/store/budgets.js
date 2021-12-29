@@ -19,7 +19,7 @@ export default {
     getBudgetsAction({ commit }, selectedMonth) {
       // TODO appending '-01' does not seem to be the best practice :)
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/budget/${selectedMonth.substr(0, 4)}/${selectedMonth.substr(5, 7)}`)
+        .get(`/api/budget/${selectedMonth.substr(0, 4)}/${selectedMonth.substr(5, 7)}`)
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let budgets = response.data;
@@ -33,7 +33,7 @@ export default {
     },
     saveBudgetAction({ commit }, budget) {
       return axios
-        .post(`${process.env.VUE_APP_API_NEW}/api/budget/${budget.year}/${budget.month}/subcategory/${budget.subcategoryId}`, {
+        .post(`/api/budget/${budget.year}/${budget.month}/subcategory/${budget.subcategoryId}`, {
           budgetAmount: budget.amount,
           notes: budget.notes,
         })
@@ -46,7 +46,7 @@ export default {
     },
     copyBudgetAction({ dispatch }, budgetCopy) {
       return axios
-        .post(`${process.env.VUE_APP_API_NEW}/api/budget/${budgetCopy.yearFrom}/${budgetCopy.monthFrom}/copy/${budgetCopy.yearTo}/${budgetCopy.monthTo}`)
+        .post(`/api/budget/${budgetCopy.yearFrom}/${budgetCopy.monthFrom}/copy/${budgetCopy.yearTo}/${budgetCopy.monthTo}`)
         .then((response) => {
           if (response.status !== 201) throw Error(response.message);
 

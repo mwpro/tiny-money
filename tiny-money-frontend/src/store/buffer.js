@@ -30,7 +30,7 @@ export default {
   actions: {
     getTransactionsAction({ commit }) {
       return axios
-        .get(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer`)
+        .get("/api/transaction/buffer")
         .then((response) => {
           if (response.status !== 200) throw Error(response.message);
           let transactions = response.data;
@@ -47,7 +47,7 @@ export default {
     importTransactionsAction({ commit, dispatch }, transactions) {
       const params = new URLSearchParams();
       params.append('fileContent', transactions);
-      return axios.post(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/`, params)
+      return axios.post("/api/transaction/buffer/", params)
       .then((response) => {
         if (response.status !== 201) {
           throw Error(response.message);
@@ -57,22 +57,22 @@ export default {
         if (typeof importTransactionsResult !== 'object') {
           importTransactionsResult = undefined;
         }
-        
+
         dispatch("getTransactionsAction");
         return importTransactionsResult;
       });
     },
-    
+
     approveTransactionAction({ commit, dispatch }, transaction) { // TODO rename to save
       transaction.tags = transaction.tags.map((t) => {
         if (typeof t === 'string' || t instanceof String) { return { id: null, name: t }; }
         return t;
       });
-      if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) { 
-        transaction.vendor = { id: null, name: transaction.vendor }; 
+      if (typeof transaction.vendor === 'string' || transaction.vendor instanceof String) {
+        transaction.vendor = { id: null, name: transaction.vendor };
       }
 
-      return axios.post(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/${transaction.id}`,
+      return axios.post(`/api/transaction/buffer/${transaction.id}`,
         transaction,
       ).then((response) => {
         if (response.status !== 200) {
@@ -87,8 +87,8 @@ export default {
         addTransactionResult.newTags.forEach((t) => {
           dispatch('tags/addTagAction', t, { root: true });
         });
-        
-        if (addTransactionResult.newVendor) { 
+
+        if (addTransactionResult.newVendor) {
           dispatch('vendors/addVendorAction', addTransactionResult.newVendor, { root: true });
         }
         return addTransactionResult.transaction;
@@ -96,7 +96,7 @@ export default {
     },
 
     rejectTransactionAction({ commit }, transactionId) {
-      return axios.delete(`${process.env.VUE_APP_API_NEW}/api/transaction/buffer/${transactionId}`).then((response) => {
+      return axios.delete(`/api/transaction/buffer/${transactionId}`).then((response) => {
         if (response.status !== 200) throw Error(response.message);
         commit('rejectTransaction', transactionId);
       });

@@ -69,7 +69,7 @@
         let selectedMonths = this.selectedMonths
           .map(m => `${m.year}-${m.month}-01`);
         axios // todo use store here
-          .get(`${process.env.VUE_APP_API_NEW}/api/reports/topVendors`, {
+          .get("/api/reports/topVendors", {
               params: {months: selectedMonths},
               paramsSerializer: function (params) {
                 return qs.stringify(params, {arrayFormat: 'repeat'})
