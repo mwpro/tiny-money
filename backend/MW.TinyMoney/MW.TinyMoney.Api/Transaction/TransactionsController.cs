@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction.ApiModels;
@@ -140,7 +141,7 @@ namespace MW.TinyMoney.Api.Transaction
 
             response.Transaction = createdTransaction;
 
-            return Ok(response);
+            return StatusCode(StatusCodes.Status201Created, response);
         }
         
         [HttpDelete("{transactionId}")]
