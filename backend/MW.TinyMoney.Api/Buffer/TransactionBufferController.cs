@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Tags;
@@ -17,28 +19,31 @@ namespace MW.TinyMoney.Api.Buffer
         private readonly ITransactionStore _transactionStore;
         private readonly IVendorStore _vendorStore;
         private readonly ITagStore _tagStore;
+        private readonly IImportTransactionsService _importTransactionsService;
 
         public TransactionBufferController(IBufferedTransactionStore bufferedTransactionStore,
-            ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore)
+            ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore, 
+            IImportTransactionsService importTransactionsService)
         {
             _bufferedTransactionStore = bufferedTransactionStore;
             _transactionStore = transactionStore;
             _vendorStore = vendorStore;
             _tagStore = tagStore;
+            _importTransactionsService = importTransactionsService;
         }
 
         [HttpPost, Route("")]
         [ProducesResponseType((int)HttpStatusCode.Created, Type = typeof(BankStatementFileImportResult))]
         public IActionResult PostFileToBuffer([FromForm]BankStatementFile bankStatementFile)
         {
-            IBankStatementParser parser = new GetinPdfBankStatementParser();
-            var parsingResult = parser.Parse(bankStatementFile.FileContent);
-            _bufferedTransactionStore.SaveTransactionsToBuffer(parsingResult);
-
-            return Created("", new BankStatementFileImportResult()
+            var parsingResult = _importTransactionsService.ImportTransactions(bankStatementFile);
+            return parsingResult switch
             {
-                NumberOfImportedTransactions = parsingResult.Count()
-            });
+                CommandSuccess<int> commandSuccess => StatusCode(StatusCodes.Status201Created,
+                    new BankStatementFileImportResult() { NumberOfImportedTransactions = commandSuccess.Result }),
+                InvalidInputResult<int> invalidInputResult => Problem(invalidInputResult.Reason, statusCode: StatusCodes.Status400BadRequest),
+                _ => throw new ArgumentOutOfRangeException(nameof(parsingResult))
+            };
         }
 
         [HttpGet, Route("")]

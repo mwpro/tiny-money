@@ -44,9 +44,10 @@ export default {
       // .catch(captains.error)
     },
 
-    importTransactionsAction({ commit, dispatch }, transactions) {
+    importTransactionsAction({ commit, dispatch }, importData) {
       const params = new URLSearchParams();
-      params.append('fileContent', transactions);
+      params.append('fileContent', importData.transactions);
+      params.append('fileType', importData.type);
       return axios.post("/api/transaction/buffer/", params)
       .then((response) => {
         if (response.status !== 201) {

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Buffer;
+using MW.TinyMoney.Api.Buffer.Parsers;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Reports;
@@ -47,8 +48,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddCors(conf =>
     {
-        conf.AddDefaultPolicy(builder =>
-            builder.WithOrigins(configuration["Cors:AllowedOrigins"])
+        conf.AddDefaultPolicy(cors =>
+            cors.WithOrigins(configuration["Cors:AllowedOrigins"])
                 .WithHeaders("Authorization", "Content-Type")
                 .WithMethods("GET", "POST", "DELETE"));
     });
@@ -66,4 +67,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
     services.AddTransient<IReportsProvider, MySqlReportsProvider>();
     services.AddTransient<IBudgetStore, BudgetStore>();
+    services.AddTransient<IImportTransactionsService, ImportTransactionsService>();
+    services.AddTransient<IBankStatementParser, GetinPdfBankStatementParser>();
+    services.AddTransient<IBankStatementParser, PekaoCsvBankStatementParser>();
 }
