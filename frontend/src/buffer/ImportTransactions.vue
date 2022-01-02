@@ -15,6 +15,14 @@
           <v-container grid-list-md>
             <v-layout wrap>
               <v-flex xs12>
+                <v-select
+                  :items="types"
+                  :rules="transactionsImportTypeRules"
+                  v-model="transactionsImportType"
+                  label="Rodzaj importu"
+                ></v-select>
+              </v-flex>
+              <v-flex xs12>
                 <v-textarea
                   label="Lista tranksacji"
                   v-model="transactionsImportData"
@@ -38,14 +46,25 @@
 
 <script>
 export default {
-    
+
   data() {
     return {
       transactionsImportData: null,
       transactionsImportDataRules: [
         v => !!v || 'Lista transakcji jest wymagana',
       ],
+      transactionsImportType: null,
+      transactionsImportTypeRules: [
+        v => !!v || 'Rodzaj importu jest wymagany',
+      ],
       valid: true,
+      types: [  {
+        text: 'Getin (kopia z przeglądarki)',
+        value: 'getin'
+      }, {
+        text: 'Pekao (CSV)',
+        value: 'pekao'
+      }]
     };
   },
   props: {
@@ -66,7 +85,10 @@ export default {
         return;
       }
       this.$store
-        .dispatch('buffer/importTransactionsAction', this.transactionsImportData)
+        .dispatch('buffer/importTransactionsAction', {
+          transactions: this.transactionsImportData,
+          type: this.transactionsImportType
+        })
         .then(result => {
           this.$store.dispatch('displaySuccessSnack', `Import zakończony sukcesem - ${result.numberOfImportedTransactions} zaimportowanych transakcji`, {
             root: true,
