@@ -59,8 +59,11 @@ export default {
       ],
       valid: true,
       types: [  {
-        text: 'Getin (kopia z przeglądarki)',
+        text: 'Getin (tekst z przeglądarki)',
         value: 'getin'
+      }, {
+        text: 'ING (CSV)',
+        value: 'ing'
       }, {
         text: 'Pekao (CSV)',
         value: 'pekao'
