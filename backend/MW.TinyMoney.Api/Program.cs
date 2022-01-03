@@ -70,4 +70,5 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IImportTransactionsService, ImportTransactionsService>();
     services.AddTransient<IBankStatementParser, GetinPdfBankStatementParser>();
     services.AddTransient<IBankStatementParser, PekaoCsvBankStatementParser>();
+    services.AddTransient<IBankStatementParser, IngCsvBankStatementParser>();
 }

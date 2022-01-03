@@ -19,16 +19,19 @@
                   :items="types"
                   :rules="transactionsImportTypeRules"
                   v-model="transactionsImportType"
+                  :return-object="true"
                   label="Rodzaj importu"
                 ></v-select>
               </v-flex>
-              <v-flex xs12>
+              <v-flex xs12 v-if="transactionsImportType && transactionsImportType.type === 'file'">
+                <input type="file" @change="importFileSelected" accept="text/csv" />
+              </v-flex>
+              <v-flex xs12 v-if="transactionsImportType && transactionsImportType.type === 'copy-paste'">
                 <v-textarea
                   label="Lista tranksacji"
                   v-model="transactionsImportData"
                   :rules="transactionsImportDataRules"
-                  auto-grow
-                  rows="5"
+                  rows="10"
                 ></v-textarea>
               </v-flex>
             </v-layout>
@@ -59,11 +62,19 @@ export default {
       ],
       valid: true,
       types: [  {
-        text: 'Getin (kopia z przeglądarki)',
-        value: 'getin'
+        text: 'Getin (tekst z przeglądarki)',
+        value: 'getin',
+        type: 'copy-paste'
+      }, {
+        text: 'ING (CSV)',
+        value: 'ing',
+        type: 'file',
+        encoding: "windows-1250"
       }, {
         text: 'Pekao (CSV)',
-        value: 'pekao'
+        value: 'pekao',
+        type: 'file',
+        encoding: 'utf-8'
       }]
     };
   },
@@ -74,6 +85,13 @@ export default {
     },
   },
   methods: {
+    importFileSelected(event) {
+      const reader = new FileReader();
+      reader.onload = () => {
+       this.transactionsImportData = reader.result;
+      }
+      reader.readAsText(event.target.files[0], this.transactionsImportType.encoding);
+    },
     save() {
       this.$refs.form.validate();
       if (!this.valid) {
@@ -87,7 +105,7 @@ export default {
       this.$store
         .dispatch('buffer/importTransactionsAction', {
           transactions: this.transactionsImportData,
-          type: this.transactionsImportType
+          type: this.transactionsImportType.value
         })
         .then(result => {
           this.$store.dispatch('displaySuccessSnack', `Import zakończony sukcesem - ${result.numberOfImportedTransactions} zaimportowanych transakcji`, {
