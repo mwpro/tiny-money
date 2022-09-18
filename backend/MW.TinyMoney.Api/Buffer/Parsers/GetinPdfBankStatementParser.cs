@@ -10,9 +10,9 @@ public class GetinPdfBankStatementParser : IBankStatementParser
 {
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
 
-    // (?'transactionDate'\d{4}.\d{2}.\d{2})\s(?'postingDate'\d{4}.\d{2}.\d{2})\s(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\d+\s)?\d{1,3},\d{2})\s(?>(?>-?(?>\d+\s)?\d{1,3},\d{2})|(?>PLN$))
+    // (?'transactionDate'\d{4}.\d{2}.\d{2}) (?>\d{4}.\d{2}.\d{2})(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\d+\s)?\d{1,3},\d{2}) (?>-?\d+\s?\d{1,3},\d{2})
     private static Regex statementRegex = new Regex(
-        "(?'transactionDate'\\d{4}.\\d{2}.\\d{2})\\s(?'postingDate'\\d{4}.\\d{2}.\\d{2})\\s(?'transactionDecription'(?:.*?\r?\n?)*)(?'transactionAmount'-?(?>\\d+\\s)?\\d{1,3},\\d{2})\\s(?>(?>-?(?>\\d+\\s)?\\d{1,3},\\d{2})|(?>PLN$))",
+        "(?'transactionDate'\\d{4}.\\d{2}.\\d{2}) (?>\\d{4}.\\d{2}.\\d{2})(?'transactionDescription'(?:.*?\\r?\\n?)*)(?'transactionAmount'-?(?>\\d+\\s)?\\d{1,3},\\d{2}) (?>-?\\d+\\s?\\d{1,3},\\d{2})",
         RegexOptions.None, TimeSpan.FromSeconds(5));
 
     public bool CanHandle(BankStatementFile bankStatementFile)
@@ -29,7 +29,7 @@ public class GetinPdfBankStatementParser : IBankStatementParser
         foreach (Match match in matches)
         {
             var date = match.Groups.GetValueOrDefault("transactionDate").Value;
-            var description = match.Groups.GetValueOrDefault("transactionDecription").Value;
+            var description = match.Groups.GetValueOrDefault("transactionDescription").Value;
             var amount = match.Groups.GetValueOrDefault("transactionAmount").Value;
             result.Add(CreateBufferedTransaction(description, amount, date));
         }
