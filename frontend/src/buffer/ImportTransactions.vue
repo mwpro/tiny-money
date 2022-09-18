@@ -62,7 +62,7 @@ export default {
       ],
       valid: true,
       types: [  {
-        text: 'Getin (tekst z przeglądarki)',
+        text: 'Getin (wyciąg w PDF)',
         value: 'getin',
         type: 'copy-paste'
       }, {
