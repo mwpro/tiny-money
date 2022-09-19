@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ namespace MW.TinyMoney.Api.Reports
     public class ReportParameters
     {
         // time
+        [Required]
         public IEnumerable<DateTime> Months { get; set; }
         
         // todo categories?

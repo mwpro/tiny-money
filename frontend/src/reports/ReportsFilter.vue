@@ -9,7 +9,7 @@
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
             <v-treeview :items="availableMonths" selectable v-model="selectedMonths" v-show="monthPickerVisible"></v-treeview>
-            Zakres czasu:
+            Wybrane miesiące:
             <span v-for="m in selectedMonthsUi"> {{ m.year }}-{{m.month}} </span>
             <a @click="monthPickerVisible = true" v-show="!monthPickerVisible">Zmień</a><br>
             <v-btn flat @click="applyFilters()">Zastosuj</v-btn>
@@ -37,7 +37,13 @@
     },
     computed: {
       selectedMonthsUi() {
-        return this.selectedMonths.filter(m => typeof m === 'object');
+        return this.selectedMonths.map(m => {
+          const parts = m.split('-');
+          if (parts.length < 2)
+            return null;
+
+          return {year: parts[0], month: parts[1]};
+        }).filter(m => m);
       },
       availableMonths() {
         return Object.entries(this.$store.state.reports.availableMonths).map(x => {
@@ -46,7 +52,7 @@
             id: year,
             name: year,
             children: months.map(m => {
-              return {id: {year: year, month: m}, name: m}
+              return {id: `${year}-${m}`, name: m}
             })
           };
         });
