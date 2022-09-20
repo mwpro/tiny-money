@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ namespace MW.TinyMoney.Api.Reports
     public class ReportParameters
     {
         // time
+        [Required]
         public IEnumerable<DateTime> Months { get; set; }
         
         // todo categories?
@@ -106,6 +108,22 @@ namespace MW.TinyMoney.Api.Reports
         public IActionResult GetTopTransactionsReport([FromQuery]ReportParameters reportParameters)
         {
             return Ok(_transactionStore.GetTopTransactions(reportParameters.Months));
+        }
+
+        [HttpGet, Route("budgetBurndown")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public IActionResult GetBudgetBurndown([FromQuery]ReportParameters reportParameters)
+        {
+            if (reportParameters.Months.Count() > 1)
+            {
+                return BadRequest("Too many months specified");
+            }
+            
+            var reportData = _reportsProvider.PrepareBudgetBurndownReport(reportParameters.Months.FirstOrDefault());
+            
+            var result = BuildReportModel(reportData);
+
+            return Ok(result);
         }
 
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)

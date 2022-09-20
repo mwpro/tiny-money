@@ -386,6 +386,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-backend/MW.TinyMoney/.idea/
 
-backend/.idea/.idea.MW.TinyMoney/.idea/*dataSources*
+#Rider
+.idea/

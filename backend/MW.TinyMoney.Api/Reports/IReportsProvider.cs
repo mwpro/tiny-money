@@ -19,6 +19,8 @@ namespace MW.TinyMoney.Api.Reports
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(
             IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(
+            DateTime reportParametersMonth);
     }
 
     public class ReportQueryResult<TValue>
@@ -107,6 +109,19 @@ namespace MW.TinyMoney.Api.Reports
             GROUP BY tt.tag_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
+        
+        private const string BudgetBurndownQuery =
+            @"SELECT SUM(amount) AS 'budget'
+                FROM budget b
+                WHERE DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') = @month;
+
+                SELECT
+                    DATE_FORMAT(transaction_date, '%Y-%m-%d') AS `xLabel`,
+                    SUM(amount) AS `value`
+                FROM transaction t
+                WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
+                GROUP BY DATE_FORMAT(transaction_date, '%Y-%m-%d')
+                ORDER BY STR_TO_DATE(xLabel, '%Y-%m-%d');";
 
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
         {
@@ -178,6 +193,44 @@ namespace MW.TinyMoney.Api.Reports
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });
+            }
+        }
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(DateTime reportParametersMonth)
+        {
+            const string seriesName = "budgetLeft";
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                using (var multiQuery = connection.QueryMultiple(BudgetBurndownQuery, 
+                           new { month = reportParametersMonth.ToString("yyyy-MM") }))
+                {
+                    var monthlyBudget = multiQuery.ReadSingle<decimal>();
+                    var expensesByDay = multiQuery.Read<ReportQueryResult<decimal>>();
+                    
+                    var result = new List<ReportQueryResult<decimal>>
+                    {
+                        new()
+                        {
+                            XLabel = $"{reportParametersMonth:yyyy-MM}-00",
+                            Series = seriesName,
+                            Value = monthlyBudget
+                        }
+                    };
+
+                    foreach (var day in expensesByDay)
+                    {
+                        monthlyBudget -= day.Value;
+                        result.Add(new ReportQueryResult<decimal>()
+                        {
+                            XLabel = day.XLabel,
+                            Series = seriesName,
+                            Value = monthlyBudget
+                        });
+                    }
+                    
+                    return result;
+                }
             }
         }
     }
