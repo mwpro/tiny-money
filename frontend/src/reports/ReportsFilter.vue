@@ -30,12 +30,15 @@
         selectedMonths: [],
         monthPickerVisible: false,
         quickFilters: [
-          {name: "Cała historia", func: x => true},
-          {name: "Ten miesiąc", func: x => x.month == new Date().getMonth()+1 && x.year == new Date().getFullYear()},
-          {name: "Poprzedni miesiąc", func: x => x.month == new Date().getMonth() && x.year == new Date().getFullYear()},
-          {name: "Ten rok", func: x =>  x.year == new Date().getFullYear()},
-          {name: "Poprzedni rok", func: x => x.year == new Date().getFullYear()-1},
-          {name: "Ten i poprzedni rok", func: x => x.year == new Date().getFullYear() || x.year == new Date().getFullYear() -1}
+          {name: "Cała historia", func: () => true},
+          {name: "Ten miesiąc", func: (x, currentDate) => x.month == currentDate.getMonth()+1 && x.year == currentDate.getFullYear()},
+          {name: "Poprzedni miesiąc", func: (x, currentDate) => {
+              const previousMonth = (new Date(new Date(currentDate).setMonth(currentDate.getMonth() - 1)));
+              return x.month == previousMonth.getMonth()+1 && x.year == previousMonth.getFullYear();
+            }},
+          {name: "Ten rok", func: (x, currentDate) => x.year == currentDate.getFullYear()},
+          {name: "Poprzedni rok", func: (x, currentDate) => x.year == currentDate.getFullYear()-1},
+          {name: "Ten i poprzedni rok", func: (x, currentDate) => x.year == currentDate.getFullYear() || x.year == currentDate.getFullYear()-1}
         ]
       }
     },
@@ -77,9 +80,10 @@
         this.monthPickerVisible = false;
       },
       quickFilter(filter){
+        const currentDate = new Date();
         this.selectedMonths = this.availableMonths
           .flatMap(y => y.children)
-          .filter(m => filter.func(m))
+          .filter(m => filter.func(m, currentDate))
           .map(m => m.id);
         this.applyFilters();
       }
