@@ -51,7 +51,7 @@ namespace MW.TinyMoney.Api.Reports
                 'expenses' AS `series`,
                 SUM(amount) AS `value`
             FROM transaction t
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
             GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
             UNION
             SELECT
@@ -70,7 +70,7 @@ namespace MW.TinyMoney.Api.Reports
                        SUM(amount) AS `value`
                 FROM transaction t 
                 LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
-                WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+                WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
                 GROUP BY
                        DATE_FORMAT(transaction_date, '%Y-%m'),
                        sc.parent_category_id
@@ -83,7 +83,7 @@ namespace MW.TinyMoney.Api.Reports
                    SUM(amount) AS `value`
             FROM transaction t 
             LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months 
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1 
             GROUP BY
                    sc.parent_category_id";
         
@@ -93,7 +93,7 @@ namespace MW.TinyMoney.Api.Reports
                    'expenses' AS `series`,
                    SUM(amount) AS `value`
             FROM transaction t 
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months 
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1 
             GROUP BY t.vendor_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
@@ -105,7 +105,7 @@ namespace MW.TinyMoney.Api.Reports
                 SUM(amount) AS `value`
             FROM transaction t
                 JOIN transaction_tag tt ON tt.transaction_id = t.id
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
             GROUP BY tt.tag_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
@@ -119,7 +119,7 @@ namespace MW.TinyMoney.Api.Reports
                     DATE_FORMAT(transaction_date, '%Y-%m-%d') AS `xLabel`,
                     SUM(amount) AS `value`
                 FROM transaction t
-                WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
+                WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month AND t.is_expense = 1
                 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m-%d')
                 ORDER BY STR_TO_DATE(xLabel, '%Y-%m-%d');";
 

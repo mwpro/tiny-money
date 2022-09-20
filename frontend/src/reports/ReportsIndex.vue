@@ -11,7 +11,7 @@
       <categories-breakdown-chart />
       <top-vendors-table />
       <top-tags-table />
-      <top-transactions-table />
+      <top-expenses-table />
     </v-layout>
   </v-container>
 </template>
@@ -22,7 +22,7 @@
   import MonthsSummaryChart from "./MonthsSummaryChart.vue";
   import CategoriesBreakdownChart from "./CategoriesBreakdownChart.vue";
   import TopVendorsTable from "./TopVendorsTable.vue";
-  import TopTransactionsTable from "./TopTransactionsTable.vue";
+  import TopExpensesTable from "@/reports/TopExpensesTable";
   import TopTagsTable from "./TopTagsTable.vue";
   import BudgetBurndown from "@/reports/BudgetBurndown";
 
@@ -30,7 +30,7 @@
     name: "",
     components: {
       BudgetBurndown, ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart,
-      TopVendorsTable, TopTransactionsTable, TopTagsTable },
+      TopVendorsTable, TopExpensesTable, TopTagsTable },
     data: () => ({
     }),
     created() {
