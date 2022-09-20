@@ -60,9 +60,10 @@
               </v-flex>
               <v-flex xs12>
                 <v-text-field
-                  label="Kwota wydatku*"
+                  :label="transaction.isExpense ? 'Kwota wydatku*' : 'Kwota przychodu*'"
                   :rules="amountRules"
-                  prepend-icon="attach_money"
+                  :prepend-icon="transaction.isExpense ? 'remove' : 'add'"
+                  @click:prepend="transaction.isExpense = !transaction.isExpense"
                   v-model="transaction.amount"
                   required
                   type="number"
@@ -159,7 +160,7 @@ export default {
         amount: null,
         vendor: null,
         description: null,
-        tags: [],
+        tags: []
       },
       transactionDateRules: [
         v => !!v || 'Data transakcji jest wymagana',
