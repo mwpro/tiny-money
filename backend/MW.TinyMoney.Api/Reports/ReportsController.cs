@@ -110,6 +110,22 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(_transactionStore.GetTopTransactions(reportParameters.Months));
         }
 
+        [HttpGet, Route("budgetBurndown")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public IActionResult GetBudgetBurndown([FromQuery]ReportParameters reportParameters)
+        {
+            if (reportParameters.Months.Count() > 1)
+            {
+                return BadRequest("Too many months specified");
+            }
+            
+            var reportData = _reportsProvider.PrepareBudgetBurndownReport(reportParameters.Months.FirstOrDefault());
+            
+            var result = BuildReportModel(reportData);
+
+            return Ok(result);
+        }
+
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)
         {
             var labels = reportData.Select(x => x.XLabel).Distinct();
