@@ -32,23 +32,7 @@
     data: () => ({
       loaded: false,
       chartData: {},
-      chartOptions: {
-        scales: {
-          xAxes: [{
-            //type: 'time',
-            // time: {
-            //   unit: 'month'
-            // },
-            //stacked: true,
-          }],
-          yAxes: [{
-            //ticks: {
-              //beginAtZero: true
-            //},
-            //stacked: true,
-          }]
-        }
-      }
+      chartOptions: {}
     }),
     computed: {
       ...mapState('reports', {selectedMonths: 'selectedMonths'}),
