@@ -5,7 +5,8 @@ create table bufferedTransaction
     amount                      decimal(10, 2) not null,
     importDate                  datetime       not null,
     transactionDate             date           not null,
-    rawBankStatementDescription varchar(255)   not null
+    rawBankStatementDescription varchar(255)   not null,
+    isExpense                  bit            not null
 )
     collate = utf8_polish_ci;
 
