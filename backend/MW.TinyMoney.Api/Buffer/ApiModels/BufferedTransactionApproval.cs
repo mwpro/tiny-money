@@ -23,7 +23,6 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
             Tags = new List<TagDto>();
         }
 
-        public decimal? Amount { get; set; }
         public DateTime? TransactionDate { get; set; }
         public string Description { get; set; }
 

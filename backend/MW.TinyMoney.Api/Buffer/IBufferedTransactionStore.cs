@@ -23,18 +23,18 @@ namespace MW.TinyMoney.Api.Buffer
             _mySqlConnectionFactory = mySqlConnectionFactory;
         }
 
-        private const string GetBufferedTransactionsQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription
+        private const string GetBufferedTransactionsQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription, isExpense
                 FROM bufferedTransaction ORDER BY transactionDate";
 
-        private const string GetBufferedTransactionQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription
+        private const string GetBufferedTransactionQuery = @"SELECT id, amount, importDate, transactionDate, rawBankStatementDescription, isExpense
                 FROM bufferedTransaction
                 WHERE id = @id";
 
         private const string DeleteBufferedTransactionQuery = @"DELETE FROM bufferedTransaction WHERE id = @id";
 
         private const string SaveBufferedTransactionsQuery =
-            @"INSERT INTO bufferedTransaction (amount, importDate, transactionDate, rawBankStatementDescription)
-                VALUES(@amount, @importDate, @transactionDate, @rawBankStatementDescription)";
+            @"INSERT INTO bufferedTransaction (amount, importDate, transactionDate, rawBankStatementDescription, isExpense)
+                VALUES(@amount, @importDate, @transactionDate, @rawBankStatementDescription, @isExpense)";
 
         public void DeleteBufferedTransaction(int id)
         {

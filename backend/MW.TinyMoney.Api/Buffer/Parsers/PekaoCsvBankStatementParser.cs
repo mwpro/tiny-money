@@ -45,9 +45,11 @@ public class PekaoCsvBankStatementParser : IBankStatementParser
 
     private static BufferedTransaction CreateBufferedTransaction(string description, string amount, string date)
     {
+        var parsedAmount = decimal.Parse(amount, PolishCulture);
         return new BufferedTransaction()
         {
-            Amount = decimal.Parse(amount, PolishCulture) * -1,
+            Amount = Math.Abs(parsedAmount),
+            IsExpense = parsedAmount < 0,
             TransactionDate = DateTime.Parse(date, PolishCulture),
             ImportDate = DateTime.UtcNow,
             RawBankStatementDescription = description
