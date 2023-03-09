@@ -80,6 +80,7 @@ namespace MW.TinyMoney.Api.Transaction
             }
 
             transaction.Amount = updatedTransaction.Amount;
+            transaction.IsExpense = updatedTransaction.IsExpense;
             transaction.Description = updatedTransaction.Description;
             transaction.ModifiedDate = DateTime.UtcNow;
             transaction.SubcategoryId = updatedTransaction.SubcategoryId;
@@ -130,7 +131,7 @@ namespace MW.TinyMoney.Api.Transaction
                 CreatedDate = DateTime.UtcNow,
                 CreatedBy = "API",
                 Description = addTransactionDto.Description,
-                IsExpense = true,
+                IsExpense = addTransactionDto.IsExpense,
                 ModifiedDate = DateTime.UtcNow,
                 SubcategoryId = addTransactionDto.SubcategoryId,
                 TagIds = addTransactionDto.Tags.Select(x => x.Id.Value).ToList(),

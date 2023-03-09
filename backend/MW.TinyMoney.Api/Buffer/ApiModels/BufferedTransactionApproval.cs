@@ -28,7 +28,6 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public string Description { get; set; }
 
         public VendorDto Vendor { get; set; }
-        public string VendorName { get; set; }
         public int SubcategoryId { get; set; }
         public IEnumerable<TagDto> Tags { get; set; }
     }
