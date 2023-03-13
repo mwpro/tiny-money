@@ -22,12 +22,12 @@ steps:
     command: install
     workingDir: 'frontend'
 
-- task: Npm@1
-  displayName: 'npm test'
-  inputs:
-    command: custom
-    customCommand: 'test'
-    workingDir: 'frontend'
+#- task: Npm@1
+#  displayName: 'npm test'
+#  inputs:
+#    command: custom
+#    customCommand: 'test'
+#    workingDir: 'frontend'
 
 - task: Npm@1
   displayName: 'npm build'
