@@ -3,7 +3,7 @@
     <td class="text-xs-left">{{ bufferedTransaction.transactionDate | date }}</td>
     <td
       class="text-xs-left"
-      :class="bufferedTransaction.amount > 0 ? 'red--text' : 'green--text'"
+      :class="bufferedTransaction.isExpense > 0 ? 'red--text' : 'green--text'"
     >{{ bufferedTransaction.amount | toFixed(2) | currency }}</td>
     <td class="text-xs-left">{{ bufferedTransaction.rawBankStatementDescription }}</td>
     <td class="text-xs-left">
@@ -36,7 +36,7 @@
             ></v-icon>
             </v-slide-x-reverse-transition>
         </v-autocomplete>
-    </td>    
+    </td>
     <td class="text-xs-left">
       <v-textarea
             label="Opis"
@@ -81,7 +81,7 @@
         <v-card-title class="headline">Czy na pewno chcesz odrzucić transakcję?</v-card-title>
         <v-card-text>
             Kwota: {{ bufferedTransaction.amount | currency }}<br />
-            {{ bufferedTransaction.rawBankStatementDescription }}            
+            {{ bufferedTransaction.rawBankStatementDescription }}
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -121,12 +121,12 @@ export default {
       }
     },
   },
-  computed: {      
+  computed: {
     ...mapGetters('categories', { subcategories: 'subcategories' }),
     ...mapGetters('tags', { tagsDict: 'tags' }),
     ...mapGetters('vendors', { vendors: 'vendors' }),
   },
-  created() {      
+  created() {
   },
   methods: {
     openRejectTransaction() {
