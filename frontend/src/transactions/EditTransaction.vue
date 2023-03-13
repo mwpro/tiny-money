@@ -215,7 +215,7 @@ export default {
               id: transaction.id,
               transactionDate: transaction.transactionDate.substr(0, 10),
               subcategoryId: transaction.subcategoryId,
-              isExpense: true,
+              isExpense: transaction.isExpense,
               amount: transaction.amount,
               vendor: this.vendors.find(v => v.id === transaction.vendorId),
               description: transaction.description,
