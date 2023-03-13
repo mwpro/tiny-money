@@ -103,11 +103,11 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(result);
         }
 
-        [HttpGet, Route("topTransactions")]
+        [HttpGet, Route("topExpenses")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<Transaction.ApiModels.Transaction>))]
-        public IActionResult GetTopTransactionsReport([FromQuery]ReportParameters reportParameters)
+        public IActionResult GetTopExpensesReport([FromQuery]ReportParameters reportParameters)
         {
-            return Ok(_transactionStore.GetTopTransactions(reportParameters.Months));
+            return Ok(_transactionStore.GetTopExpenses(reportParameters.Months));
         }
 
         [HttpGet, Route("budgetBurndown")]

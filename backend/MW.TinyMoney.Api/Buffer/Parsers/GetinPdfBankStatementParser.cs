@@ -39,9 +39,11 @@ public class GetinPdfBankStatementParser : IBankStatementParser
 
     private static BufferedTransaction CreateBufferedTransaction(string description, string amount, string date)
     { // todo try-catch - parsing may fail
+        var parsedAmount = decimal.Parse(amount, PolishCulture);
         return new BufferedTransaction()
         {
-            Amount = decimal.Parse(amount, PolishCulture) * -1,
+            Amount = Math.Abs(parsedAmount),
+            IsExpense = parsedAmount < 0,
             TransactionDate = DateTime.Parse(date, PolishCulture),
             ImportDate = DateTime.UtcNow,
             RawBankStatementDescription = description

@@ -24,7 +24,7 @@ namespace MW.TinyMoney.Api.Budget
                 COALESCE(SUM(t.amount), 0) AS `UsedAmount`
                 FROM subcategory s 
 	            LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
-	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id
+	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1
 	            GROUP BY s.id, b.amount, b.notes";
         
         private const string SetBudgetQuery =

@@ -11,7 +11,6 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public string CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
         public string Description { get; set; }
-        [Obsolete]
         public bool IsExpense { get; set; }
         public DateTime ModifiedDate { get; set; }
         public DateTime TransactionDate { get; set; }

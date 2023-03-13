@@ -12,7 +12,7 @@ namespace MW.TinyMoney.Api.Transaction
         void SaveTransaction(Transaction.ApiModels.Transaction transaction);
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
-        IEnumerable<Transaction.ApiModels.Transaction> GetTopTransactions(IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime month);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
@@ -51,7 +51,7 @@ namespace MW.TinyMoney.Api.Transaction
             @"INSERT INTO transaction_tag (transaction_id, tag_id)
                 VALUES(@transactionId, @tagId)";
 
-        private const string GetTopTransactionsQuery =
+        private const string GetTopExpensesQuery =
             @"SELECT
                 t.id,
                 t.amount,
@@ -65,7 +65,7 @@ namespace MW.TinyMoney.Api.Transaction
                 t.subcategory_id AS 'subcategoryId'
                 # todo tags
             FROM transaction t
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
             ORDER BY amount DESC
             LIMIT 50";
 
@@ -178,13 +178,13 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
 
-        public IEnumerable<Transaction.ApiModels.Transaction> GetTopTransactions(
+        public IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(
             IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
-                return connection.Query<Transaction.ApiModels.Transaction>(GetTopTransactionsQuery, new
+                return connection.Query<Transaction.ApiModels.Transaction>(GetTopExpensesQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });
