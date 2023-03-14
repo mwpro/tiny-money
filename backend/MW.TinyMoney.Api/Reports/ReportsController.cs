@@ -80,6 +80,18 @@ namespace MW.TinyMoney.Api.Reports
             
             return Ok(result);
         }
+        
+        [HttpGet, Route("incomeBreakdown")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public IActionResult GetIncomeBreakdownReport([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareIncomeBreakdownReport(reportParameters.Months);
+
+            var result = BuildReportModel(reportData);
+            
+            return Ok(result);
+        }
+
 
         [HttpGet, Route("topVendors")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]

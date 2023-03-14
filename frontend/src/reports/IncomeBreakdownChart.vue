@@ -8,7 +8,7 @@
       >
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
-            <span class="headline">Wydatki według kategorii</span>
+            <span class="headline">Przychody według kategorii</span>
             <doughnut-chart v-if="loaded"
                         :chartdata="chartData"
                         :options="chartOptions"/>
@@ -23,7 +23,7 @@
 
 <script>
   import DoughnutChart from "./charts/DoughnutChart.vue";
-  import {mapState} from "vuex";
+  import {mapGetters, mapState} from "vuex";
   import axios from "axios";
   import ColorPalette from "./ColorPalette";
   const qs = require('qs');
@@ -36,7 +36,7 @@
       chartOptions: {}
     }),
     computed: {
-      ...mapState('categories', {categories: 'categoriesList'}),
+      ...mapGetters('categories', { subcategories: 'subcategories' }),
       ...mapState('reports', {selectedMonths: 'selectedMonths'}),
     },
     watch: {
@@ -49,7 +49,7 @@
         let selectedMonths = this.selectedMonths
           .map(m => `${m.year}-${m.month}-01`);
         axios // todo use store here
-          .get("/api/reports/categoriesBreakdown", {
+          .get("/api/reports/incomeBreakdown", {
               params: {months: selectedMonths},
               paramsSerializer: function(params) {
                 return qs.stringify(params, {arrayFormat: 'repeat'})
@@ -65,7 +65,7 @@
             });
             this.chartData.labels = this.chartData.labels
               .map(l =>
-                this.categories.filter(c => c.id == l)[0].name
+                this.subcategories.filter(c => c.id == l)[0].name
               );
 
             this.loaded = true;
