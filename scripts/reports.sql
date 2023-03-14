@@ -24,3 +24,18 @@ FROM transaction t
        JOIN category cat on cat.id = scat.parent_category_id
 GROUP BY scat.id, cat.id, scat.name, cat.name
 ORDER BY SUM(t.amount) DESC;
+
+-- sum of incomes by vendor
+SELECT v.name, SUM(amount)
+FROM transaction
+         LEFT JOIN vendor v on transaction.vendor_id = v.id
+WHERE is_expense = 0
+GROUP BY vendor_id
+ORDER BY SUM(amount) DESC;
+
+-- sum of incomes by month
+SELECT DATE_FORMAT(transaction_date, '%Y-%m'), SUM(amount)
+FROM transaction
+WHERE is_expense = 0
+GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+ORDER BY DATE_FORMAT(transaction_date, '%Y-%m')

@@ -8,7 +8,7 @@
       >
         <v-layout fill-height>
           <v-flex xs12 align-end flexbox>
-            <span class="headline">Kategorie sumarycznie</span>
+            <span class="headline">Wydatki według kategorii</span>
             <doughnut-chart v-if="loaded"
                         :chartdata="chartData"
                         :options="chartOptions"/>

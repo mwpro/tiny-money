@@ -15,6 +15,8 @@ namespace MW.TinyMoney.Api.Reports
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
             IEnumerable<DateTime> reportParametersMonths);
+        IEnumerable<ReportQueryResult<decimal>> PrepareIncomeBreakdownReport(
+            IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(
@@ -48,11 +50,11 @@ namespace MW.TinyMoney.Api.Reports
         private const string MonthsSummaryReportQuery = @"
             SELECT
                 DATE_FORMAT(transaction_date, '%Y-%m') AS `xLabel`,
-                'expenses' AS `series`,
+                (CASE WHEN is_expense = 1 THEN 'expenses' ELSE 'incomes' END) AS `series`,
                 SUM(amount) AS `value`
             FROM transaction t
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
-            GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense
             UNION
             SELECT
                 DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS `xLabel`,
@@ -84,8 +86,19 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t 
             LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1 
-            GROUP BY
-                   sc.parent_category_id";
+            GROUP BY sc.parent_category_id
+            ORDER BY value DESC";
+        
+        private const string IncomeBreakdownReportQuery =
+            @"SELECT
+                    sc.id AS `xLabel`,
+                    'expenses' AS `series`,
+                    SUM(amount) AS `value`
+                FROM transaction t
+                LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
+                WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 0
+                GROUP BY sc.id
+                ORDER BY value DESC";
         
         private const string TopVendorsReportQuery =
             @"SELECT
@@ -171,7 +184,19 @@ namespace MW.TinyMoney.Api.Reports
                 });
             }
         }
-        
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareIncomeBreakdownReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(IncomeBreakdownReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+
         public IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
