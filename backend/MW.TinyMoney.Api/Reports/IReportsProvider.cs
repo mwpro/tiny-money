@@ -86,8 +86,8 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t 
             LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1 
-            GROUP BY
-                   sc.parent_category_id";
+            GROUP BY sc.parent_category_id
+            ORDER BY value DESC";
         
         private const string IncomeBreakdownReportQuery =
             @"SELECT
@@ -95,9 +95,10 @@ namespace MW.TinyMoney.Api.Reports
                     'expenses' AS `series`,
                     SUM(amount) AS `value`
                 FROM transaction t
-                    LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
+                LEFT JOIN subcategory sc ON sc.id = t.subcategory_id
                 WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 0
-                GROUP BY sc.id";
+                GROUP BY sc.id
+                ORDER BY value DESC";
         
         private const string TopVendorsReportQuery =
             @"SELECT
