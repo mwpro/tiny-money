@@ -48,11 +48,11 @@ namespace MW.TinyMoney.Api.Reports
         private const string MonthsSummaryReportQuery = @"
             SELECT
                 DATE_FORMAT(transaction_date, '%Y-%m') AS `xLabel`,
-                'expenses' AS `series`,
+                (CASE WHEN is_expense = 1 THEN 'expenses' ELSE 'incomes' END) AS `series`,
                 SUM(amount) AS `value`
             FROM transaction t
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
-            GROUP BY DATE_FORMAT(transaction_date, '%Y-%m')
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense
             UNION
             SELECT
                 DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS `xLabel`,

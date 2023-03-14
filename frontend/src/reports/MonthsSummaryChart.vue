@@ -28,6 +28,24 @@
   import ColorPalette from "./ColorPalette";
   const qs = require('qs');
 
+  const seriesConfig = {
+    budget: ds => {
+      ds.borderColor = ColorPalette.getColor(0);
+      ds.label = "Budżet";
+      ds.fill = false;
+    },
+    incomes: ds => {
+      ds.borderColor = ColorPalette.positive;
+      ds.label = "Przychody";
+      ds.fill = false;
+    },
+    expenses: ds => {
+      ds.borderColor = ColorPalette.negative;
+      ds.label = "Wydatki";
+      ds.fill = false;
+    }
+  }
+
   export default {
     components: {LineChart},
     data: () => ({
@@ -74,14 +92,7 @@
           .then((response) => {
             if (response.status !== 200) throw Error(response.message);
             this.chartData = response.data;
-            let i = 0;
-            this.chartData.datasets.forEach(ds => {
-              ds.borderColor = ds.backgroundColor = ds.label === 'budget' ? ColorPalette.positive
-                : ColorPalette.negative;
-              ds.label = ds.label === 'budget' ? "Budżet"
-                : (ds.label === 'expenses' ? "Wydatki" : ds.label);
-              ds.fill = false;
-            });
+            this.chartData.datasets.forEach(ds => seriesConfig[ds.label](ds));
             this.loaded = true;
           });
       }
