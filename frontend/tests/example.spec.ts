@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
+test('loads', async ({ page }) => {
   await page.goto('http://localhost:8080/');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle("TINY-Money");
+  await expect(page.locator("input[aria-label=\"Okres transakcji\"]")).toBeVisible();
 });
 
 // test('get started link', async ({ page }) => {
