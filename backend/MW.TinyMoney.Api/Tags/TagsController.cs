@@ -7,7 +7,7 @@ using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Tags
 {
-    [ApiController, Route("/api/tags"), AllowAnonymous]
+    [ApiController, Route("/api/tags"), Authorize]
     public class TagsController : ControllerBase
     {
         private readonly ITagStore _tagStore;
