@@ -7,7 +7,7 @@ using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Tags
 {
-    [ApiController, Route("/api/tags"), Authorize]
+    [ApiController, Route("/api/tags"), AllowAnonymous]
     public class TagsController : ControllerBase
     {
         private readonly ITagStore _tagStore;
@@ -26,6 +26,19 @@ namespace MW.TinyMoney.Api.Tags
                 Id = x.Id,
                 Name = x.Name
             }));
+        }
+        
+        [HttpDelete("{id}")]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public IActionResult DeleteTag(int id)
+        {
+            var tag = _tagStore.GetTag(id);
+            if (tag == null)
+                return NotFound();
+
+            _tagStore.DeleteTag(id);
+            return Ok();
         }
     }
 }
