@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 
 // import bufferModule from './buffer';
 // import categoriesModule from './categories';
-// import transactionsModule from './transactions';
+import transactionsModule from './transactions';
 // import budgetsModule from './budgets';
 // import tagsModule from './tags';
 // import vendorsModule from './vendors';
@@ -13,7 +13,7 @@ export default createStore({
   modules: {
     // buffer: bufferModule,
     // categories: categoriesModule,
-    // transactions: transactionsModule,
+    transactions: transactionsModule,
     // budgets: budgetsModule,
     // tags: tagsModule,
     // vendors: vendorsModule,
