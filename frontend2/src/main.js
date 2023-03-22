@@ -12,6 +12,7 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { VDataTable } from 'vuetify/labs/VDataTable'
 
 Axios.defaults.baseURL = import.meta.env.VITE_APP_API;
 Axios.interceptors.request.use((config) => {
@@ -19,9 +20,20 @@ Axios.interceptors.request.use((config) => {
     return config;
 }, error => Promise.reject(error));
 
-const app = createApp(App)
+const app = createApp(App);
+
+
+app.config.globalProperties.$filters = {
+    currency(value) { return `${value} PLN` },
+    toFixed(price, limit) { return price ? price.toFixed(limit) : ''; },
+    date(date) { return new Date(date).toLocaleDateString() }
+}
+
 const vuetify = createVuetify({
-    components,
+    components: {
+        ...components,
+        VDataTable,
+    },
     directives,
     icons: {
         defaultSet: 'mdi',

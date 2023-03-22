@@ -15,133 +15,85 @@
     <v-btn color="green" fab bottom right dark fixed @click="openAddTransaction()">
       <v-icon>add</v-icon>
     </v-btn>
-    <v-layout row wrap>
-      <v-flex xs11 sm5>
-        <v-menu
-          ref="menu"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          :return-value.sync="searchOptions.month"
-          lazy
-          transition="scale-transition"
-          offset-y
-          full-width
-          max-width="290px"
-          min-width="290px"
-        >
-          <v-text-field
-            slot="activator"
-            v-model="searchOptions.month"
-            label="Okres transakcji"
-            prepend-icon="event"
-            readonly
-          ></v-text-field>
-          <v-date-picker
-            v-model="searchOptions.month"
-            type="month"
-            no-title
-            scrollable
-            @input="selectMonth()"
-          >
-            <v-spacer></v-spacer>
-          </v-date-picker>
-        </v-menu>
-      </v-flex>
-      <v-spacer></v-spacer>
-    </v-layout>
-    <v-layout row wrap>
-      <v-flex>
-        <v-data-table
-          :headers="headers"
-          :items="transactions"
-          class="elevation-1"
-          :hide-actions="true"
-        >
-          <template slot="items" slot-scope="props">
-            <tr @click="props.expanded = !props.expanded">
-              <td class="text-xs-left">{{ props.item.transactionDate | date }}</td>
-              <td class="text-xs-left">
-                <subcategory :subcategory-id="props.item.subcategoryId" />
-              </td>
-              <td class="text-xs-left">
-                <vendor :vendor-id="props.item.vendorId" />
-              </td>
-              <td
-                class="text-xs-left"
-                :class="props.item.isExpense ? 'red--text' : 'green--text'"
-              >{{ props.item.amount | toFixed(2) | currency }}
-              </td>
-              <td class="text-xs-left">
-                <v-icon v-if="props.item.description">notes</v-icon>
-                <v-icon v-if="props.item.tagIds.length">#</v-icon>
-              </td>
-            </tr>
-          </template>
-          <template slot="expand" slot-scope="props">
+    <v-data-table
+        :items-per-page="transactions.length"
+        :expanded="expanded"
+        :headers="headers"
+        :items="transactions"
+        show-expand
+        class="elevation-1"
+    >
+      <template v-slot:item.amount="{ item }">
+        <span :class="item.raw.isExpense ? 'text-red' : 'text-green'">
+          {{ $filters.currency($filters.toFixed(item.raw.amount, 2)) }}
+        </span>        
+      </template>
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
             <v-card flat>
               <v-card-text>
-                Data dodania: {{ props.item.createdDate | date }}
+                Data dodania: {{ $filters.date(item.raw.createdDate) }}
                 <br>
-                Data aktualizacji: {{ props.item.modifiedDate | date }}
+                Data aktualizacji: {{ $filters.date(item.raw.modifiedDate) }}
                 <br>Tagi:
-                <span v-if="!props.item.tagIds.length">brak</span>
-                <tag v-for="tagId in props.item.tagIds" :key="tagId" :tag-id="tagId" />
+                <span v-if="!item.raw.tagIds.length">brak</span>
+<!--                <tag v-for="tagId in item.raw.tagIds" :key="tagId" :tag-id="tagId" />-->
                 <br>
                 Opis:
-                <span v-if="!props.item.description">brak</span>
-                {{ props.item.description }}
+                <span v-if="!item.raw.description">brak</span>
+                {{ item.raw.description }}
                 <br/>
-                Dodana przez: {{ props.item.createdBy }}
+                Dodana przez: {{ item.raw.createdBy }}
                 <br>
-                <v-btn @click="openEditTransaction(props.item.id)">
+                <v-btn @click="openEditTransaction(item.raw.id)">
                   <v-icon>edit</v-icon>
                 </v-btn>
-                <v-btn @click="openDeleteTransaction(props.item.id)">
+                <v-btn @click="openDeleteTransaction(item.raw.id)">
                   <v-icon>delete</v-icon>
                 </v-btn>
               </v-card-text>
             </v-card>
-          </template>
-        </v-data-table>
-      </v-flex>
-    </v-layout>
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
   </v-container>
 </template>
 <script>
-  //import EditTransaction from './EditTransaction.vue';
+  import EditTransaction from './EditTransaction.vue';
   import {mapGetters, mapState} from "vuex";
   import Tag from "../tags/Tag.vue";
   import Vendor from "../vendors/Vendor.vue";
   import Subcategory from "../categories/Subcategory.vue";
 
   export default {
-    components: {Subcategory, Vendor, Tag, 
-      //EditTransaction
-    },
+    components: {Subcategory, Vendor, Tag, EditTransaction},
     data() {
       return {
         searchOptions: {
           month: new Date().toISOString().substr(0, 7)
         },
+        expanded: [],
         isEditTransactionActive: false,
         isDeleteTransactionActive: false,
         editedTransactionId: null,
         transactionToDeleteId: null,
         headers: [
           {
-            text: 'Data',
+            title: 'Data',
             sortable: false,
-            value: 'date',
+            key: 'transactionDate',
           },
           {
-            text: 'Kategoria',
+            title: 'Kategoria',
             sortable: false,
-            value: 'category',
+            value: 'subcategoryId',
           },
-          {text: 'Sprzedawca', value: 'vendor', sortable: false},
+          {title: 'Sprzedawca', value: 'vendorId', sortable: false},
           // { text: 'Tagi', value: 'fat', sortable: false },
-          {text: 'Kwota', value: 'amount', sortable: false},
-          {text: '', value: '', sortable: false},
+          {key: 'amount', title: 'Kwota', value: 'amount', sortable: false},
+          {title: '', value: '', sortable: false},
         ],
       };
     },
