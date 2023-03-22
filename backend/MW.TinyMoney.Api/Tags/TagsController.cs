@@ -38,7 +38,7 @@ namespace MW.TinyMoney.Api.Tags
                 return NotFound();
 
             _tagStore.DeleteTag(id);
-            return Ok();
+            return Accepted();
         }
     }
 }
