@@ -14,6 +14,8 @@ namespace MW.TinyMoney.Api.Tags
     {
         void SaveTag(Tag tag);
         IEnumerable<Tag> GetTags();
+        Tag GetTag(int id);
+        void DeleteTag(int id);
     }
 
     public class MySqlTagStore : ITagStore
@@ -33,6 +35,18 @@ namespace MW.TinyMoney.Api.Tags
         private const string GetTagsQuery =
               @"SELECT id, name
                 FROM tag";
+
+        private const string GetTagQuery =
+            @"SELECT id, name
+                FROM tag
+                WHERE id=@id";
+
+        private const string DeleteTagQuery =
+            @"DELETE FROM transaction_tag
+                WHERE tag_id = @id;
+            DELETE FROM tag 
+                WHERE id = @id
+            ";
 
 
         public void SaveTag(Tag tag)
@@ -55,6 +69,25 @@ namespace MW.TinyMoney.Api.Tags
             {
                 connection.Open();
                 return connection.Query<Tag>(GetTagsQuery);
+            }
+        }
+
+        public Tag GetTag(int id)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+
+                return connection.QuerySingleOrDefault<Tag>(GetTagQuery, new {id});
+            }
+        }
+
+        public void DeleteTag(int id)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                connection.Execute(DeleteTagQuery, new { id });
             }
         }
     }

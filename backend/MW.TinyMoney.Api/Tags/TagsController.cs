@@ -27,5 +27,18 @@ namespace MW.TinyMoney.Api.Tags
                 Name = x.Name
             }));
         }
+        
+        [HttpDelete("{id}")]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        public IActionResult DeleteTag(int id)
+        {
+            var tag = _tagStore.GetTag(id);
+            if (tag == null)
+                return NotFound();
+
+            _tagStore.DeleteTag(id);
+            return Accepted();
+        }
     }
 }

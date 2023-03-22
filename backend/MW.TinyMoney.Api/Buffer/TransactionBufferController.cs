@@ -100,6 +100,8 @@ namespace MW.TinyMoney.Api.Buffer
 
         [HttpDelete, Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+
         public IActionResult RejectBufferedTransaction([FromRoute]int id)
         {
             var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
