@@ -23,6 +23,8 @@ namespace MW.TinyMoney.Api.Reports
             IEnumerable<DateTime> reportParametersMonths);
         IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(
             DateTime reportParametersMonth);
+        IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(
+            IEnumerable<DateTime> reportParametersMonths);
     }
 
     public class ReportQueryResult<TValue>
@@ -136,6 +138,22 @@ namespace MW.TinyMoney.Api.Reports
                 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m-%d')
                 ORDER BY STR_TO_DATE(xLabel, '%Y-%m-%d');";
 
+        private const string TotalsReportQuery = 
+            @"SELECT (IF(is_expense = 1, 'expensesSum', 'incomesSum')) AS `series`,
+                   SUM(amount) AS `value`
+            FROM transaction t
+            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+            GROUP BY is_expense
+            UNION
+            SELECT (IF(is_expense = 1, 'monthlyExpensesAvg', 'monthlyIncomesAvg')) AS `series`, 
+                   AVG(value)
+            FROM (SELECT is_expense,
+                         SUM(amount) AS `value`
+                  FROM transaction t
+                  WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
+                  GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense) byMonth
+            GROUP BY series;";
+
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -215,6 +233,18 @@ namespace MW.TinyMoney.Api.Reports
             {
                 connection.Open();
                 return connection.Query<ReportQueryResult<decimal>>(TopTagsReportQuery, new
+                {
+                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
+                });
+            }
+        }
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(IEnumerable<DateTime> reportParametersMonths)
+        {
+            using (var connection = _mySqlConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                return connection.Query<ReportQueryResult<decimal>>(TotalsReportQuery, new
                 {
                     months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
                 });
