@@ -5,6 +5,7 @@
   >
     <v-layout row wrap>
       <reports-filter />
+      <totals />
       <expenses-by-month-chart />
       <budget-burndown />
       <months-summary-chart />
@@ -27,11 +28,12 @@
   import TopTagsTable from "./TopTagsTable.vue";
   import BudgetBurndown from "@/reports/BudgetBurndown";
   import IncomeBreakdownChart from "@/reports/IncomeBreakdownChart.vue";
+  import Totals from "@/reports/Totals.vue";
 
   export default {
     name: "",
     components: {
-      IncomeBreakdownChart,
+      Totals, IncomeBreakdownChart,
       BudgetBurndown, ReportsFilter, ExpensesByMonthChart, MonthsSummaryChart, CategoriesBreakdownChart,
       TopVendorsTable, TopExpensesTable, TopTagsTable },
     data: () => ({

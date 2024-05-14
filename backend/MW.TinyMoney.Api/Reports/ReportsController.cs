@@ -138,6 +138,17 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(result);
         }
 
+        [HttpGet, Route("totals")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ReportModel<decimal>))]
+        public IActionResult GetTotals([FromQuery]ReportParameters reportParameters)
+        {
+            var reportData = _reportsProvider.PrepareTotalsReport(reportParameters.Months);
+            
+            var result = BuildReportModel(reportData);
+
+            return Ok(result);
+        }
+
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)
         {
             var labels = reportData.Select(x => x.XLabel).Distinct();
