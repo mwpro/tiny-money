@@ -68,7 +68,7 @@ export function AddTransactionDialog() {
     })
     
     // 2. Konfiguracja formularza
-    const {register, control, handleSubmit, formState: {errors}, reset} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors}, reset} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             amount: 0,
@@ -140,9 +140,24 @@ export function AddTransactionDialog() {
                                     options={vendorsQuery.data || []}
                                     value={field.value}
                                     onChange={(val) => {
-                                        // Przy zmianie vendora, aktualizujemy pole
-                                        // Ustawiamy defaultSubcategoryId na 0 (nadpiszemy w onSubmit jeśli nowy)
+                                        // A. Najpierw aktualizujemy samo pole vendora (standard)
+                                        // Resetujemy defaultSubcategoryId dla vendora w formularzu (ważne dla nowych)
                                         field.onChange({ ...val, defaultSubcategoryId: 0 })
+
+                                        // B. LOGIKA AUTOMATYCZNEJ KATEGORII
+                                        // Jeśli wybrano istniejącego vendora (ma ID)...
+                                        if (val.id) {
+                                            // ...szukamy go na liście pobranej z API...
+                                            const selectedVendor = vendorsQuery.data?.find(v => v.id === val.id)
+
+                                            // ...i jeśli ma domyślną kategorię, ustawiamy ją w polu subcategoryId!
+                                            if (selectedVendor?.defaultSubcategoryId) {
+                                                setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
+                                                    shouldValidate: true, // od razu zwaliduj pole (usunie błąd "wymagane")
+                                                    shouldDirty: true     // oznacz jako zmienione
+                                                })
+                                            }
+                                        }
                                     }}
                                     placeholder="Wybierz sklep..."
                                 />
