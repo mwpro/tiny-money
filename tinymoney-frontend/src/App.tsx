@@ -8,7 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { AddTransactionDialog } from "@/components/AddTransactionDialog"
 
 function App() {
     // To jest serce React Query:
@@ -27,7 +27,7 @@ function App() {
         <div className="p-10 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
-                <Button>Dodaj Transakcję</Button>
+                <AddTransactionDialog />
             </div>
 
             <div className="border rounded-md">
