@@ -12,7 +12,7 @@ export type Transaction = {
     transactionDate: string;
     vendorId: number;
     subcategoryId: number;
-    tagsIds: number[];
+    tagIds: number[];
 }
 
 // Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
@@ -65,4 +65,33 @@ export const addTransaction = async (newTransaction: NewTransaction): Promise<Tr
     }
 
     return response.json();
+};
+
+// src/lib/api.ts
+
+// ... (Twoja definicja Transaction i getTransactions zostaje)
+
+// Typy słownikowe
+export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
+export type Category = { id: number, name: string, subcategories: Subcategory[] };
+export type Subcategory = { id: number; name: string };
+export type Tag = { id: number; name: string };
+
+// Funkcje pobierające
+export const getVendors = async (): Promise<Vendor[]> => {
+    const res = await fetch(`${API_URL}/vendors`);
+    if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
+    return res.json();
+};
+
+export const getCategories = async (): Promise<Category[]> => {
+    const res = await fetch(`${API_URL}/categories`);
+    if (!res.ok) throw new Error('Błąd pobierania kategorii');
+    return res.json();
+};
+
+export const getTags = async (): Promise<Tag[]> => {
+    const res = await fetch(`${API_URL}/tags`);
+    if (!res.ok) throw new Error('Błąd pobierania tagów');
+    return res.json();
 };
