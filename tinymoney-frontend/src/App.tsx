@@ -1,128 +1,28 @@
-import { useQuery } from "@tanstack/react-query" // <--- Import hooka
-import {getTransactions, getVendors, getTags, getCategories} from "@/lib/api"      // <--- Import naszej funkcji
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { AddTransactionDialog } from "@/components/AddTransactionDialog"
-import {Badge} from "@/components/ui/badge.tsx";
+// src/App.tsx
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { Layout } from "@/components/Layout"
+import { TransactionsPage } from "@/features/transactions/TransactionsPage"
+
+// Możesz stworzyć pusty komponent dla raportów na razie, żeby link działał
+const ReportsPage = () => <div className="text-center p-10 text-2xl">Tutaj będą wykresy 📈</div>
 
 function App() {
-    // To jest serce React Query:
-    // queryKey: unikalna nazwa danych w cache (jak klucz w Redis)
-    // queryFn: funkcja, która fizycznie pobiera dane
-    const transactionsQuery = useQuery({
-        queryKey: ['transactions'],
-        queryFn: getTransactions,
-    })
-
-    // 2. Pobieranie Słowników (z długim staleTime - np. 5 minut)
-    // Słowniki nie zmieniają się tak często jak transakcje, więc nie chcemy ich ciągle odświeżać.
-    const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
-
-    const vendorsQuery = useQuery({
-        queryKey: ['vendors'],
-        queryFn: getVendors,
-        ...dictionariesConfig
-    })
-
-    const categoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: getCategories,
-        ...dictionariesConfig
-    })
-
-    const tagsQuery = useQuery({
-        queryKey: ['tags'],
-        queryFn: getTags,
-        ...dictionariesConfig
-    })
-
-    // Obsługa stanów ładowania i błędów - super prosta!
-    if (transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) {
-        return <div className="p-10">Ładowanie danych...</div>
-    }
-    if (transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) {
-        return <div className="p-10 text-red-500">Błąd ładowania danych</div>
-    }
-
-    // 4. Funkcje pomocnicze (Lookup)
-    // Szukają nazwy po ID. Jeśli nie znajdą, wyświetlają np. "ID: 12" albo "-"
-    const getVendorName = (id: number) => {
-        return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
-    }
-
-    const getSubcategoryName = (id: number) => {
-        return categoriesQuery.data?.flatMap(c => c.subcategories.map(s => ({ id: s.id, name: `${c.name} / ${s.name}` })))
-            .find(s => s.id === id)?.name || "-"
-    }
-
-    const getTagNames = (ids: number[]) => {
-        if (!ids || ids.length === 0) return [];
-        return ids.map(id => tagsQuery.data?.find(t => t.id === id)?.name).filter(Boolean); // filter usuwa undefined
-    }
-    
     return (
-        <div className="p-10 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Moje Finanse</h1>
-                <AddTransactionDialog />
-            </div>
+        <BrowserRouter>
+            <Routes>
+                {/* Ścieżka główna otacza wszystko Layoutem */}
+                <Route path="/" element={<Layout />}>
 
-            <div className="border rounded-md">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Opis</TableHead>
-                            <TableHead>Sprzedawca</TableHead>
-                            <TableHead>Kategoria</TableHead>
-                            <TableHead>Tagi</TableHead>
-                            <TableHead className="text-right">Kwota</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {transactionsQuery.data?.map((t) => (
-                            <TableRow key={t.id}>
-                                {/* Data */}
-                                <TableCell className="w-[120px]">
-                                    {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
-                                </TableCell>
+                    {/* Przekierowanie: Jak wejdziesz na "/", idź od razu do "/transactions" */}
+                    <Route index element={<Navigate to="/transactions" replace />} />
 
-                                {/* Opis */}
-                                <TableCell className="font-medium">{t.description}</TableCell>
+                    {/* Konkretne podstrony */}
+                    <Route path="transactions" element={<TransactionsPage />} />
+                    <Route path="reports" element={<ReportsPage />} />
 
-                                {/* Sprzedawca (Lookup) */}
-                                <TableCell>{getVendorName(t.vendorId)}</TableCell>
-
-                                {/* Kategoria (Lookup) */}
-                                <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
-
-                                {/* Tagi (Pętla po IDkach) */}
-                                <TableCell>
-                                    <div className="flex gap-1 flex-wrap">
-                                        {getTagNames(t.tagIds).map((tagName, index) => (
-                                            <Badge key={index} variant="secondary" className="text-xs font-normal">
-                                                {tagName}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TableCell>
-
-                                {/* Kwota (Kolor zależny od isExpense) */}
-                                <TableCell className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                                    {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(t.amount)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
+                </Route>
+            </Routes>
+        </BrowserRouter>
     )
 }
 
