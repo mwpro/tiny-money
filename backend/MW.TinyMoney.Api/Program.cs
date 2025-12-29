@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -49,7 +50,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddCors(conf =>
     {
         conf.AddDefaultPolicy(cors =>
-            cors.WithOrigins(configuration["Cors:AllowedOrigins"])
+            cors.WithOrigins(configuration["Cors:AllowedOrigins"].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 .WithHeaders("Authorization", "Content-Type")
                 .WithMethods("GET", "POST", "DELETE"));
     });
