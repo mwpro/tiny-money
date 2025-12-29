@@ -10,14 +10,17 @@ import {
 } from "@/components/ui/table"
 import { AddTransactionDialog } from "@/components/AddTransactionDialog"
 import {Badge} from "@/components/ui/badge.tsx";
+import {useAuth0} from "@auth0/auth0-react";
 
 export function TransactionsPage() {
+    const auth = useAuth0();
+
     // To jest serce React Query:
     // queryKey: unikalna nazwa danych w cache (jak klucz w Redis)
     // queryFn: funkcja, która fizycznie pobiera dane
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
-        queryFn: getTransactions,
+        queryFn: () => getTransactions(auth),
     })
 
     // 2. Pobieranie Słowników (z długim staleTime - np. 5 minut)
@@ -26,19 +29,19 @@ export function TransactionsPage() {
 
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: getVendors,
+        queryFn: () => getVendors(auth),
         ...dictionariesConfig
     })
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: getCategories,
+        queryFn: () => getCategories(auth),
         ...dictionariesConfig
     })
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: getTags,
+        queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
 
@@ -47,6 +50,7 @@ export function TransactionsPage() {
         return <div className="p-10">Ładowanie danych...</div>
     }
     if (transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) {
+        console.log(transactionsQuery.error)
         return <div className="p-10 text-red-500">Błąd ładowania danych</div>
     }
 

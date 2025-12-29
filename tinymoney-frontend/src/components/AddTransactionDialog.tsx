@@ -3,7 +3,7 @@ import {Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod" // Nasz walidator
-import {addTransaction, getCategories, getTags, getVendors} from "@/lib/api"
+import {addTransaction, getCategories, getTags, getVendors, type NewTransaction} from "@/lib/api"
 import { SmartCombobox} from "@/components/SmartCombobox.tsx";
 
 // Komponenty UI
@@ -17,7 +17,8 @@ import {
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select"
-import {toast} from "sonner"; // npx shadcn@latest add select
+import {toast} from "sonner";
+import {useAuth0} from "@auth0/auth0-react"; // npx shadcn@latest add select
 
 // 1. Schemat walidacji (odpowiednik FluentValidation)
 const transactionSchema = z.object({
@@ -45,6 +46,7 @@ type TransactionFormValues = z.infer<typeof transactionSchema>
 export function AddTransactionDialog() {
     const [open, setOpen] = useState(false) // Czy okno jest otwarte?
     const queryClient = useQueryClient() // Dostęp do cache'a
+    const auth = useAuth0();
 
     // 2. Pobieranie Słowników (z długim staleTime - np. 5 minut)
     // Słowniki nie zmieniają się tak często jak transakcje, więc nie chcemy ich ciągle odświeżać.
@@ -52,19 +54,19 @@ export function AddTransactionDialog() {
 
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: getVendors,
+        queryFn: () => getVendors(auth),
         ...dictionariesConfig
     })
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: getCategories,
+        queryFn: () => getCategories(auth),
         ...dictionariesConfig
     })
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: getTags,
+        queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
     
@@ -84,7 +86,7 @@ export function AddTransactionDialog() {
 
     // 3. Mutacja (wysłanie do API)
     const mutation = useMutation({
-        mutationFn: addTransaction,
+        mutationFn: (newTransaction: NewTransaction) => addTransaction(newTransaction, auth),
         onSuccess: () => {
             // Sukces!
             queryClient.invalidateQueries({queryKey: ['transactions']}) // Odśwież tabelę w tle

@@ -2,6 +2,8 @@
 
 // Tutaj definiujemy typy. Dzięki temu, jak backend zmieni nazwę pola,
 // TypeScript wywali błąd kompilacji na froncie.
+import {type Auth0ContextInterface} from "@auth0/auth0-react";
+
 export type Transaction = {
     id: number;
     amount: number;
@@ -18,8 +20,14 @@ export type Transaction = {
 // Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (): Promise<Transaction[]> => {
-    const response = await fetch(`${API_URL}/transactions?month=2025-12`);
+export const getTransactions = async (auth: Auth0ContextInterface): Promise<Transaction[]> => {
+    const token = await auth.getAccessTokenSilently();
+
+    const response = await fetch(`${API_URL}/transactions?month=2025-12`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
 
     if (!response.ok) {
         throw new Error('Błąd pobierania danych');
@@ -50,11 +58,14 @@ export type TagUpsert = {
     name: string
 }
 
-export const addTransaction = async (newTransaction: NewTransaction): Promise<Transaction> => {
+export const addTransaction = async (newTransaction: NewTransaction, auth: Auth0ContextInterface): Promise<Transaction> => {
+    const token = await  auth.getAccessTokenSilently();
+    
     const response = await fetch(`${API_URL}/transactions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(newTransaction),
     });
@@ -77,20 +88,35 @@ export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
 
 // Funkcje pobierające
-export const getVendors = async (): Promise<Vendor[]> => {
-    const res = await fetch(`${API_URL}/vendors`);
+export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/vendors`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
     return res.json();
 };
 
-export const getCategories = async (): Promise<Category[]> => {
-    const res = await fetch(`${API_URL}/categories`);
+export const getCategories = async (auth: Auth0ContextInterface): Promise<Category[]> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/categories`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Błąd pobierania kategorii');
     return res.json();
 };
 
-export const getTags = async (): Promise<Tag[]> => {
-    const res = await fetch(`${API_URL}/tags`);
+export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/tags`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
     if (!res.ok) throw new Error('Błąd pobierania tagów');
     return res.json();
 };
