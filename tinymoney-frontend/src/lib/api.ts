@@ -16,7 +16,7 @@ export type Transaction = {
 }
 
 // Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
-const API_URL = "http://localhost:52386/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (): Promise<Transaction[]> => {
     const response = await fetch(`${API_URL}/transactions?month=2025-12`);

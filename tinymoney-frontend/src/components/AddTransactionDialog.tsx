@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dialog"
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from "@/components/ui/select" // npx shadcn@latest add select
+} from "@/components/ui/select"
+import {toast} from "sonner"; // npx shadcn@latest add select
 
 // 1. Schemat walidacji (odpowiednik FluentValidation)
 const transactionSchema = z.object({
@@ -94,7 +95,7 @@ export function AddTransactionDialog() {
             reset() // Wyczyść formularz
         },
         onError: (error) => {
-            alert("Błąd: " + error.message)
+            toast.error("Błąd: " + error.message)
         }
     })
 
