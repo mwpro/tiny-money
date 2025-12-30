@@ -3,12 +3,19 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Layout } from "@/components/Layout"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import {useAuth0} from "@auth0/auth0-react";
+import {useEffect} from "react";
 
 // Możesz stworzyć pusty komponent dla raportów na razie, żeby link działał
 const ReportsPage = () => <div className="text-center p-10 text-2xl">Tutaj będą wykresy 📈</div>
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated && !error) {
+            loginWithRedirect();
+        }
+    }, [isLoading, isAuthenticated, error, loginWithRedirect]);
+    
     if (isLoading) {
         return (
             <div className="app-container">
@@ -29,10 +36,6 @@ function App() {
                 </div>
             </div>
         );
-    }
-    if (!isAuthenticated){
-        loginWithRedirect();
-        return
     }
     
     return (

@@ -22,10 +22,10 @@ import {useAuth0} from "@auth0/auth0-react"; // npx shadcn@latest add select
 
 // 1. Schemat walidacji (odpowiednik FluentValidation)
 const transactionSchema = z.object({
-    amount: z.coerce.number(),//.coerce.number().refine((val) => val !== 0, "Kwota nie może być zerem"), // coerce zamienia string z inputa na number
+    amount: z.coerce.number().refine((val) => val > 0, "Kwota musi być większa od 0"),
     isExpense: z.boolean(),
-    transactionDate: z.string().refine((val) => !isNaN(Date.parse(val)), "Nieprawidłowa data"),
-    description: z.string().min(3, "Opis musi mieć min. 3 znaki"),
+    transactionDate: z.iso.date(),//.string().refine((val) => !isNaN(Date.parse(val)), "Nieprawidłowa data"),
+    description: z.string().min(3, "Opis musi mieć min. 3 znaki").optional().or(z.literal('')),
     subcategoryId: z.coerce.number().min(1, "Kategoria jest wymagana"),
     // Obiekt VendorUpsert
     vendor: z.object({
@@ -181,8 +181,7 @@ export function AddTransactionDialog() {
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value.toString()}>
                                         <SelectTrigger><SelectValue placeholder="Kategoria" /></SelectTrigger>
                                         <SelectContent>
-                                            {/*return categoriesQuery.data?.flatMap(c => c.subcategories.map(s => ({ id: s.id, name: `${c.name} / ${s.name}` })))*/}
-                                            {categoriesQuery.data?.flatMap(c => c.subcategories.map(s => (<SelectItem key={s.id} value={s.id.toString()}>{c.name} / {s.name}</SelectItem>)))}
+                                            {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({id, name})).map(s => (<SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
                                         </SelectContent>
                                     </Select>
                                 )}

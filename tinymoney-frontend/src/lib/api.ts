@@ -8,7 +8,7 @@ export type Transaction = {
     id: number;
     amount: number;
     createdDate: string;
-    description: string;
+    description: string | undefined;
     isExpense: boolean;
     modifiedDate: string;
     transactionDate: string;
@@ -42,7 +42,7 @@ export type NewTransaction = {
     amount: number;
     isExpense: boolean;
     transactionDate: string;
-    description: string,
+    description: string | undefined,
     vendor: VendorUpsert,
     subcategoryId: number;
     tags: TagUpsert[]
@@ -86,6 +86,7 @@ export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
 export type Category = { id: number, name: string, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
+export type Subcategories = Map<number, string>;
 
 // Funkcje pobierające
 export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {
@@ -99,7 +100,7 @@ export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]>
     return res.json();
 };
 
-export const getCategories = async (auth: Auth0ContextInterface): Promise<Category[]> => {
+export const getCategories = async (auth: Auth0ContextInterface): Promise<Subcategories> => {
     const token = await auth.getAccessTokenSilently();
     const res = await fetch(`${API_URL}/categories`, {
         headers: {
@@ -107,7 +108,9 @@ export const getCategories = async (auth: Auth0ContextInterface): Promise<Catego
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania kategorii');
-    return res.json();
+    const responseData: Category[] = await res.json();
+
+    return new Map<number, string>(responseData.flatMap(c => c.subcategories.map(s => ([ s.id, `${c.name} / ${s.name}` ]))));
 };
 
 export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {

@@ -54,20 +54,17 @@ export function TransactionsPage() {
         return <div className="p-10 text-red-500">Błąd ładowania danych</div>
     }
 
-    // 4. Funkcje pomocnicze (Lookup)
-    // Szukają nazwy po ID. Jeśli nie znajdą, wyświetlają np. "ID: 12" albo "-"
     const getVendorName = (id: number) => {
         return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
     }
 
     const getSubcategoryName = (id: number) => {
-        return categoriesQuery.data?.flatMap(c => c.subcategories.map(s => ({ id: s.id, name: `${c.name} / ${s.name}` })))
-            .find(s => s.id === id)?.name || "-"
+        return categoriesQuery.data?.get(id) || "-"
     }
 
     const getTagNames = (ids: number[]) => {
         if (!ids || ids.length === 0) return [];
-        return ids.map(id => tagsQuery.data?.find(t => t.id === id)?.name).filter(Boolean); // filter usuwa undefined
+        return ids.map(id => tagsQuery.data?.find(t => t.id === id)).filter(Boolean).map(x => x!);
     }
 
     return (
@@ -109,9 +106,9 @@ export function TransactionsPage() {
                                 {/* Tagi (Pętla po IDkach) */}
                                 <TableCell>
                                     <div className="flex gap-1 flex-wrap">
-                                        {getTagNames(t.tagIds).map((tagName, index) => (
-                                            <Badge key={index} variant="secondary" className="text-xs font-normal">
-                                                {tagName}
+                                        {getTagNames(t.tagIds).map((tag) => (
+                                            <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                                {tag.name}
                                             </Badge>
                                         ))}
                                     </div>
