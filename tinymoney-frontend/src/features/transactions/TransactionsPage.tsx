@@ -1,5 +1,11 @@
-import { useQuery } from "@tanstack/react-query"
-import {getTransactions, getVendors, getTags, getCategories} from "@/lib/api"
+import {useQuery} from "@tanstack/react-query"
+import {
+    getTransactions,
+    getVendors,
+    getTags,
+    getCategories,
+    type Transaction
+} from "@/lib/api"
 import {
     Table,
     TableBody,
@@ -20,9 +26,12 @@ import {
     DropdownMenuItem
 } from "@/components/ui/dropdown-menu";
 import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
+import {useState} from "react";
+import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 
 export function TransactionsPage() {
     const auth = useAuth0();
+    const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
 
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
@@ -45,7 +54,7 @@ export function TransactionsPage() {
         queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
-
+    
     if (transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) {
         return <div className="p-10">Ładowanie danych...</div>
     }
@@ -72,6 +81,7 @@ export function TransactionsPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
                 <AddTransactionDialog />
+                <TransactionRemovalDialog transactionToRemove={transactionToRemove} onClose={() => setTransactionToRemove(undefined)} />
             </div>
 
             <div className="border rounded-md">
@@ -119,7 +129,7 @@ export function TransactionsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-52">
                                                 <DropdownMenuGroup>
-                                                    <DropdownMenuItem variant="destructive">
+                                                    <DropdownMenuItem variant="destructive" onClick={() => setTransactionToRemove(t)}>
                                                         Usuń
                                                     </DropdownMenuItem>
                                                 </DropdownMenuGroup>

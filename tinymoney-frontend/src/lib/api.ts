@@ -77,11 +77,21 @@ export const addTransaction = async (newTransaction: NewTransaction, auth: Auth0
     return response.json();
 };
 
-// src/lib/api.ts
+export const removeTransaction = async (transactionId: number, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
 
-// ... (Twoja definicja Transaction i getTransactions zostaje)
+    if (!response.ok) {
+        throw new Error('Błąd podczas usuwania transakcji');
+    }
+};
 
-// Typy słownikowe
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
 export type Category = { id: number, name: string, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
