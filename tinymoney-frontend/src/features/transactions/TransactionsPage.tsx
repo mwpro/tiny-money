@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query" // <--- Import hooka
-import {getTransactions, getVendors, getTags, getCategories} from "@/lib/api"      // <--- Import naszej funkcji
+import { useQuery } from "@tanstack/react-query"
+import {getTransactions, getVendors, getTags, getCategories} from "@/lib/api"
 import {
     Table,
     TableBody,
@@ -11,41 +11,41 @@ import {
 import {Badge} from "@/components/ui/badge.tsx";
 import {useAuth0} from "@auth0/auth0-react";
 import {AddTransactionDialog} from "@/features/transactions/transactions-editor/AddTransactionDialog.tsx";
+import {ButtonGroup} from "@/components/ui/button-group.tsx";
+import {Button} from "@/components/ui/button.tsx";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
+import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 
 export function TransactionsPage() {
     const auth = useAuth0();
 
-    // To jest serce React Query:
-    // queryKey: unikalna nazwa danych w cache (jak klucz w Redis)
-    // queryFn: funkcja, która fizycznie pobiera dane
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
         queryFn: () => getTransactions(auth),
     })
-
-    // 2. Pobieranie Słowników (z długim staleTime - np. 5 minut)
-    // Słowniki nie zmieniają się tak często jak transakcje, więc nie chcemy ich ciągle odświeżać.
+    
     const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
-
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
         queryFn: () => getVendors(auth),
         ...dictionariesConfig
     })
-
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
         queryFn: () => getCategories(auth),
         ...dictionariesConfig
     })
-
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
 
-    // Obsługa stanów ładowania i błędów - super prosta!
     if (transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) {
         return <div className="p-10">Ładowanie danych...</div>
     }
@@ -68,7 +68,7 @@ export function TransactionsPage() {
     }
 
     return (
-        <div className="p-10 max-w-4xl mx-auto">
+        <div className="p-10 max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
                 <AddTransactionDialog />
@@ -84,26 +84,18 @@ export function TransactionsPage() {
                             <TableHead>Kategoria</TableHead>
                             <TableHead>Tagi</TableHead>
                             <TableHead className="text-right">Kwota</TableHead>
+                            <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {transactionsQuery.data?.map((t) => (
                             <TableRow key={t.id}>
-                                {/* Data */}
                                 <TableCell className="w-[120px]">
                                     {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
                                 </TableCell>
-
-                                {/* Opis */}
                                 <TableCell className="font-medium">{t.description}</TableCell>
-
-                                {/* Sprzedawca (Lookup) */}
                                 <TableCell>{getVendorName(t.vendorId)}</TableCell>
-
-                                {/* Kategoria (Lookup) */}
                                 <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
-
-                                {/* Tagi (Pętla po IDkach) */}
                                 <TableCell>
                                     <div className="flex gap-1 flex-wrap">
                                         {getTagNames(t.tagIds).map((tag) => (
@@ -113,10 +105,27 @@ export function TransactionsPage() {
                                         ))}
                                     </div>
                                 </TableCell>
-
-                                {/* Kwota (Kolor zależny od isExpense) */}
                                 <TableCell className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
                                     {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(t.amount)}
+                                </TableCell>
+                                <TableCell>
+                                    <ButtonGroup>
+                                        <Button variant="outline">Edytuj</Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" size="icon" aria-label="More Options">
+                                                    ...
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-52">
+                                                <DropdownMenuGroup>
+                                                    <DropdownMenuItem variant="destructive">
+                                                        Usuń
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuGroup>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </ButtonGroup>
                                 </TableCell>
                             </TableRow>
                         ))}
