@@ -8,9 +8,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { AddTransactionDialog } from "@/components/AddTransactionDialog"
 import {Badge} from "@/components/ui/badge.tsx";
 import {useAuth0} from "@auth0/auth0-react";
+import {AddTransactionDialog} from "@/features/transactions/transactions-editor/AddTransactionDialog.tsx";
 
 export function TransactionsPage() {
     const auth = useAuth0();
