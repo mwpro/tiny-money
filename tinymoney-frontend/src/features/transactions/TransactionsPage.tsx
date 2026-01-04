@@ -78,7 +78,7 @@ export function TransactionsPage() {
     }
 
     return (
-        <div className="p-10 max-w-5xl mx-auto">
+        <div className="p-10 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
                 <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />

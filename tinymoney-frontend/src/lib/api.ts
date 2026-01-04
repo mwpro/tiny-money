@@ -77,6 +77,26 @@ export const addTransaction = async (newTransaction: NewTransaction, auth: Auth0
     return response.json();
 };
 
+export const editTransaction = async (transactionId: number, 
+                                      newTransaction: NewTransaction, auth: Auth0ContextInterface): Promise<Transaction> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/transactions/${transactionId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTransaction),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania transakcji');
+    }
+
+    return response.json();
+};
+
 export const removeTransaction = async (transactionId: number, auth: Auth0ContextInterface): Promise<void> => {
     const token = await  auth.getAccessTokenSilently();
     

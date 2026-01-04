@@ -3,7 +3,15 @@ import {Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
-import {addTransaction, getCategories, getTags, getVendors, type NewTransaction, type Transaction} from "@/lib/api"
+import {
+    addTransaction,
+    editTransaction,
+    getCategories,
+    getTags,
+    getVendors,
+    type NewTransaction,
+    type Transaction
+} from "@/lib/api"
 
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
@@ -89,7 +97,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
     const mutation = useMutation({
         mutationFn: (newTransaction: NewTransaction) => transactionToEdit
-            ? addTransaction(newTransaction, auth)
+            ? editTransaction(transactionToEdit.id, newTransaction, auth)
             : addTransaction(newTransaction, auth),
         onSuccess: () => {
             // Sukces!
