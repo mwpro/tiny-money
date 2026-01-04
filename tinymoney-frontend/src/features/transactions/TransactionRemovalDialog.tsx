@@ -4,8 +4,7 @@ import {
     AlertDialogCancel,
     AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger
+    AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {getVendors, removeTransaction, type Transaction} from "@/lib/api.ts";
@@ -51,14 +50,13 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
     
     return (
         <AlertDialog open={true}>
-            <AlertDialogTrigger>Open</AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>
                     <AlertDialogDescription>
                         <span className={`font-mono ${transactionToRemove.isExpense ? "text-red-600" : "text-green-600"}`}>
                             {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(transactionToRemove.amount)}
-                        </span> w {getVendorName(transactionToRemove.vendorId)} w dniu {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
+                        </span> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

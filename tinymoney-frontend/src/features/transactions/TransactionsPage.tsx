@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/table"
 import {Badge} from "@/components/ui/badge.tsx";
 import {useAuth0} from "@auth0/auth0-react";
-import {AddTransactionDialog} from "@/features/transactions/transactions-editor/AddTransactionDialog.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {
@@ -28,10 +27,12 @@ import {
 import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
+import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 
 export function TransactionsPage() {
     const auth = useAuth0();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
+    const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
 
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
@@ -80,7 +81,7 @@ export function TransactionsPage() {
         <div className="p-10 max-w-5xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
-                <AddTransactionDialog />
+                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove} onClose={() => setTransactionToRemove(undefined)} />
             </div>
 
@@ -120,7 +121,7 @@ export function TransactionsPage() {
                                 </TableCell>
                                 <TableCell>
                                     <ButtonGroup>
-                                        <Button variant="outline">Edytuj</Button>
+                                        <Button variant="outline" onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="outline" size="icon" aria-label="More Options">

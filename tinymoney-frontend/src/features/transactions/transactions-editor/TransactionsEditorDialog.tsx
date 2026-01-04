@@ -1,9 +1,9 @@
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
-import {addTransaction, getCategories, getTags, getVendors, type NewTransaction} from "@/lib/api"
+import {addTransaction, getCategories, getTags, getVendors, type NewTransaction, type Transaction} from "@/lib/api"
 
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
@@ -23,7 +23,12 @@ import {transactionSchema} from "@/features/transactions/transactions-editor/Tra
 
 type TransactionFormValues = z.infer<typeof transactionSchema>
 
-export function AddTransactionDialog() {
+interface TransactionEditorDialogProps {
+    transactionToEdit?: Transaction,
+    onClose: () => void
+}
+
+export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [open, setOpen] = useState(false)
     const queryClient = useQueryClient()
     const auth = useAuth0();
@@ -51,7 +56,7 @@ export function AddTransactionDialog() {
     const {register, control, handleSubmit, setValue, formState: {errors}, reset} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: 0,
+            amount: transactionToEdit?.amount || 0,
             description: "",
             isExpense: true,
             transactionDate: "2025-12-13",// new Date().toISOString().split('T')[0], // Dzisiejsza data YYYY-MM-DD
@@ -60,9 +65,32 @@ export function AddTransactionDialog() {
             tags: []
         }
     })
+    
+    useEffect(() => {
+        setOpen(!!transactionToEdit);
+        if (transactionToEdit){
+            setValue("amount", transactionToEdit.amount)   
+            setValue("description", transactionToEdit.description)
+            setValue("isExpense", transactionToEdit.isExpense);
+            setValue("transactionDate", transactionToEdit.transactionDate.split('T')[0]);
+            setValue("subcategoryId", transactionToEdit.subcategoryId);
+            const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
+            if (selectedVendor) {
+                setValue("vendor", selectedVendor);   
+            }
+            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tagIds.includes(t.id));
+            if (selectedTags) {
+                setValue("tags", selectedTags);
+            }
+        } else {
+            reset()
+        }
+    }, [transactionToEdit]);
 
     const mutation = useMutation({
-        mutationFn: (newTransaction: NewTransaction) => addTransaction(newTransaction, auth),
+        mutationFn: (newTransaction: NewTransaction) => transactionToEdit
+            ? addTransaction(newTransaction, auth)
+            : addTransaction(newTransaction, auth),
         onSuccess: () => {
             // Sukces!
             queryClient.invalidateQueries({queryKey: ['transactions']}) // Odśwież tabelę w tle
@@ -80,6 +108,13 @@ export function AddTransactionDialog() {
     const onSubmit = (data: TransactionFormValues) => {
         mutation.mutate(data)
     }
+
+    useEffect(() => {
+        if (!open)
+        {
+            onClose();   
+        }
+    }, [open]);
     
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -114,7 +149,8 @@ export function AddTransactionDialog() {
                             name="vendor"
                             render={({field}) => (
                                 <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                                    o.name.toLowerCase().includes(input.toLowerCase()))}
+                                    o.name.toLowerCase().includes(input.toLowerCase()))} 
+                                value={field.value.name}
                                 onChange={value => {
                                             field.onChange({...value, defaultSubcategoryId: 0}) // todo is this default needed?
                                     
