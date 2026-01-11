@@ -18,7 +18,7 @@ import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {Checkbox} from "@/components/ui/checkbox"
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue
@@ -61,13 +61,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
-    const {register, control, handleSubmit, setValue, formState: {errors}, reset} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             amount: transactionToEdit?.amount || 0,
             description: "",
             isExpense: true,
-            transactionDate: "2025-12-13",// new Date().toISOString().split('T')[0], // Dzisiejsza data YYYY-MM-DD
+            transactionDate: new Date().toISOString().split('T')[0],
             subcategoryId: 0,
             vendor: {id: undefined, name: ""},
             tags: []
@@ -100,13 +100,16 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             ? editTransaction(transactionToEdit.id, newTransaction, auth)
             : addTransaction(newTransaction, auth),
         onSuccess: () => {
-            // Sukces!
-            queryClient.invalidateQueries({queryKey: ['transactions']}) // Odśwież tabelę w tle
+            queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})
             queryClient.invalidateQueries({queryKey: ['categories']})
             queryClient.invalidateQueries({queryKey: ['tags']})
-            setOpen(false)
-            reset()
+            if (transactionToEdit){
+                setOpen(false);
+                reset();
+            } else {
+                reset({...defaultValues, transactionDate: getValues("transactionDate")})
+            }
         },
         onError: (error) => {
             toast.error("Błąd: " + error.message)
@@ -125,13 +128,19 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     }, [open]);
     
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => {
+            setOpen(v);
+            reset();
+        }}>
             <DialogTrigger asChild>
                 <Button>Dodaj Transakcję</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Nowa transakcja</DialogTitle>
+                    <DialogTitle>{ transactionToEdit ? "Edytuj transakcję" : "Dodaj nową transakcję"}</DialogTitle>
+                    <DialogDescription>
+                        { transactionToEdit ? "Wprowadź zmiany i kliknij Zapisz" :  "Uzupełnij dane transakcji i kliknij Zapisz" }
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
@@ -151,14 +160,14 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>Sprzedawca (Wybierz lub wpisz nowy)</Label>
+                        <Label>Sprzedawca</Label>
                         <Controller
                             control={control}
                             name="vendor"
                             render={({field}) => (
                                 <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
                                     o.name.toLowerCase().includes(input.toLowerCase()))} 
-                                value={field.value.name}
+                                value={field.value.name} clearQueryAfterSelection={false}
                                 onChange={value => {
                                             field.onChange({...value})
                                     
@@ -185,14 +194,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             name="subcategoryId"
                             render={({field}) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))}
-                                        value={field.value.toString()}>
-                                    <SelectTrigger><SelectValue placeholder="Kategoria"/></SelectTrigger>
+                                        value={(field.value > 0) ? field.value.toString() : undefined }>
+                                    <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
                                         {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({
                                             id,
                                             name
-                                        })).map(s => (
-                                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
+                                        })).map(s => (<SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
                                     </SelectContent>
                                 </Select>
                             )}

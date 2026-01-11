@@ -6,10 +6,11 @@ import { Search } from 'lucide-react'
 interface AutoCompleteProps {
     value?: string
     onChange?: (value: { id?: number; name: string }) => void,
-    fetchSuggestions: (value: string) => Promise<{ id?: number; name: string }[]>
+    fetchSuggestions: (value: string) => Promise<{ id?: number; name: string }[]>,
+    clearQueryAfterSelection: boolean
 }
 
-export default function Autocomplete({ value = '', onChange, fetchSuggestions }: AutoCompleteProps) {
+export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection }: AutoCompleteProps) {
     const [query, setQuery] = useState(value)
     const [foundLiteralMatch, setFoundLiteralMatch] = useState(false)
     const [suggestions, setSuggestions] = useState<{ id?: number; name: string }[]>([])
@@ -28,6 +29,12 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
         setFoundLiteralMatch(!!results.find(s => s.name.toLowerCase() == q?.toLowerCase()));
         setIsLoading(false)
     }, [fetchSuggestions])
+
+
+    useEffect(() => {
+        setQuery(value)
+        setSelectedIndex(-1)
+    }, [value]);
     
     useEffect(() => {
         if (query && isFocused) {
@@ -40,7 +47,6 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value
         setQuery(newValue)
-        //onChange?.(newValue)
         setSelectedIndex(-1)
     }
 
@@ -70,7 +76,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
     }
 
     const handleSuggestionChosen = (suggestion: { id?: number; name: string }) => {
-        setQuery("")
+        setQuery(clearQueryAfterSelection ? "" : suggestion.name)
         onChange?.(suggestion)
         setSuggestions([])
         setSelectedIndex(-1)
@@ -94,7 +100,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
             <div className="relative">
                 <Input
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Zacznij wpisywać..."
                     value={query}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
