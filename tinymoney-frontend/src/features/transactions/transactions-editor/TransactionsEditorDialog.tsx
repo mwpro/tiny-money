@@ -160,7 +160,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                     o.name.toLowerCase().includes(input.toLowerCase()))} 
                                 value={field.value.name}
                                 onChange={value => {
-                                            field.onChange({...value, defaultSubcategoryId: 0}) // todo is this default needed?
+                                            field.onChange({...value})
                                     
                                             if (value.id) {
                                                 const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)

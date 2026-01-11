@@ -46,7 +46,7 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
     
     
     if (!transactionToRemove) 
-        return;
+        return null;
     
     return (
         <AlertDialog open={true}>

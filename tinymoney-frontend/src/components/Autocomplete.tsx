@@ -27,8 +27,8 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
         setSuggestions(results)
         setFoundLiteralMatch(!!results.find(s => s.name.toLowerCase() == q?.toLowerCase()));
         setIsLoading(false)
-    }, [])
-
+    }, [fetchSuggestions])
+    
     useEffect(() => {
         if (query && isFocused) {
             fetchSuggestionsCallback(query)
@@ -56,17 +56,21 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
             e.preventDefault()
             setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
         } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            setQuery(suggestions[selectedIndex].name)
-            setSuggestions([])
-            setSelectedIndex(-1)
+            e.preventDefault()
+            if (selectedIndex < suggestions.length){
+                handleSuggestionChosen(suggestions[selectedIndex]);
+            } else {
+                handleSuggestionChosen({name: query});
+            }
         } else if (e.key === 'Escape') {
+            e.preventDefault()
             setSuggestions([])
             setSelectedIndex(-1)
         }
     }
 
-    const handleSuggestionClick = (suggestion: { id?: number; name: string }) => {
-        setQuery(suggestion.name)
+    const handleSuggestionChosen = (suggestion: { id?: number; name: string }) => {
+        setQuery("")
         onChange?.(suggestion)
         setSuggestions([])
         setSelectedIndex(-1)
@@ -132,7 +136,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
                             className={`px-4 py-2 cursor-pointer hover:bg-muted ${
                                 index === selectedIndex ? 'bg-muted' : ''
                             }`}
-                            onClick={() => handleSuggestionClick(suggestion)}
+                            onClick={() => handleSuggestionChosen(suggestion)}
                             role="option"
                             aria-selected={index === selectedIndex}
                         >
@@ -145,9 +149,8 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions }:
                 <li key="AddNew" className={`px-4 py-2 cursor-pointer hover:bg-muted ${
                     suggestions.length === selectedIndex ? 'bg-muted' : ''
                 }`}
-                    onClick={() => handleSuggestionClick(({name: query}))}
+                    onClick={() => handleSuggestionChosen(({name: query}))}
                     role="option"
-                    //aria-selected={index === selectedIndex}
                 >Dodaj {query}</li>
             )}
 
