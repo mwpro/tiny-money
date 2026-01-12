@@ -1,45 +1,31 @@
 import {useQuery} from "@tanstack/react-query"
-import {
-    getTransactions,
-    getVendors,
-    getTags,
-    getCategories,
-    type Transaction
-} from "@/lib/api"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import {getCategories, getTags, getTransactions, getVendors, type Transaction} from "@/lib/api"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
 import {Badge} from "@/components/ui/badge.tsx";
 import {useAuth0} from "@auth0/auth0-react";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem
-} from "@/components/ui/dropdown-menu";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem} from "@/components/ui/dropdown-menu";
 import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
+import {DatePicker} from "@/components/DatePicker.tsx";
+
 
 export function TransactionsPage() {
     const auth = useAuth0();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-
+    const [dateFrom, setDateFrom] = useState<Date | undefined>( new Date() )
+    const [dateTo, setDateTo] = useState<Date | undefined>(new Date())
+    
     const transactionsQuery = useQuery({
         queryKey: ['transactions'],
         queryFn: () => getTransactions(auth),
     })
-    
-    const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
+
+    const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
         queryFn: () => getVendors(auth),
@@ -55,7 +41,7 @@ export function TransactionsPage() {
         queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
-    
+
     if (transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) {
         return <div className="p-10">Ładowanie danych...</div>
     }
@@ -81,8 +67,14 @@ export function TransactionsPage() {
         <div className="p-10 max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Moje Finanse</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
-                <TransactionRemovalDialog transactionToRemove={transactionToRemove} onClose={() => setTransactionToRemove(undefined)} />
+                <TransactionsEditorDialog transactionToEdit={transactionToEdit}
+                                          onClose={() => setTransactionToEdit(undefined)}/>
+                <TransactionRemovalDialog transactionToRemove={transactionToRemove}
+                                          onClose={() => setTransactionToRemove(undefined)}/>
+            </div>
+
+            <div className="flex flex-col gap-3">
+                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={() => {}} />
             </div>
 
             <div className="border rounded-md">
@@ -116,12 +108,17 @@ export function TransactionsPage() {
                                         ))}
                                     </div>
                                 </TableCell>
-                                <TableCell className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                                    {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(t.amount)}
+                                <TableCell
+                                    className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
+                                    {new Intl.NumberFormat('pl-PL', {
+                                        style: 'currency',
+                                        currency: 'PLN'
+                                    }).format(t.amount)}
                                 </TableCell>
                                 <TableCell>
                                     <ButtonGroup>
-                                        <Button variant="outline" onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
+                                        <Button variant="outline"
+                                                onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="outline" size="icon" aria-label="More Options">
@@ -130,7 +127,8 @@ export function TransactionsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-52">
                                                 <DropdownMenuGroup>
-                                                    <DropdownMenuItem variant="destructive" onClick={() => setTransactionToRemove(t)}>
+                                                    <DropdownMenuItem variant="destructive"
+                                                                      onClick={() => setTransactionToRemove(t)}>
                                                         Usuń
                                                     </DropdownMenuItem>
                                                 </DropdownMenuGroup>
