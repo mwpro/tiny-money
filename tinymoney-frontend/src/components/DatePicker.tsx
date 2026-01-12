@@ -4,6 +4,7 @@ import {Calendar} from "@/components/ui/calendar.tsx";
 import {ChevronDownIcon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {useEffect, useState} from "react";
+import { format, subDays, subMonths, subYears, endOfMonth, startOfMonth, endOfYear, startOfYear } from 'date-fns';
 
 interface DatePickerProps {
     dateFrom: Date | undefined,
@@ -16,57 +17,57 @@ interface DateRangePreset {
     preset: (now: Date) => { dateFrom: Date, dateTo: Date }
 }
 
+const presets: DateRangePreset[] = [
+    {
+        name: "Bieżący miesiąc", preset: (now) => {
+            return ({
+                dateFrom: startOfMonth(now),
+                dateTo: endOfMonth(now)
+            });
+        }
+    },
+    {
+        name: "Poprzedni miesiąc", preset: (now) => {
+            return ({
+                dateFrom: startOfMonth(subMonths(now, 1)),
+                dateTo: endOfMonth(subMonths(now, 1))
+            });
+        }
+    },
+    {
+        name: "Bieżący rok", preset: (now) => {
+            return ({
+                dateFrom: startOfYear(now),
+                dateTo: endOfYear(now)
+            });
+        }
+    },
+    {
+        name: "Poprzedni rok", preset: (now) => {
+            return ({
+                dateFrom: startOfYear(subYears(now, 1)),
+                dateTo: endOfYear(subYears(now, 1))
+            });
+        }
+    },
+    {
+        name: "Ostatnie 365 dni", preset: (now) => {
+            return ({
+                dateFrom: subDays(now, 365),
+                dateTo: now
+            });
+        }
+    },
+];
+
 export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
     const [open, setOpen] = useState(false)
-    const presets: DateRangePreset[] = [
-        {
-            name: "Bieżący miesiąc", preset: (now) => {
-                return ({
-                    dateFrom: new Date(now.getFullYear(), now.getMonth(), 1),
-                    dateTo: new Date(now.getFullYear(), now.getMonth() + 1, 0)
-                });
-            }
-        },
-        {
-            name: "Poprzedni miesiąc", preset: (now) => {
-                return ({
-                    dateFrom: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-                    dateTo: new Date(now.getFullYear(), now.getMonth(), 0)
-                });
-            }
-        },
-        {
-            name: "Bieżący rok", preset: (now) => {
-                return ({
-                    dateFrom: new Date(now.getFullYear(), 0, 1),
-                    dateTo: new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                });
-            }
-        },
-        {
-            name: "Poprzedni rok", preset: (now) => {
-                return ({
-                    dateFrom: new Date(now.getFullYear() - 1, 0, 1),
-                    dateTo: new Date(now.getFullYear() - 1, 11, 31)
-                });
-            }
-        },
-        {
-            name: "Ostatnie 365 dni", preset: (now) => {
-                return ({
-                    dateFrom: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 365),
-                    dateTo: new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                });
-            }
-        },
-    ];
     const [usedPreset, setUsedPreset] = useState<DateRangePreset | undefined>(presets[0]);
     const [usedPresetInternal, setUsedPresetInternal] = useState<DateRangePreset | undefined>(presets[0]);
     const [dateFromInternal, setDateFromInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateFrom)
     const [dateToInternal, setDateToInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateTo)
     const [monthFrom, setMonthFrom] = useState<Date>(new Date);
     const [monthTo, setMonthTo] = useState<Date>(new Date);
-    const [customRangeMode, setCustomRangeMode] = useState(false);
 
     useEffect(() => {
         setDateFromInternal(dateFrom);
@@ -85,7 +86,6 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
         setUsedPreset(preset);
         setOpen(false);
         onChange(val.dateFrom, val.dateTo);
-        setCustomRangeMode(false);
     };
 
     const applyCustomRange = () => {
@@ -120,7 +120,7 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
                         className="justify-between font-normal"
                     >
                         {usedPreset ? usedPreset.name : "Własny zakres"} -&nbsp;
-                        {dateFrom && dateTo ? `${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()}` : "Wybierz zakres dat"}
+                        {dateFrom && dateTo ? `${format(dateFrom, 'yyyy-MM-dd')} - ${format(dateTo, 'yyyy-MM-dd')}` : "Wybierz zakres dat"}
                         <ChevronDownIcon/>
                     </Button>
                 </PopoverTrigger>
@@ -139,12 +139,11 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
                             className={`${!usedPresetInternal ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"} cursor-pointer`}
                             onClick={() => {
                                 setUsedPresetInternal(undefined);
-                                setCustomRangeMode(true);
                             }}>
                             Własny zakres
                         </Badge>
                     </div>
-                    {customRangeMode && <div>
+                    {!usedPresetInternal && <div>
                         <div className="flex pt-5 gap-5">
                             <Calendar
                                 className="p-0"

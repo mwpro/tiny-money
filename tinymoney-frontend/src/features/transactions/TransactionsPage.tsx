@@ -11,14 +11,15 @@ import {useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 import {DatePicker} from "@/components/DatePicker.tsx";
+import { endOfMonth, startOfMonth } from 'date-fns';
 
 
 export function TransactionsPage() {
     const auth = useAuth0();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [dateFrom, setDateFrom] = useState<Date>( new Date() )
-    const [dateTo, setDateTo] = useState<Date>(new Date())
+    const [dateFrom, setDateFrom] = useState<Date>(startOfMonth(new Date()))
+    const [dateTo, setDateTo] = useState<Date>(endOfMonth(new Date()))
     
     const transactionsQuery = useQuery({
         queryKey: ['transactions', dateFrom, dateTo],
@@ -66,7 +67,7 @@ export function TransactionsPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={async (dateFrom, dateTo) => {
+                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={(dateFrom, dateTo) => {
                     dateFrom && setDateFrom(dateFrom); 
                     dateTo && setDateTo(dateTo);
                 }} />

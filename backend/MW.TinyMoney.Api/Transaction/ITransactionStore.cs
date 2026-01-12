@@ -101,7 +101,7 @@ namespace MW.TinyMoney.Api.Transaction
                 tt.tag_id AS 'tagId'
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
-            WHERE transaction_date >= @dateFrom && transaction_date <= @dateTo
+            WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo
             ORDER BY t.transaction_date";
 
         private const string DeleteTransactionQuery =

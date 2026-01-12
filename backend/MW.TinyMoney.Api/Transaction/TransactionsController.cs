@@ -40,7 +40,7 @@ namespace MW.TinyMoney.Api.Transaction
                 return Ok(transactions);
             }
 
-            return Problem("Wrong dates provided");
+            return BadRequest("Wrong dates provided");
         }
         
         [HttpGet("{transactionId}")]

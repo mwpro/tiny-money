@@ -1,4 +1,5 @@
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
+import {format} from "date-fns";
 
 export type Transaction = {
     id: number;
@@ -18,9 +19,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    const dateFromStr = `${dateFrom.getFullYear()}-${(dateFrom.getMonth() + 1)}-${dateFrom.getDate()}`;
-    const dateToStr = `${dateTo.getFullYear()}-${(dateTo.getMonth() + 1)}-${dateTo.getDate()}`;
-    const response = await fetch(`${API_URL}/transactions?dateFrom=${dateFromStr}&dateTo=${dateToStr}`, {
+    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
