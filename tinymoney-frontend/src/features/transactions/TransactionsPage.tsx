@@ -17,12 +17,12 @@ export function TransactionsPage() {
     const auth = useAuth0();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [dateFrom, setDateFrom] = useState<Date | undefined>( new Date() )
-    const [dateTo, setDateTo] = useState<Date | undefined>(new Date())
+    const [dateFrom, setDateFrom] = useState<Date>( new Date() )
+    const [dateTo, setDateTo] = useState<Date>(new Date())
     
     const transactionsQuery = useQuery({
-        queryKey: ['transactions'],
-        queryFn: () => getTransactions(auth),
+        queryKey: ['transactions', dateFrom, dateTo],
+        queryFn: () => getTransactions(auth, dateFrom, dateTo),
     })
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
@@ -74,7 +74,10 @@ export function TransactionsPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={() => {}} />
+                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={async (dateFrom, dateTo) => {
+                    dateFrom && setDateFrom(dateFrom); 
+                    dateTo && setDateTo(dateTo);
+                }} />
             </div>
 
             <div className="border rounded-md">

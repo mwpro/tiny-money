@@ -20,10 +20,11 @@ export type Transaction = {
 // Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    const response = await fetch(`${API_URL}/transactions?month=2025-12`, {
+    const dateFromStr = `${dateFrom.getFullYear()}-${(dateFrom.getMonth() + 1)}-${dateFrom.getDate()}`;
+    const response = await fetch(`${API_URL}/transactions?month=${dateFromStr}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
