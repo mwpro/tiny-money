@@ -42,14 +42,6 @@ export function TransactionsPage() {
         ...dictionariesConfig
     })
 
-    if (transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) {
-        return <div className="p-10">Ładowanie danych...</div>
-    }
-    if (transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) {
-        console.log(transactionsQuery.error)
-        return <div className="p-10 text-red-500">Błąd ładowania danych</div>
-    }
-
     const getVendorName = (id: number) => {
         return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
     }
@@ -80,70 +72,74 @@ export function TransactionsPage() {
                 }} />
             </div>
 
-            <div className="border rounded-md">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Data</TableHead>
-                            <TableHead>Opis</TableHead>
-                            <TableHead>Sprzedawca</TableHead>
-                            <TableHead>Kategoria</TableHead>
-                            <TableHead>Tagi</TableHead>
-                            <TableHead className="text-right">Kwota</TableHead>
-                            <TableHead></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {transactionsQuery.data?.map((t) => (
-                            <TableRow key={t.id}>
-                                <TableCell className="w-[120px]">
-                                    {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
-                                </TableCell>
-                                <TableCell className="font-medium">{t.description}</TableCell>
-                                <TableCell>{getVendorName(t.vendorId)}</TableCell>
-                                <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
-                                <TableCell>
-                                    <div className="flex gap-1 flex-wrap">
-                                        {getTagNames(t.tagIds).map((tag) => (
-                                            <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
-                                                {tag.name}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                                <TableCell
-                                    className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                                    {new Intl.NumberFormat('pl-PL', {
-                                        style: 'currency',
-                                        currency: 'PLN'
-                                    }).format(t.amount)}
-                                </TableCell>
-                                <TableCell>
-                                    <ButtonGroup>
-                                        <Button variant="outline"
-                                                onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="outline" size="icon" aria-label="More Options">
-                                                    ...
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-52">
-                                                <DropdownMenuGroup>
-                                                    <DropdownMenuItem variant="destructive"
-                                                                      onClick={() => setTransactionToRemove(t)}>
-                                                        Usuń
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuGroup>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </ButtonGroup>
-                                </TableCell>
+            {(transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) && <div className="p-10">Ładowanie danych...</div>}
+            {(transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) && <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+            {transactionsQuery.data && vendorsQuery.data && categoriesQuery.data && tagsQuery.data && 
+                <div className="border rounded-md">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Data</TableHead>
+                                <TableHead>Opis</TableHead>
+                                <TableHead>Sprzedawca</TableHead>
+                                <TableHead>Kategoria</TableHead>
+                                <TableHead>Tagi</TableHead>
+                                <TableHead className="text-right">Kwota</TableHead>
+                                <TableHead></TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+                        </TableHeader>
+                        <TableBody>
+                            {transactionsQuery.data?.map((t) => (
+                                <TableRow key={t.id}>
+                                    <TableCell className="w-[120px]">
+                                        {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
+                                    </TableCell>
+                                    <TableCell className="font-medium">{t.description}</TableCell>
+                                    <TableCell>{getVendorName(t.vendorId)}</TableCell>
+                                    <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-1 flex-wrap">
+                                            {getTagNames(t.tagIds).map((tag) => (
+                                                <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                                    {tag.name}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell
+                                        className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
+                                        {new Intl.NumberFormat('pl-PL', {
+                                            style: 'currency',
+                                            currency: 'PLN'
+                                        }).format(t.amount)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <ButtonGroup>
+                                            <Button variant="outline"
+                                                    onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="outline" size="icon" aria-label="More Options">
+                                                        ...
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-52">
+                                                    <DropdownMenuGroup>
+                                                        <DropdownMenuItem variant="destructive"
+                                                                          onClick={() => setTransactionToRemove(t)}>
+                                                            Usuń
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuGroup>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </ButtonGroup>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            }
         </div>
     )
 }

@@ -98,6 +98,7 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
         setDateFromInternal(date)
         if (date && dateToInternal && date > dateToInternal) {
             setDateToInternal(date)
+            setMonthTo(date)
         }
         if (date) {
             setUsedPresetInternal(undefined);
