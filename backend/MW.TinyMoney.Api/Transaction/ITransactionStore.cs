@@ -13,7 +13,7 @@ namespace MW.TinyMoney.Api.Transaction
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
-        Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime month);
+        Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -86,7 +86,7 @@ namespace MW.TinyMoney.Api.Transaction
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
             WHERE t.id = @transactionId";
 
-        private const string GetTransactionsByMonthQuery =
+        private const string GetTransactionsByDatesQuery =
             @"SELECT
                 t.id,
                 t.amount,
@@ -101,7 +101,7 @@ namespace MW.TinyMoney.Api.Transaction
                 tt.tag_id AS 'tagId'
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') = @month
+            WHERE transaction_date >= @dateFrom && transaction_date <= @dateTo
             ORDER BY t.transaction_date";
 
         private const string DeleteTransactionQuery =
@@ -190,8 +190,8 @@ namespace MW.TinyMoney.Api.Transaction
                 });
             }
         }
-
-        public async Task<IEnumerable<Transaction.ApiModels.Transaction>> GetTransactions(DateTime month)
+        
+        public async Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -200,7 +200,7 @@ namespace MW.TinyMoney.Api.Transaction
                 var transactionsDictionary = new Dictionary<int, Transaction.ApiModels.Transaction>();
 
                 await connection.QueryAsync<Transaction.ApiModels.Transaction, int?, Transaction.ApiModels.Transaction>(
-                    GetTransactionsByMonthQuery,
+                    GetTransactionsByDatesQuery,
                     (transaction, tagId) =>
                     {
                         if (!transactionsDictionary.TryGetValue(transaction.Id, out var transactionEntry))
@@ -218,7 +218,7 @@ namespace MW.TinyMoney.Api.Transaction
                         return transactionEntry;
                     }, new
                     {
-                        month = month.ToString("yyyy-MM")
+                        dateFrom, dateTo
                     }, splitOn: "tagId");
 
                 return transactionsDictionary.Values;

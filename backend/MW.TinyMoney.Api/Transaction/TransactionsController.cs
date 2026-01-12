@@ -25,10 +25,22 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetTransactions(DateTime month)
+        public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo)
         {
-            var transactions = await _transactionStore.GetTransactions(month);
-            return Ok(transactions);
+            if (month.HasValue)
+            {
+                var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1), 
+                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)));
+                return Ok(transactions);
+            }
+            if (dateFrom.HasValue && dateTo.HasValue)
+            {
+                var transactions = await _transactionStore.GetTransactions(
+                    dateFrom.Value.Date, dateTo.Value.Date);
+                return Ok(transactions);
+            }
+
+            return Problem("Wrong dates provided");
         }
         
         [HttpGet("{transactionId}")]

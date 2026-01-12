@@ -1,7 +1,3 @@
-// src/lib/api.ts
-
-// Tutaj definiujemy typy. Dzięki temu, jak backend zmieni nazwę pola,
-// TypeScript wywali błąd kompilacji na froncie.
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
 
 export type Transaction = {
@@ -17,14 +13,14 @@ export type Transaction = {
     tagIds: number[];
 }
 
-// Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
     const dateFromStr = `${dateFrom.getFullYear()}-${(dateFrom.getMonth() + 1)}-${dateFrom.getDate()}`;
-    const response = await fetch(`${API_URL}/transactions?month=${dateFromStr}`, {
+    const dateToStr = `${dateTo.getFullYear()}-${(dateTo.getMonth() + 1)}-${dateTo.getDate()}`;
+    const response = await fetch(`${API_URL}/transactions?dateFrom=${dateFromStr}&dateTo=${dateToStr}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -34,8 +30,6 @@ export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Dat
         throw new Error('Błąd pobierania danych');
     }
 
-    // Fetch w JS domyślnie nie rzuca błędem przy 404/500, dlatego sprawdzamy response.ok
-    // ASP.NET domyślnie zwraca JSON w camelCase (id, date), co pasuje do JS.
     return response.json();
 };
 
@@ -119,7 +113,6 @@ export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
 export type Subcategories = Map<number, string>;
 
-// Funkcje pobierające
 export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {
     const token = await auth.getAccessTokenSilently();
     const res = await fetch(`${API_URL}/vendors`, {
