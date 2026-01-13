@@ -1,7 +1,7 @@
 import {useQuery} from "@tanstack/react-query"
 import {
     getCategories, getTags, getTransactions, getVendors, type Transaction, type TransactionTypeFilter,
-    TransactionTypeFilterEnum
+    TransactionTypeFilterEnum, type Vendor
 } from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select.tsx";
 import {useSearchParams} from "react-router-dom";
 import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
+import Autocomplete from "@/components/Autocomplete.tsx";
 
 
 export function TransactionsPage() {
@@ -29,16 +30,23 @@ export function TransactionsPage() {
     const [dateFrom, setDateFrom] = useState<Date>(() => searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
     const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
     const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(() => searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
+    const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(undefined);
 
     const transactionsQuery = useQuery({
-        queryKey: ['transactions', dateFrom, dateTo, transactionTypeFilter],
-        queryFn: () => getTransactions(auth, dateFrom, dateTo, transactionTypeFilter),
+        queryKey: ['transactions', dateFrom, dateTo, transactionTypeFilter, vendorFilter],
+        queryFn: () => getTransactions(auth, dateFrom, dateTo, transactionTypeFilter, vendorFilter),
     })
 
     useEffect(() => {
-            setSearchParams({dateFrom: format(dateFrom, "yyyy-MM-dd"), dateTo: format(dateTo, "yyyy-MM-dd"), transactionType: transactionTypeFilter.toString()})
+            setSearchParams((params) => {
+                params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")); 
+                params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
+                params.set("transactionType", transactionTypeFilter.toString());
+                vendorFilter && params.set("vendorId", vendorFilter.id.toString());
+                return params;
+            })
         },
-        [dateFrom, dateTo, transactionTypeFilter]);
+        [dateFrom, dateTo, transactionTypeFilter, vendorFilter]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
@@ -86,6 +94,15 @@ export function TransactionsPage() {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+                <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
+                    o.name.toLowerCase().includes(input.toLowerCase()))}
+                              value={vendorFilter?.name} clearQueryAfterSelection={false}
+                              onChange={value => {
+                                  if (value.id) {
+                                      const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
+                                      setVendorFilter(selectedVendor)
+                                  }
+                              }}/>
             </div>
 
             {(transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) &&

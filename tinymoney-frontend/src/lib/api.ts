@@ -16,10 +16,12 @@ export type Transaction = {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, transactionType: TransactionTypeFilter): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, transactionType: TransactionTypeFilter, vendorFilter: Vendor | undefined): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`, {
+    let queryParams = `dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`;
+    queryParams = vendorFilter ? queryParams + `&vendorId=${vendorFilter.id}` : queryParams;
+    const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
