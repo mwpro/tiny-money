@@ -1,8 +1,5 @@
-// src/lib/api.ts
-
-// Tutaj definiujemy typy. Dzięki temu, jak backend zmieni nazwę pola,
-// TypeScript wywali błąd kompilacji na froncie.
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
+import {format} from "date-fns";
 
 export type Transaction = {
     id: number;
@@ -17,13 +14,12 @@ export type Transaction = {
     tagIds: number[];
 }
 
-// Bazowy URL Twojego API (zmień port na ten, na którym działa Twój .NET)
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, transactionType: TransactionTypeFilter): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    const response = await fetch(`${API_URL}/transactions?month=2025-12`, {
+    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -33,8 +29,6 @@ export const getTransactions = async (auth: Auth0ContextInterface): Promise<Tran
         throw new Error('Błąd pobierania danych');
     }
 
-    // Fetch w JS domyślnie nie rzuca błędem przy 404/500, dlatego sprawdzamy response.ok
-    // ASP.NET domyślnie zwraca JSON w camelCase (id, date), co pasuje do JS.
     return response.json();
 };
 
@@ -47,6 +41,12 @@ export type NewTransaction = {
     subcategoryId: number;
     tags: TagUpsert[]
 }
+
+export const TransactionTypeFilterEnum = {
+    ALL: 0, INCOME: 1, EXPENSE : 2
+} as const;
+
+export type TransactionTypeFilter = (typeof TransactionTypeFilterEnum)[keyof typeof TransactionTypeFilterEnum];
 
 export type VendorUpsert = {
     id?: number | undefined,
@@ -118,7 +118,6 @@ export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
 export type Subcategories = Map<number, string>;
 
-// Funkcje pobierające
 export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {
     const token = await auth.getAccessTokenSilently();
     const res = await fetch(`${API_URL}/vendors`, {
