@@ -3,13 +3,7 @@ import {
     getCategories, getTags, getTransactions, getVendors, type Transaction, type TransactionTypeFilter,
     TransactionTypeFilterEnum
 } from "@/lib/api"
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table"
-import {Badge} from "@/components/ui/badge.tsx";
 import {useAuth0} from "@auth0/auth0-react";
-import {ButtonGroup} from "@/components/ui/button-group.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem} from "@/components/ui/dropdown-menu";
-import {DropdownMenuTrigger} from "@/components/ui/dropdown-menu.tsx";
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
@@ -24,6 +18,7 @@ import {
     SelectValue
 } from "@/components/ui/select.tsx";
 import {useSearchParams} from "react-router-dom";
+import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 
 
 export function TransactionsPage() {
@@ -31,9 +26,9 @@ export function TransactionsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [dateFrom, setDateFrom] = useState<Date>((searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date())));
-    const [dateTo, setDateTo] = useState<Date>((searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date())));
-    const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
+    const [dateFrom, setDateFrom] = useState<Date>(() => searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
+    const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
+    const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(() => searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
 
     const transactionsQuery = useQuery({
         queryKey: ['transactions', dateFrom, dateTo, transactionTypeFilter],
@@ -62,23 +57,10 @@ export function TransactionsPage() {
         ...dictionariesConfig
     })
 
-    const getVendorName = (id: number) => {
-        return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
-    }
-
-    const getSubcategoryName = (id: number) => {
-        return categoriesQuery.data?.get(id) || "-"
-    }
-
-    const getTagNames = (ids: number[]) => {
-        if (!ids || ids.length === 0) return [];
-        return ids.map(id => tagsQuery.data?.find(t => t.id === id)).filter(Boolean).map(x => x!);
-    }
-
     return (
-        <div className="p-10 max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Moje Finanse</h1>
+                <h1 className="text-2xl font-bold">Lista transakcji</h1>
                 <TransactionsEditorDialog transactionToEdit={transactionToEdit}
                                           onClose={() => setTransactionToEdit(undefined)}/>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}
@@ -111,70 +93,9 @@ export function TransactionsPage() {
             {(transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {transactionsQuery.data && vendorsQuery.data && categoriesQuery.data && tagsQuery.data &&
-                <div className="border rounded-md">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Data</TableHead>
-                                <TableHead>Opis</TableHead>
-                                <TableHead>Sprzedawca</TableHead>
-                                <TableHead>Kategoria</TableHead>
-                                <TableHead>Tagi</TableHead>
-                                <TableHead className="text-right">Kwota</TableHead>
-                                <TableHead></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {transactionsQuery.data?.map((t) => (
-                                <TableRow key={t.id}>
-                                    <TableCell className="w-[120px]">
-                                        {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
-                                    </TableCell>
-                                    <TableCell className="font-medium">{t.description}</TableCell>
-                                    <TableCell>{getVendorName(t.vendorId)}</TableCell>
-                                    <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex gap-1 flex-wrap">
-                                            {getTagNames(t.tagIds).map((tag) => (
-                                                <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
-                                                    {tag.name}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell
-                                        className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                                        {new Intl.NumberFormat('pl-PL', {
-                                            style: 'currency',
-                                            currency: 'PLN'
-                                        }).format(t.amount)}
-                                    </TableCell>
-                                    <TableCell>
-                                        <ButtonGroup>
-                                            <Button variant="outline"
-                                                    onClick={() => setTransactionToEdit(t)}>Edytuj</Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="outline" size="icon" aria-label="More Options">
-                                                        ...
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-52">
-                                                    <DropdownMenuGroup>
-                                                        <DropdownMenuItem variant="destructive"
-                                                                          onClick={() => setTransactionToRemove(t)}>
-                                                            Usuń
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuGroup>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </ButtonGroup>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                <TransactionsTable 
+                    transactions={transactionsQuery.data} vendors={vendorsQuery.data} subcategories={categoriesQuery.data} tags={tagsQuery.data}
+                    onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)} />
             }
         </div>
     )

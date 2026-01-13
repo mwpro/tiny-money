@@ -104,7 +104,7 @@ namespace MW.TinyMoney.Api.Transaction
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
             WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo 
-                AND (@transactionTypeFilter = 0 OR (@transactionTypeFilter = 1 AND t.is_expense = 0) OR (@transactionTypeFilter = 2 AND t.is_expense = 1))
+                AND (@isExpense IS NULL OR t.is_expense = @isExpense)
             ORDER BY t.transaction_date";
 
         private const string DeleteTransactionQuery =
@@ -222,7 +222,7 @@ namespace MW.TinyMoney.Api.Transaction
                         return transactionEntry;
                     }, new
                     {
-                        dateFrom, dateTo, transactionTypeFilter
+                        dateFrom, dateTo, isExpense = (bool?)(transactionTypeFilter == TransactionFilters.Type.All ? null : transactionTypeFilter == TransactionFilters.Type.Expense)
                     }, splitOn: "tagId");
 
                 return transactionsDictionary.Values;
