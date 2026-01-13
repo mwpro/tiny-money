@@ -16,10 +16,10 @@ export type Transaction = {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, transactionType: TransactionTypeFilter): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}`, {
+    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -41,6 +41,12 @@ export type NewTransaction = {
     subcategoryId: number;
     tags: TagUpsert[]
 }
+
+export const TransactionTypeFilterEnum = {
+    ALL: 0, INCOME: 1, EXPENSE : 2
+} as const;
+
+export type TransactionTypeFilter = (typeof TransactionTypeFilterEnum)[keyof typeof TransactionTypeFilterEnum];
 
 export type VendorUpsert = {
     id?: number | undefined,
