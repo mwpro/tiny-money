@@ -17,11 +17,11 @@ export type Transaction = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, 
-                                      transactionType: TransactionTypeFilter, vendorFilter: Vendor | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
+                                      transactionType: TransactionTypeFilter, vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
     let queryParams = `dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`;
-    queryParams = vendorFilter ? queryParams + `&vendorId=${vendorFilter.id}` : queryParams;
+    queryParams = vendorIdFilter ? queryParams + `&vendorId=${vendorIdFilter}` : queryParams;
     queryParams = subcategoryIdFilter ? queryParams + `&subcategoryId=${subcategoryIdFilter}` : queryParams;
     const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
         headers: {

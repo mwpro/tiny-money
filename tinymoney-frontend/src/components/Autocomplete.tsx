@@ -10,9 +10,10 @@ interface AutoCompleteProps {
     clearQueryAfterSelection: boolean,
     allowCustomValues: boolean,
     placeholder?: string | undefined;
+    className?: string | undefined
 }
 
-export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder }: AutoCompleteProps) {
+export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder, className }: AutoCompleteProps) {
     const [query, setQuery] = useState(value)
     const [foundLiteralMatch, setFoundLiteralMatch] = useState(false)
     const [suggestions, setSuggestions] = useState<{ id?: number; name: string }[]>([])
@@ -101,7 +102,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     }
 
     return (
-        <div className="w-full">
+        <div className={className}>
             <div className="relative">
                 <Input
                     type="text"
