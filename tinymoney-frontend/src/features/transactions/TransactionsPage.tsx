@@ -29,8 +29,12 @@ export function TransactionsPage() {
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
     const [dateFrom, setDateFrom] = useState<Date>(() => searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
     const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
-    const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(() => searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
-    const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? { id: Number(searchParams.get("vendorId")), name: "", defaultSubcategoryId: 0} : undefined);
+    const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(() => searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.ALL);
+    const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
+        id: Number(searchParams.get("vendorId")),
+        name: "",
+        defaultSubcategoryId: 0
+    } : undefined);
     const [subcategoryIdFilter, setSubcategoryIdFilter] = useState<Number | undefined>(() => searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
 
     const transactionsQuery = useQuery({
@@ -40,7 +44,7 @@ export function TransactionsPage() {
 
     useEffect(() => {
             setSearchParams((params) => {
-                params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")); 
+                params.set("dateFrom", format(dateFrom, "yyyy-MM-dd"));
                 params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
                 params.set("transactionType", transactionTypeFilter.toString());
                 vendorFilter ? params.set("vendorId", vendorFilter.id.toString()) : params.delete("vendorId");
@@ -49,6 +53,21 @@ export function TransactionsPage() {
             })
         },
         [dateFrom, dateTo, transactionTypeFilter, vendorFilter, subcategoryIdFilter]);
+
+    // casuses multiple rerenders but allows reseting values by re-navigating with menu link
+    // useEffect(() => {
+    //         setDateFrom(searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
+    //         setDateTo(searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
+    //         setTransactionTypeFilter(searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
+    //         setVendorFilter(searchParams.get("vendorId") ? {
+    //             id: Number(searchParams.get("vendorId")),
+    //             name: "",
+    //             defaultSubcategoryId: 0
+    //         } : undefined);
+    //         setSubcategoryIdFilter(searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
+    //     },
+    //     [searchParams]);
+
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
@@ -63,7 +82,7 @@ export function TransactionsPage() {
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
         queryFn: () => getCategories(auth),
-        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([ s.id, `${c.name} / ${s.name}` ]))))),
+        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const tagsQuery = useQuery({
@@ -108,8 +127,9 @@ export function TransactionsPage() {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
-                <Autocomplete className="bg-background" fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                    o.name.toLowerCase().includes(input.toLowerCase()))}
+                <Autocomplete className="bg-background"
+                              fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
+                                  o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={vendorFilter?.name} clearQueryAfterSelection={false}
                               onChange={value => {
                                   if (value?.id) {
@@ -127,12 +147,14 @@ export function TransactionsPage() {
                     }
                 }}
                         value={(subcategoryIdFilter) ? subcategoryIdFilter.toString() : undefined}>
-                    <SelectTrigger className="bg-background"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
+                    <SelectTrigger className="bg-background"><SelectValue
+                        placeholder="Wybierz kategorię"/></SelectTrigger>
                     <SelectContent>
                         {categoriesQuery.data && categoriesQuery.data.map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
-                                {category.subcategories.map(subcategory => (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
+                                {category.subcategories.map(subcategory => (<SelectItem key={subcategory.id}
+                                                                                        value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                             </SelectGroup>
                         ))}
                     </SelectContent>
@@ -144,9 +166,10 @@ export function TransactionsPage() {
             {(transactionsQuery.isError || vendorsQuery.isError || subcategoriesQuery.isError || tagsQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {transactionsQuery.data && vendorsQuery.data && subcategoriesQuery.data && tagsQuery.data &&
-                <TransactionsTable 
-                    transactions={transactionsQuery.data} vendors={vendorsQuery.data} subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
-                    onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)} />
+                <TransactionsTable
+                    transactions={transactionsQuery.data} vendors={vendorsQuery.data}
+                    subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
+                    onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}/>
             }
         </div>
     )
