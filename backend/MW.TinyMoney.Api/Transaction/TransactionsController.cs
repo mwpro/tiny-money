@@ -26,19 +26,19 @@ namespace MW.TinyMoney.Api.Transaction
 
         [HttpGet("")]
         public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
-            [FromQuery] TransactionFilters.Type? transactionTypeFilter, [FromQuery] int? vendorId)
+            [FromQuery] TransactionFilters.Type? transactionTypeFilter, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId)
         {
             if (month.HasValue) // legacy model
             {
                 var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1), 
-                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), TransactionFilters.Type.All, null);
+                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), TransactionFilters.Type.All, null, null);
                 return Ok(transactions);
             }
             if (dateFrom.HasValue && dateTo.HasValue)
             {
                 var transactions = await _transactionStore.GetTransactions(
                     dateFrom.Value.Date, dateTo.Value.Date, transactionTypeFilter ?? TransactionFilters.Type.All,
-                    vendorId);
+                    vendorId, subcategoryId);
                 return Ok(transactions);
             }
 

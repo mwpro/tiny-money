@@ -31,10 +31,11 @@ export function TransactionsPage() {
     const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
     const [transactionTypeFilter, setTransactionTypeFilter] = useState<TransactionTypeFilter>(() => searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(undefined);
+    const [subcategoryIdFilter, setSubcategoryIdFilter] = useState<Number | undefined>(undefined);
 
     const transactionsQuery = useQuery({
-        queryKey: ['transactions', dateFrom, dateTo, transactionTypeFilter, vendorFilter],
-        queryFn: () => getTransactions(auth, dateFrom, dateTo, transactionTypeFilter, vendorFilter),
+        queryKey: ['transactions', dateFrom, dateTo, transactionTypeFilter, vendorFilter, subcategoryIdFilter],
+        queryFn: () => getTransactions(auth, dateFrom, dateTo, transactionTypeFilter, vendorFilter, subcategoryIdFilter),
     })
 
     useEffect(() => {
@@ -43,10 +44,11 @@ export function TransactionsPage() {
                 params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
                 params.set("transactionType", transactionTypeFilter.toString());
                 vendorFilter ? params.set("vendorId", vendorFilter.id.toString()) : params.delete("vendorId");
+                subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
                 return params;
             })
         },
-        [dateFrom, dateTo, transactionTypeFilter, vendorFilter]);
+        [dateFrom, dateTo, transactionTypeFilter, vendorFilter, subcategoryIdFilter]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
@@ -105,6 +107,24 @@ export function TransactionsPage() {
                                       setVendorFilter(undefined);
                                   }
                               }} allowCustomValues={false} placeholder="Sprzedawca"/>
+                <Select onValueChange={(value) => {
+                    if (value) {
+                        setSubcategoryIdFilter(Number(value))
+                    } else {
+                        setSubcategoryIdFilter(undefined);
+                    }
+                }}
+                        value={(subcategoryIdFilter) ? subcategoryIdFilter.toString() : undefined}>
+                    <SelectTrigger className="w-full"><SelectValue
+                        placeholder="Wybierz kategorię"/></SelectTrigger>
+                    <SelectContent>
+                        {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({
+                            id,
+                            name
+                        })).map(s => (
+                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
+                    </SelectContent>
+                </Select>
             </div>
 
             {(transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) &&
