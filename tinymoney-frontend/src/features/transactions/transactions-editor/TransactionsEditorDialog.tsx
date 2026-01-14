@@ -28,6 +28,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {TagsInput} from "@/components/TagsInput.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {transactionSchema} from "@/features/transactions/transactions-editor/TransactionSchema.ts";
+import {format} from "date-fns";
 
 type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -67,24 +68,24 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             amount: transactionToEdit?.amount || 0,
             description: "",
             isExpense: true,
-            transactionDate: new Date().toISOString().split('T')[0],
+            transactionDate: format(new Date(), "yyyy-MM-dd"),
             subcategoryId: 0,
             vendor: {id: undefined, name: ""},
             tags: []
         }
     })
-    
+
     useEffect(() => {
         setOpen(!!transactionToEdit);
-        if (transactionToEdit){
-            setValue("amount", transactionToEdit.amount)   
+        if (transactionToEdit) {
+            setValue("amount", transactionToEdit.amount)
             setValue("description", transactionToEdit.description)
             setValue("isExpense", transactionToEdit.isExpense);
-            setValue("transactionDate", transactionToEdit.transactionDate.split('T')[0]);
+            setValue("transactionDate", format(transactionToEdit.transactionDate, "yyyy-MM-dd"));
             setValue("subcategoryId", transactionToEdit.subcategoryId);
             const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
             if (selectedVendor) {
-                setValue("vendor", selectedVendor);   
+                setValue("vendor", selectedVendor);
             }
             const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tagIds.includes(t.id));
             if (selectedTags) {
@@ -104,8 +105,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             queryClient.invalidateQueries({queryKey: ['vendors']})
             queryClient.invalidateQueries({queryKey: ['categories']})
             queryClient.invalidateQueries({queryKey: ['tags']})
-            if (transactionToEdit){
-                setOpen(false);
+            if (transactionToEdit) {
                 reset();
             } else {
                 reset({...defaultValues, transactionDate: getValues("transactionDate")})
@@ -121,12 +121,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     }
 
     useEffect(() => {
-        if (!open)
-        {
-            onClose();   
+        if (!open) {
+            onClose();
         }
     }, [open]);
-    
+
     return (
         <Dialog open={open} onOpenChange={(v) => {
             setOpen(v);
@@ -137,9 +136,9 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{ transactionToEdit ? "Edytuj transakcję" : "Dodaj nową transakcję"}</DialogTitle>
+                    <DialogTitle>{transactionToEdit ? "Edytuj transakcję" : "Dodaj nową transakcję"}</DialogTitle>
                     <DialogDescription>
-                        { transactionToEdit ? "Wprowadź zmiany i kliknij Zapisz" :  "Uzupełnij dane transakcji i kliknij Zapisz" }
+                        {transactionToEdit ? "Wprowadź zmiany i kliknij Zapisz" : "Uzupełnij dane transakcji i kliknij Zapisz"}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -166,21 +165,25 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             name="vendor"
                             render={({field}) => (
                                 <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                                    o.name.toLowerCase().includes(input.toLowerCase()))} 
-                                value={field.value.name} clearQueryAfterSelection={false}
-                                onChange={value => {
-                                            field.onChange({...value})
-                                    
-                                            if (value.id) {
-                                                const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
-                                                if (selectedVendor?.defaultSubcategoryId) {
-                                                    setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
-                                                        shouldValidate: true, 
-                                                        shouldDirty: true
-                                                    })
-                                                }
-                                            }
-                                }}/>
+                                    o.name.toLowerCase().includes(input.toLowerCase()))}
+                                              value={field.value.name} clearQueryAfterSelection={false}
+                                              onChange={value => {
+                                                  if (!value) {
+                                                      field.onChange({id: undefined, name: ""})
+                                                      return
+                                                  }
+                                                  field.onChange({...value})
+
+                                                  if (value?.id) {
+                                                      const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
+                                                      if (selectedVendor?.defaultSubcategoryId) {
+                                                          setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
+                                                              shouldValidate: true,
+                                                              shouldDirty: true
+                                                          })
+                                                      }
+                                                  }
+                                              }} allowCustomValues={true}/>
                             )}
                         />
                         {errors.vendor?.name &&
@@ -194,13 +197,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             name="subcategoryId"
                             render={({field}) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))}
-                                        value={(field.value > 0) ? field.value.toString() : undefined }>
-                                    <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
+                                        value={(field.value > 0) ? field.value.toString() : undefined}>
+                                    <SelectTrigger className="w-full"><SelectValue
+                                        placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
                                         {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({
                                             id,
                                             name
-                                        })).map(s => (<SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
+                                        })).map(s => (
+                                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -237,12 +242,12 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             control={control}
                             name="tags"
                             render={({field}) => (
-                               <TagsInput 
-                                   options={tagsQuery.data || []}
-                                   value={field.value}
-                                   onChange={(val) => {
-                                       field.onChange(val)
-                                   }}/>
+                                <TagsInput
+                                    options={tagsQuery.data || []}
+                                    value={field.value}
+                                    onChange={(val) => {
+                                        field.onChange(val)
+                                    }}/>
                             )}
                         />
                     </div>

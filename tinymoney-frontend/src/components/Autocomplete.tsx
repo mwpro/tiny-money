@@ -5,12 +5,14 @@ import { Search } from 'lucide-react'
 
 interface AutoCompleteProps {
     value?: string
-    onChange?: (value: { id?: number; name: string }) => void,
+    onChange?: (value: { id?: number; name: string } | undefined) => void,
     fetchSuggestions: (value: string) => Promise<{ id?: number; name: string }[]>,
-    clearQueryAfterSelection: boolean
+    clearQueryAfterSelection: boolean,
+    allowCustomValues: boolean,
+    placeholder?: string | undefined;
 }
 
-export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection }: AutoCompleteProps) {
+export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder }: AutoCompleteProps) {
     const [query, setQuery] = useState(value)
     const [foundLiteralMatch, setFoundLiteralMatch] = useState(false)
     const [suggestions, setSuggestions] = useState<{ id?: number; name: string }[]>([])
@@ -48,6 +50,9 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         const newValue = e.target.value
         setQuery(newValue)
         setSelectedIndex(-1)
+        if (!newValue) {
+            handleSuggestionChosen(undefined);
+        }
     }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -75,8 +80,8 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         }
     }
 
-    const handleSuggestionChosen = (suggestion: { id?: number; name: string }) => {
-        setQuery(clearQueryAfterSelection ? "" : suggestion.name)
+    const handleSuggestionChosen = (suggestion: { id?: number; name: string } | undefined) => {
+        setQuery(clearQueryAfterSelection || !suggestion ? "" : suggestion.name)
         onChange?.(suggestion)
         setSuggestions([])
         setSelectedIndex(-1)
@@ -100,7 +105,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
             <div className="relative">
                 <Input
                     type="text"
-                    placeholder="Zacznij wpisywać..."
+                    placeholder={placeholder ?? "Zacznij wpisywać..."}
                     value={query}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
@@ -150,7 +155,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
                         </li>
                     ))
             }
-            {!isLoading && isFocused && !foundLiteralMatch 
+            {allowCustomValues && !isLoading && isFocused && !foundLiteralMatch 
                 && query.trim() && (
                 <li key="AddNew" className={`px-4 py-2 cursor-pointer hover:bg-muted ${
                     suggestions.length === selectedIndex ? 'bg-muted' : ''

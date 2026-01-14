@@ -42,7 +42,7 @@ export function TransactionsPage() {
                 params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")); 
                 params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
                 params.set("transactionType", transactionTypeFilter.toString());
-                vendorFilter && params.set("vendorId", vendorFilter.id.toString());
+                vendorFilter ? params.set("vendorId", vendorFilter.id.toString()) : params.delete("vendorId");
                 return params;
             })
         },
@@ -98,11 +98,13 @@ export function TransactionsPage() {
                     o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={vendorFilter?.name} clearQueryAfterSelection={false}
                               onChange={value => {
-                                  if (value.id) {
+                                  if (value?.id) {
                                       const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
                                       setVendorFilter(selectedVendor)
+                                  } else {
+                                      setVendorFilter(undefined);
                                   }
-                              }}/>
+                              }} allowCustomValues={false} placeholder="Sprzedawca"/>
             </div>
 
             {(transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) &&
