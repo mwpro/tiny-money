@@ -133,7 +133,7 @@ export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]>
     return res.json();
 };
 
-export const getCategories = async (auth: Auth0ContextInterface): Promise<Subcategories> => {
+export const getCategories = async (auth: Auth0ContextInterface): Promise<Category[]> => {
     const token = await auth.getAccessTokenSilently();
     const res = await fetch(`${API_URL}/categories`, {
         headers: {
@@ -141,9 +141,7 @@ export const getCategories = async (auth: Auth0ContextInterface): Promise<Subcat
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania kategorii');
-    const responseData: Category[] = await res.json();
-
-    return new Map<number, string>(responseData.flatMap(c => c.subcategories.map(s => ([ s.id, `${c.name} / ${s.name}` ]))));
+    return res.json();
 };
 
 export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {

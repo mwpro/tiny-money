@@ -13,7 +13,7 @@ import {
     Select,
     SelectContent,
     SelectGroup,
-    SelectItem,
+    SelectItem, SelectLabel,
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select.tsx";
@@ -59,6 +59,12 @@ export function TransactionsPage() {
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
         queryFn: () => getCategories(auth),
+        ...dictionariesConfig
+    })
+    const subcategoriesQuery = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => getCategories(auth),
+        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([ s.id, `${c.name} / ${s.name}` ]))))),
         ...dictionariesConfig
     })
     const tagsQuery = useQuery({
@@ -115,25 +121,25 @@ export function TransactionsPage() {
                     }
                 }}
                         value={(subcategoryIdFilter) ? subcategoryIdFilter.toString() : undefined}>
-                    <SelectTrigger className="w-full"><SelectValue
-                        placeholder="Wybierz kategorię"/></SelectTrigger>
+                    <SelectTrigger className=""><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
                     <SelectContent>
-                        {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({
-                            id,
-                            name
-                        })).map(s => (
-                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
+                        {categoriesQuery.data && categoriesQuery.data.map(category => (
+                            <SelectGroup key={category.id}>
+                                <SelectLabel>{category.name}</SelectLabel>
+                                {category.subcategories.map(subcategory => (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
+                            </SelectGroup>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
 
-            {(transactionsQuery.isLoading || vendorsQuery.isLoading || categoriesQuery.isLoading || tagsQuery.isLoading) &&
+            {(transactionsQuery.isLoading || vendorsQuery.isLoading || subcategoriesQuery.isLoading || tagsQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
-            {(transactionsQuery.isError || vendorsQuery.isError || categoriesQuery.isError || tagsQuery.isError) &&
+            {(transactionsQuery.isError || vendorsQuery.isError || subcategoriesQuery.isError || tagsQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {transactionsQuery.data && vendorsQuery.data && categoriesQuery.data && tagsQuery.data &&
+            {transactionsQuery.data && vendorsQuery.data && subcategoriesQuery.data && tagsQuery.data &&
                 <TransactionsTable 
-                    transactions={transactionsQuery.data} vendors={vendorsQuery.data} subcategories={categoriesQuery.data} tags={tagsQuery.data}
+                    transactions={transactionsQuery.data} vendors={vendorsQuery.data} subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)} />
             }
         </div>

@@ -21,7 +21,7 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
 import {
-    Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+    Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue
 } from "@/components/ui/select"
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
@@ -198,14 +198,14 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             render={({field}) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))}
                                         value={(field.value > 0) ? field.value.toString() : undefined}>
-                                    <SelectTrigger className="w-full"><SelectValue
-                                        placeholder="Wybierz kategorię"/></SelectTrigger>
+                                    <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
-                                        {categoriesQuery.data && Array.from(categoriesQuery.data, ([id, name]) => ({
-                                            id,
-                                            name
-                                        })).map(s => (
-                                            <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>))}
+                                        {categoriesQuery.data && categoriesQuery.data.map(category => (
+                                            <SelectGroup key={category.id}>
+                                                <SelectLabel>{category.name}</SelectLabel>
+                                                {category.subcategories.map(subcategory => (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
+                                            </SelectGroup>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}
