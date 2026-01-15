@@ -20,9 +20,18 @@ export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Dat
                                       transactionType: TransactionTypeFilter, vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
-    let queryParams = `dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`;
-    queryParams = vendorIdFilter ? queryParams + `&vendorId=${vendorIdFilter}` : queryParams;
-    queryParams = subcategoryIdFilter ? queryParams + `&subcategoryId=${subcategoryIdFilter}` : queryParams;
+    const queryParams = new URLSearchParams({
+        dateFrom: format(dateFrom, 'yyyy-MM-dd'),
+        dateTo: format(dateTo, 'yyyy-MM-dd'),
+        transactionTypeFilter: transactionType.toString(),
+    });
+    if (vendorIdFilter) {
+        queryParams.append('vendorId', vendorIdFilter.toString());
+    }
+    if (subcategoryIdFilter) {
+        queryParams.append('subcategoryId', subcategoryIdFilter.toString());
+    }
+    
     const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`

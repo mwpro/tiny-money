@@ -107,6 +107,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             queryClient.invalidateQueries({queryKey: ['tags']})
             if (transactionToEdit) {
                 reset();
+                setOpen(false);
             } else {
                 reset({...defaultValues, transactionDate: getValues("transactionDate")})
             }

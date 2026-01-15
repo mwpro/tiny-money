@@ -93,7 +93,7 @@ export function TransactionsPage() {
             const selectedVendor = vendorsQuery.data?.find(v => v.id === vendorFilter.id)
             setVendorFilter(selectedVendor)
         }
-    }, [vendorsQuery, vendorFilter]);
+    }, [vendorsQuery.data, vendorFilter]);
 
     return (
         <div className="max-w-7xl mx-auto">
