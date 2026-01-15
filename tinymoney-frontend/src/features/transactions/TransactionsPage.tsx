@@ -54,19 +54,16 @@ export function TransactionsPage() {
         },
         [dateFrom, dateTo, transactionTypeFilter, vendorFilter, subcategoryIdFilter]);
 
-    // casuses multiple rerenders but allows reseting values by re-navigating with menu link
-    // useEffect(() => {
-    //         setDateFrom(searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
-    //         setDateTo(searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
-    //         setTransactionTypeFilter(searchParams.get("transactionType") ? Number(searchParams.get("transactionType")) as TransactionTypeFilter : TransactionTypeFilterEnum.EXPENSE);
-    //         setVendorFilter(searchParams.get("vendorId") ? {
-    //             id: Number(searchParams.get("vendorId")),
-    //             name: "",
-    //             defaultSubcategoryId: 0
-    //         } : undefined);
-    //         setSubcategoryIdFilter(searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
-    //     },
-    //     [searchParams]);
+    useEffect(() => {
+            if (!searchParams.size) {
+                setDateFrom(startOfMonth(new Date()));
+                setDateTo(endOfMonth(new Date()));
+                setTransactionTypeFilter(TransactionTypeFilterEnum.ALL);
+                setSubcategoryIdFilter(undefined);
+                setVendorFilter(undefined);
+            }
+        },
+        [searchParams]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
