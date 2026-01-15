@@ -17,18 +17,20 @@ export type Transaction = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, 
-                                      transactionType: TransactionTypeFilter, vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
+                                      isExpenseFilter: boolean | undefined, vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
     const queryParams = new URLSearchParams({
         dateFrom: format(dateFrom, 'yyyy-MM-dd'),
         dateTo: format(dateTo, 'yyyy-MM-dd'),
-        transactionTypeFilter: transactionType.toString(),
     });
+    if (isExpenseFilter != undefined) {
+        queryParams.append('isExpense', isExpenseFilter.toString());
+    }
     if (vendorIdFilter) {
         queryParams.append('vendorId', vendorIdFilter.toString());
     }
-    if (subcategoryIdFilter) {
+    if (subcategoryIdFilter != undefined) {
         queryParams.append('subcategoryId', subcategoryIdFilter.toString());
     }
     
@@ -54,12 +56,6 @@ export type NewTransaction = {
     subcategoryId: number;
     tags: TagUpsert[]
 }
-
-export const TransactionTypeFilterEnum = {
-    ALL: 0, INCOME: 1, EXPENSE : 2
-} as const;
-
-export type TransactionTypeFilter = (typeof TransactionTypeFilterEnum)[keyof typeof TransactionTypeFilterEnum];
 
 export type VendorUpsert = {
     id?: number | undefined,

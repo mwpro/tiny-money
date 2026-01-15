@@ -15,7 +15,7 @@ namespace MW.TinyMoney.Api.Transaction
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo,
-            TransactionFilters.Type transactionTypeFilter, int? vendorId, int? subcategoryId);
+            bool? isExpense, int? vendorId, int? subcategoryId);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -197,7 +197,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
         
         public async Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo,
-            TransactionFilters.Type transactionTypeFilter, int? vendorId, int? subcategoryId)
+            bool? isExpense, int? vendorId, int? subcategoryId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -225,7 +225,7 @@ namespace MW.TinyMoney.Api.Transaction
                     }, new
                     {
                         dateFrom, dateTo, 
-                        isExpense = (bool?)(transactionTypeFilter == TransactionFilters.Type.All ? null : transactionTypeFilter == TransactionFilters.Type.Expense),
+                        isExpense = isExpense,
                         vendorId = vendorId,
                         subcategoryId = subcategoryId
                     }, splitOn: "tagId");
