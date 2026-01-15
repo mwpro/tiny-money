@@ -19,6 +19,7 @@ import {
 import {useSearchParams} from "react-router-dom";
 import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
+import {Input} from "@/components/ui/input.tsx";
 
 
 export function TransactionsPage() {
@@ -29,6 +30,8 @@ export function TransactionsPage() {
     const [dateFrom, setDateFrom] = useState<Date>(() => searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
     const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
     const [isExpenseFilter, setIsExpenseFilter] = useState<boolean | undefined>(() => searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined);
+    const [amountFromFilter, setAmountFromFilter] = useState<Number | undefined>(() => searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined);
+    const [amountToFilter, setAmountToFilter] = useState<Number | undefined>(() => searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined);
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",
@@ -37,8 +40,8 @@ export function TransactionsPage() {
     const [subcategoryIdFilter, setSubcategoryIdFilter] = useState<Number | undefined>(() => searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
 
     const transactionsQuery = useQuery({
-        queryKey: ['transactions', dateFrom, dateTo, isExpenseFilter, vendorFilter?.id, subcategoryIdFilter],
-        queryFn: () => getTransactions(auth, dateFrom, dateTo, isExpenseFilter, vendorFilter?.id, subcategoryIdFilter),
+        queryKey: ['transactions', dateFrom, dateTo, isExpenseFilter, vendorFilter?.id, subcategoryIdFilter, amountFromFilter, amountToFilter],
+        queryFn: () => getTransactions(auth, dateFrom, dateTo, isExpenseFilter, amountFromFilter, amountToFilter, vendorFilter?.id, subcategoryIdFilter),
     })
 
     useEffect(() => {
@@ -46,18 +49,22 @@ export function TransactionsPage() {
                 params.set("dateFrom", format(dateFrom, "yyyy-MM-dd"));
                 params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
                 isExpenseFilter != undefined ? params.set("isExpense", isExpenseFilter.toString()) : params.delete("isExpense");
+                amountFromFilter ? params.set("amountFrom", amountFromFilter.toString()) : params.delete("amountFrom");
+                amountToFilter ? params.set("amountTo", amountToFilter.toString()) : params.delete("amountTo");
                 vendorFilter ? params.set("vendorId", vendorFilter.id.toString()) : params.delete("vendorId");
                 subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
                 return params;
             })
         },
-        [dateFrom, dateTo, isExpenseFilter, vendorFilter, subcategoryIdFilter]);
+        [dateFrom, dateTo, isExpenseFilter, vendorFilter, subcategoryIdFilter, amountFromFilter, amountToFilter]);
 
     useEffect(() => {
             if (!searchParams.size) {
                 setDateFrom(startOfMonth(new Date()));
                 setDateTo(endOfMonth(new Date()));
                 setIsExpenseFilter(undefined);
+                setAmountFromFilter(undefined);
+                setAmountToFilter(undefined);
                 setSubcategoryIdFilter(undefined);
                 setVendorFilter(undefined);
             }
@@ -124,7 +131,7 @@ export function TransactionsPage() {
                                     break;
                             }
                         }}>
-                    <SelectTrigger className={`w-[180px] bg-background ${isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
+                    <SelectTrigger className={`w-[150px] bg-background ${isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
                         <SelectValue>{ isExpenseFilter != undefined ? (isExpenseFilter == true ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -135,6 +142,20 @@ export function TransactionsPage() {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
+                <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={amountFromFilter?.toString() ?? ""} onChange={e => {
+                    const amount = Number(e.target.value);
+                    if (amount > 10_000_000 || amount < 0)
+                        return;
+                    setAmountFromFilter(amount != 0 ? amount : undefined);
+                }}
+                ></Input>
+                <Input type="number" placeholder="Kwota do" className="w-[120px] bg-background" value={amountToFilter?.toString() ?? ""} onChange={e => {
+                    const amount = Number(e.target.value);
+                    if (amount > 10_000_000 || amount < 0)
+                        return;
+                    setAmountToFilter(amount != 0 ? amount : undefined);
+                }}
+                ></Input>
                 <Autocomplete className="bg-background"
                               fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
                                   o.name.toLowerCase().includes(input.toLowerCase()))}
@@ -158,7 +179,7 @@ export function TransactionsPage() {
                 }}
                         value={(subcategoryIdFilter) ? subcategoryIdFilter.toString() : "__NONE__"}>
                     <SelectTrigger className={`bg-background ${!subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ subcategoryIdFilter ? subcategoriesQuery.data?.get(subcategoryIdFilter.valueOf()) : "Wybierz kategorię" }</SelectValue>
+                        <SelectValue>{ subcategoryIdFilter ? subcategoriesQuery.data?.get(subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>

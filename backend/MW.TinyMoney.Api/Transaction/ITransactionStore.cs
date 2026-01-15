@@ -15,7 +15,7 @@ namespace MW.TinyMoney.Api.Transaction
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo,
-            bool? isExpense, int? vendorId, int? subcategoryId);
+            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -105,6 +105,8 @@ namespace MW.TinyMoney.Api.Transaction
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
             WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo 
                 AND (@isExpense IS NULL OR t.is_expense = @isExpense)
+                AND (@amountFrom IS NULL OR t.amount >= @amountFrom)
+                AND (@amountTo IS NULL OR t.amount <= @amountTo)
                 AND (@vendorId IS NULL OR t.vendor_id = @vendorId)
                 AND (@subcategoryId IS NULL OR t.subcategory_id = @subcategoryId)
             ORDER BY t.transaction_date";
@@ -197,7 +199,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
         
         public async Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime dateFrom, DateTime dateTo,
-            bool? isExpense, int? vendorId, int? subcategoryId)
+            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -226,6 +228,8 @@ namespace MW.TinyMoney.Api.Transaction
                     {
                         dateFrom, dateTo, 
                         isExpense = isExpense,
+                        amountFrom = amountFrom,
+                        amountTo = amountTo,
                         vendorId = vendorId,
                         subcategoryId = subcategoryId
                     }, splitOn: "tagId");

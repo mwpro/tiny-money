@@ -17,7 +17,8 @@ export type Transaction = {
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, 
-                                      isExpenseFilter: boolean | undefined, vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
+                                      isExpenseFilter: boolean | undefined, amountFromFilter: Number | undefined, amountToFilter: Number | undefined,
+                                      vendorIdFilter: Number | undefined, subcategoryIdFilter: Number | undefined): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
 
     const queryParams = new URLSearchParams({
@@ -32,6 +33,12 @@ export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Dat
     }
     if (subcategoryIdFilter != undefined) {
         queryParams.append('subcategoryId', subcategoryIdFilter.toString());
+    }
+    if (amountFromFilter != undefined) {
+        queryParams.append('amountFrom', amountFromFilter.toString());
+    }
+    if (amountToFilter != undefined) {
+        queryParams.append('amountTo', amountToFilter.toString());
     }
     
     const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
