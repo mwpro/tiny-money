@@ -74,7 +74,7 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return dateFrom && dateTo && isSameDay(pValue.dateFrom, dateFrom) && isSameDay(pValue.dateTo, dateTo);
-    }) ?? presets[0];
+    }) ?? undefined;
     const [open, setOpen] = useState(false)
     const [usedPreset, setUsedPreset] = useState<DateRangePreset | undefined>(defaultPreset);
     const [usedPresetInternal, setUsedPresetInternal] = useState<DateRangePreset | undefined>(defaultPreset);

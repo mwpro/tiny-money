@@ -45,7 +45,7 @@ export function TransactionsPage() {
     } : undefined);
    
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
-        wait: 300
+        wait: 500
     });
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
@@ -110,7 +110,7 @@ export function TransactionsPage() {
             const selectedVendor = vendorsQuery.data?.find(v => v.id === queryParams.vendorIdFilter)
             setVendorFilter(selectedVendor)
         }
-    }, [vendorsQuery.data, queryParams.vendorIdFilter, vendorFilter]);
+    }, [vendorsQuery.data, queryParams.vendorIdFilter]);
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -129,19 +129,10 @@ export function TransactionsPage() {
                     dateTo && setQueryParams(prevState => ({...prevState, dateTo}));
                 }}/>
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
-                        onValueChange={val => {
-                            switch (val) {
-                                case true.toString():
-                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: true}));
-                                    break;
-                                case false.toString():
-                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: false}));
-                                    break;
-                                default:
-                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: undefined}));
-                                    break;
-                            }
-                        }}>
+                        onValueChange={val => setQueryParams(prevState => ({
+                            ...prevState,
+                            isExpenseFilter: val === "__NONE__" ? undefined : val === 'true'
+                        }))}>
                     <SelectTrigger className={`w-[150px] bg-background ${queryParams.isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
                         <SelectValue>{ queryParams.isExpenseFilter != undefined ? (queryParams.isExpenseFilter ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
                     </SelectTrigger>
@@ -181,15 +172,10 @@ export function TransactionsPage() {
                                       setQueryParams(prevState => ({...prevState, vendorIdFilter: undefined}));
                                   }
                               }} allowCustomValues={false} placeholder="Sprzedawca"/>
-                <Select onValueChange={(value) => {
-                    if (value == "__NONE__") {
-                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: undefined}));
-                    } else if (value) {
-                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: Number(value)}));
-                    } else {
-                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: undefined}));
-                    }
-                }}
+                <Select onValueChange={(value) => setQueryParams(prevState => ({
+                    ...prevState,
+                    subcategoryIdFilter: !value || value === "__NONE__" ? undefined : Number(value)
+                }))}
                         value={(queryParams.subcategoryIdFilter) ? queryParams.subcategoryIdFilter.toString() : "__NONE__"}>
                     <SelectTrigger className={`bg-background ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
                         <SelectValue>{ subcategoriesQuery.data && queryParams.subcategoryIdFilter ? subcategoriesQuery.data.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
