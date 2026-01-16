@@ -20,18 +20,18 @@ interface TransactionsTableProps {
 }
 
 
-export function TransactionsTable(props: TransactionsTableProps) {
+export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick}: TransactionsTableProps) {
     const getVendorName = (id: number) => {
-        return props.vendors.find(v => v.id === id)?.name || "-"
+        return vendors.find(v => v.id === id)?.name || "-"
     }
 
     const getSubcategoryName = (id: number) => {
-        return props.subcategories.get(id) || "-"
+        return subcategories.get(id) || "-"
     }
 
     const getTagNames = (ids: number[]) => {
         if (!ids || ids.length === 0) return [];
-        return ids.map(id => props.tags.find(t => t.id === id)).filter(Boolean).map(x => x!);
+        return ids.map(id => tags.find(t => t.id === id)).filter(Boolean).map(x => x!);
     }
     
     return ( 
@@ -49,7 +49,7 @@ export function TransactionsTable(props: TransactionsTableProps) {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {props.transactions.map((t) => (
+                {transactions.map((t) => (
                     <TableRow key={t.id}>
                         <TableCell className="w-[120px]">
                             {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
@@ -75,7 +75,7 @@ export function TransactionsTable(props: TransactionsTableProps) {
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
-                                <Button variant="outline" onClick={() => props.onEditClick(t)}
+                                <Button variant="outline" onClick={() => onEditClick(t)}
                                 >Edytuj</Button>
                                 <DropdownMenu>
                                    <DropdownMenuTrigger asChild>
@@ -85,7 +85,7 @@ export function TransactionsTable(props: TransactionsTableProps) {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-52">
                                         <DropdownMenuGroup>
-                                            <DropdownMenuItem variant="destructive" onClick={() => props.onDeleteClick(t)}>
+                                            <DropdownMenuItem variant="destructive" onClick={() => onDeleteClick(t)}>
                                                 Usuń
                                             </DropdownMenuItem>
                                         </DropdownMenuGroup>

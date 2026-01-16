@@ -56,7 +56,8 @@ export function TagsInput({options, value, onChange}: TagsInputProps){
             <div className="mt-2 flex gap-2">
                 <Autocomplete
                     fetchSuggestions={fetchSuggestions} clearQueryAfterSelection={true}
-                    onChange={value => addTag(value)}
+                    onChange={value => value && addTag(value)}
+                    allowCustomValues={true}
                 />
             </div>
         </div>

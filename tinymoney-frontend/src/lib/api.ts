@@ -14,12 +14,42 @@ export type Transaction = {
     tagIds: number[];
 }
 
+export interface TransactionQueryParams {
+    dateFrom: Date,
+    dateTo: Date;
+    isExpenseFilter: boolean | undefined;
+    vendorIdFilter: number | undefined;
+    subcategoryIdFilter: Number | undefined;
+    amountFromFilter: Number | undefined;
+    amountToFilter: Number | undefined
+};
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface, dateFrom: Date, dateTo: Date, transactionType: TransactionTypeFilter): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
-
-    const response = await fetch(`${API_URL}/transactions?dateFrom=${format(dateFrom, 'yyyy-MM-dd')}&dateTo=${format(dateTo, 'yyyy-MM-dd')}&transactionTypeFilter=${transactionType}`, {
+    const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter} = params;
+    const queryParams = new URLSearchParams({
+        dateFrom: format(dateFrom, 'yyyy-MM-dd'),
+        dateTo: format(dateTo, 'yyyy-MM-dd'),
+    });
+    if (isExpenseFilter != undefined) {
+        queryParams.append('isExpense', isExpenseFilter.toString());
+    }
+    if (vendorIdFilter) {
+        queryParams.append('vendorId', vendorIdFilter.toString());
+    }
+    if (subcategoryIdFilter != undefined) {
+        queryParams.append('subcategoryId', subcategoryIdFilter.toString());
+    }
+    if (amountFromFilter != undefined) {
+        queryParams.append('amountFrom', amountFromFilter.toString());
+    }
+    if (amountToFilter != undefined) {
+        queryParams.append('amountTo', amountToFilter.toString());
+    }
+    
+    const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
@@ -41,12 +71,6 @@ export type NewTransaction = {
     subcategoryId: number;
     tags: TagUpsert[]
 }
-
-export const TransactionTypeFilterEnum = {
-    ALL: 0, INCOME: 1, EXPENSE : 2
-} as const;
-
-export type TransactionTypeFilter = (typeof TransactionTypeFilterEnum)[keyof typeof TransactionTypeFilterEnum];
 
 export type VendorUpsert = {
     id?: number | undefined,
@@ -129,7 +153,7 @@ export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]>
     return res.json();
 };
 
-export const getCategories = async (auth: Auth0ContextInterface): Promise<Subcategories> => {
+export const getCategories = async (auth: Auth0ContextInterface): Promise<Category[]> => {
     const token = await auth.getAccessTokenSilently();
     const res = await fetch(`${API_URL}/categories`, {
         headers: {
@@ -137,9 +161,7 @@ export const getCategories = async (auth: Auth0ContextInterface): Promise<Subcat
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania kategorii');
-    const responseData: Category[] = await res.json();
-
-    return new Map<number, string>(responseData.flatMap(c => c.subcategories.map(s => ([ s.id, `${c.name} / ${s.name}` ]))));
+    return res.json();
 };
 
 export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
