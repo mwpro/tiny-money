@@ -192,7 +192,7 @@ export function TransactionsPage() {
                 }}
                         value={(queryParams.subcategoryIdFilter) ? queryParams.subcategoryIdFilter.toString() : "__NONE__"}>
                     <SelectTrigger className={`bg-background ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ queryParams.subcategoryIdFilter ? subcategoriesQuery.data?.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
+                        <SelectValue>{ subcategoriesQuery.data && queryParams.subcategoryIdFilter ? subcategoriesQuery.data.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
