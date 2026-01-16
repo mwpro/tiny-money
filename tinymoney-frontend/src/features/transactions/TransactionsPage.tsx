@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query"
 import {
-    getCategories, getTags, getTransactions, getVendors, type Transaction, type Vendor
+    getCategories, getTags, getTransactions, getVendors, type Transaction, type TransactionQueryParams, type Vendor
 } from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
@@ -28,19 +28,23 @@ export function TransactionsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [dateFrom, setDateFrom] = useState<Date>(() => searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()));
-    const [dateTo, setDateTo] = useState<Date>(() => searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()));
-    const [isExpenseFilter, setIsExpenseFilter] = useState<boolean | undefined>(() => searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined);
-    const [amountFromFilter, setAmountFromFilter] = useState<Number | undefined>(() => searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined);
-    const [amountToFilter, setAmountToFilter] = useState<Number | undefined>(() => searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined);
+    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() =>
+        ({
+            dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()),
+            dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()),
+            isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
+            amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
+            amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
+            subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
+            vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
+        })); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",
         defaultSubcategoryId: 0
     } : undefined);
-    const [subcategoryIdFilter, setSubcategoryIdFilter] = useState<Number | undefined>(() => searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
-
-    const [debouncedQueryParams] = useDebouncedValue(({dateFrom, dateTo, isExpenseFilter, vendorIdFilter: vendorFilter?.id, subcategoryIdFilter, amountFromFilter, amountToFilter}), {
+   
+    const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 300
     });
     const transactionsQuery = useQuery({
@@ -65,13 +69,15 @@ export function TransactionsPage() {
 
     useEffect(() => {
             if (!searchParams.size) {
-                setDateFrom(startOfMonth(new Date()));
-                setDateTo(endOfMonth(new Date()));
-                setIsExpenseFilter(undefined);
-                setAmountFromFilter(undefined);
-                setAmountToFilter(undefined);
-                setSubcategoryIdFilter(undefined);
-                setVendorFilter(undefined);
+                setQueryParams({
+                    dateFrom: startOfMonth(new Date()),
+                    dateTo: endOfMonth(new Date()),
+                    isExpenseFilter: undefined,
+                    amountFromFilter: undefined,
+                    amountToFilter: undefined,
+                    subcategoryIdFilter: undefined,
+                    vendorIdFilter: undefined
+                });
             }
         },
         [searchParams]);
@@ -100,11 +106,11 @@ export function TransactionsPage() {
     })
 
     useEffect(() => {
-        if (vendorsQuery.data && vendorFilter && !vendorFilter.name) {
-            const selectedVendor = vendorsQuery.data?.find(v => v.id === vendorFilter.id)
+        if (vendorsQuery.data && queryParams.vendorIdFilter) {
+            const selectedVendor = vendorsQuery.data?.find(v => v.id === queryParams.vendorIdFilter)
             setVendorFilter(selectedVendor)
         }
-    }, [vendorsQuery.data, vendorFilter]);
+    }, [vendorsQuery.data, queryParams.vendorIdFilter, vendorFilter]);
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -118,26 +124,26 @@ export function TransactionsPage() {
 
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
-                <DatePicker dateFrom={dateFrom} dateTo={dateTo} onChange={(dateFrom, dateTo) => {
-                    dateFrom && setDateFrom(dateFrom);
-                    dateTo && setDateTo(dateTo);
+                <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
+                    dateFrom && setQueryParams(prevState => ({...prevState, dateFrom}));
+                    dateTo && setQueryParams(prevState => ({...prevState, dateTo}));
                 }}/>
-                <Select value={isExpenseFilter?.toString() ?? "__NONE__"}
+                <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
                         onValueChange={val => {
                             switch (val) {
                                 case true.toString():
-                                    setIsExpenseFilter(true);
+                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: true}));
                                     break;
                                 case false.toString():
-                                    setIsExpenseFilter(false);
+                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: false}));
                                     break;
                                 default:
-                                    setIsExpenseFilter(undefined);
+                                    setQueryParams(prevState => ({...prevState, isExpenseFilter: undefined}));
                                     break;
                             }
                         }}>
-                    <SelectTrigger className={`w-[150px] bg-background ${isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ isExpenseFilter != undefined ? (isExpenseFilter == true ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
+                    <SelectTrigger className={`w-[150px] bg-background ${queryParams.isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
+                        <SelectValue>{ queryParams.isExpenseFilter != undefined ? (queryParams.isExpenseFilter ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectGroup>
@@ -147,18 +153,18 @@ export function TransactionsPage() {
                         </SelectGroup>
                     </SelectContent>
                 </Select>
-                <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={amountFromFilter?.toString() ?? ""} onChange={e => {
+                <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={queryParams.amountFromFilter?.toString() ?? ""} onChange={e => {
                     const amount = Number(e.target.value);
                     if (amount > 10_000_000 || amount < 0)
                         return;
-                    setAmountFromFilter(amount != 0 ? amount : undefined);
+                    setQueryParams(prevState => ({...prevState, amountFromFilter: amount != 0 ? amount : undefined}));
                 }}
                 ></Input>
-                <Input type="number" placeholder="Kwota do" className="w-[120px] bg-background" value={amountToFilter?.toString() ?? ""} onChange={e => {
+                <Input type="number" placeholder="Kwota do" className="w-[120px] bg-background" value={queryParams.amountToFilter?.toString() ?? ""} onChange={e => {
                     const amount = Number(e.target.value);
                     if (amount > 10_000_000 || amount < 0)
                         return;
-                    setAmountToFilter(amount != 0 ? amount : undefined);
+                    setQueryParams(prevState => ({...prevState, amountToFilter: amount != 0 ? amount : undefined}));
                 }}
                 ></Input>
                 <Autocomplete className="bg-background"
@@ -168,23 +174,25 @@ export function TransactionsPage() {
                               onChange={value => {
                                   if (value?.id) {
                                       const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
-                                      setVendorFilter(selectedVendor)
+                                      setVendorFilter(selectedVendor);
+                                      setQueryParams(prevState => ({...prevState, vendorIdFilter: selectedVendor?.id}));
                                   } else {
                                       setVendorFilter(undefined);
+                                      setQueryParams(prevState => ({...prevState, vendorIdFilter: undefined}));
                                   }
                               }} allowCustomValues={false} placeholder="Sprzedawca"/>
                 <Select onValueChange={(value) => {
                     if (value == "__NONE__") {
-                        setSubcategoryIdFilter(undefined);
+                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: undefined}));
                     } else if (value) {
-                        setSubcategoryIdFilter(Number(value))
+                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: Number(value)}));
                     } else {
-                        setSubcategoryIdFilter(undefined);
+                        setQueryParams(prevState => ({...prevState, subcategoryIdFilter: undefined}));
                     }
                 }}
-                        value={(subcategoryIdFilter) ? subcategoryIdFilter.toString() : "__NONE__"}>
-                    <SelectTrigger className={`bg-background ${!subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ subcategoryIdFilter ? subcategoriesQuery.data?.get(subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
+                        value={(queryParams.subcategoryIdFilter) ? queryParams.subcategoryIdFilter.toString() : "__NONE__"}>
+                    <SelectTrigger className={`bg-background ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
+                        <SelectValue>{ queryParams.subcategoryIdFilter ? subcategoriesQuery.data?.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
