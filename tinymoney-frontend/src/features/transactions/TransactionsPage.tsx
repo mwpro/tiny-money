@@ -20,6 +20,7 @@ import {useSearchParams} from "react-router-dom";
 import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
+import {useDebouncedValue} from "@tanstack/react-pacer";
 
 
 export function TransactionsPage() {
@@ -39,24 +40,28 @@ export function TransactionsPage() {
     } : undefined);
     const [subcategoryIdFilter, setSubcategoryIdFilter] = useState<Number | undefined>(() => searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined);
 
+    const [debouncedQueryParams] = useDebouncedValue(({dateFrom, dateTo, isExpenseFilter, vendorIdFilter: vendorFilter?.id, subcategoryIdFilter, amountFromFilter, amountToFilter}), {
+        wait: 300
+    });
     const transactionsQuery = useQuery({
-        queryKey: ['transactions', dateFrom, dateTo, isExpenseFilter, vendorFilter?.id, subcategoryIdFilter, amountFromFilter, amountToFilter],
-        queryFn: () => getTransactions(auth, dateFrom, dateTo, isExpenseFilter, amountFromFilter, amountToFilter, vendorFilter?.id, subcategoryIdFilter),
+        queryKey: ['transactions', debouncedQueryParams],
+        queryFn: () => getTransactions(auth, debouncedQueryParams)
     })
 
     useEffect(() => {
+            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter} = debouncedQueryParams;
             setSearchParams((params) => {
                 params.set("dateFrom", format(dateFrom, "yyyy-MM-dd"));
                 params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
                 isExpenseFilter != undefined ? params.set("isExpense", isExpenseFilter.toString()) : params.delete("isExpense");
                 amountFromFilter ? params.set("amountFrom", amountFromFilter.toString()) : params.delete("amountFrom");
                 amountToFilter ? params.set("amountTo", amountToFilter.toString()) : params.delete("amountTo");
-                vendorFilter ? params.set("vendorId", vendorFilter.id.toString()) : params.delete("vendorId");
+                vendorIdFilter ? params.set("vendorId", vendorIdFilter.toString()) : params.delete("vendorId");
                 subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
                 return params;
             })
         },
-        [dateFrom, dateTo, isExpenseFilter, vendorFilter, subcategoryIdFilter, amountFromFilter, amountToFilter]);
+        [debouncedQueryParams]);
 
     useEffect(() => {
             if (!searchParams.size) {
