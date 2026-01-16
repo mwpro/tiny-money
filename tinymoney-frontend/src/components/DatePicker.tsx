@@ -4,12 +4,22 @@ import {Calendar} from "@/components/ui/calendar.tsx";
 import {ChevronDownIcon} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {useEffect, useState} from "react";
-import { format, subDays, subMonths, subYears, endOfMonth, startOfMonth, endOfYear, startOfYear } from 'date-fns';
+import {
+    format,
+    subDays,
+    subMonths,
+    subYears,
+    endOfMonth,
+    startOfMonth,
+    endOfYear,
+    startOfYear,
+    isSameDay
+} from 'date-fns';
 
 interface DatePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
-    onChange: (dateFrom: Date | undefined, dateTo: Date | undefined,) => void
+    onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void
 }
 
 interface DateRangePreset {
@@ -61,9 +71,13 @@ const presets: DateRangePreset[] = [
 ];
 
 export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
+    const defaultPreset = presets.find(p => {
+        const pValue = p.preset(new Date())
+        return dateFrom && dateTo && isSameDay(pValue.dateFrom, dateFrom) && isSameDay(pValue.dateTo, dateTo);
+    }) ?? presets[0];
     const [open, setOpen] = useState(false)
-    const [usedPreset, setUsedPreset] = useState<DateRangePreset | undefined>(presets[0]);
-    const [usedPresetInternal, setUsedPresetInternal] = useState<DateRangePreset | undefined>(presets[0]);
+    const [usedPreset, setUsedPreset] = useState<DateRangePreset | undefined>(defaultPreset);
+    const [usedPresetInternal, setUsedPresetInternal] = useState<DateRangePreset | undefined>(defaultPreset);
     const [dateFromInternal, setDateFromInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateFrom)
     const [dateToInternal, setDateToInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateTo)
     const [monthFrom, setMonthFrom] = useState<Date>(new Date);
