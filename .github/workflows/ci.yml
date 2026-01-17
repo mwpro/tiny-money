@@ -1,7 +1,8 @@
 name: CI Build
 on:
+  workflow_dispatch:
   push:
-    branches: [ master, release-pipeline ]
+    branches: [ master ]
     paths:
       - tinymoney-frontend
 jobs:
