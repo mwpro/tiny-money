@@ -40,9 +40,9 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
             <TableHeader>
                 <TableRow>
                     <TableHead>Data</TableHead>
-                    <TableHead>Opis</TableHead>
-                    <TableHead>Sprzedawca</TableHead>
                     <TableHead>Kategoria</TableHead>
+                    <TableHead>Sprzedawca</TableHead>
+                    <TableHead>Opis</TableHead>
                     <TableHead>Tagi</TableHead>
                     <TableHead className="text-right">Kwota</TableHead>
                     <TableHead></TableHead>
@@ -54,9 +54,9 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         <TableCell className="w-[120px]">
                             {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
                         </TableCell>
-                        <TableCell className="font-medium">{t.description}</TableCell>
-                        <TableCell>{getVendorName(t.vendorId)}</TableCell>
                         <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
+                        <TableCell>{getVendorName(t.vendorId)}</TableCell>
+                        <TableCell className="font-medium">{t.description}</TableCell>
                         <TableCell>
                             <div className="flex gap-1 flex-wrap">
                                 {getTagNames(t.tagIds).map((tag) => (

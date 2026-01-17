@@ -34,15 +34,17 @@ namespace MW.TinyMoney.Api.Transaction
                     new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), null, null, null, null, null);
                 return Ok(transactions);
             }
-            if (dateFrom.HasValue && dateTo.HasValue)
+            else
             {
+                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue)
+                {
+                    return BadRequest("Dates must be provided when no other filters were specified");
+                }
                 var transactions = await _transactionStore.GetTransactions(
-                    dateFrom.Value.Date, dateTo.Value.Date, isExpense, amountFrom, amountTo,
+                    dateFrom, dateTo, isExpense, amountFrom, amountTo,
                     vendorId, subcategoryId);
                 return Ok(transactions);
             }
-
-            return BadRequest("Wrong dates provided");
         }
         
         [HttpGet("{transactionId}")]

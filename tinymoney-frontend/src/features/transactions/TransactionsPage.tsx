@@ -7,7 +7,7 @@ import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 import {DatePicker} from "@/components/DatePicker.tsx";
-import {endOfMonth, format, parse, startOfMonth} from 'date-fns';
+import {format, parse} from 'date-fns';
 import {
     Select,
     SelectContent,
@@ -21,6 +21,8 @@ import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
+import {AlertCircleIcon} from "lucide-react";
 
 
 export function TransactionsPage() {
@@ -30,8 +32,8 @@ export function TransactionsPage() {
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
     const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() =>
         ({
-            dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(new Date()),
-            dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date()),
+            dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
+            dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
             isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
             amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
             amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
@@ -49,14 +51,17 @@ export function TransactionsPage() {
     });
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => getTransactions(auth, debouncedQueryParams)
+        queryFn: () => getTransactions(auth, debouncedQueryParams),
+        
+        enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
+            || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter)
     })
 
     useEffect(() => {
             const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter} = debouncedQueryParams;
             setSearchParams((params) => {
-                params.set("dateFrom", format(dateFrom, "yyyy-MM-dd"));
-                params.set("dateTo", format(dateTo, "yyyy-MM-dd"));
+                dateFrom ? params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")) : params.delete("dateFrom");
+                dateTo ? params.set("dateTo", format(dateTo, "yyyy-MM-dd")) : params.delete("dateTo");
                 isExpenseFilter != undefined ? params.set("isExpense", isExpenseFilter.toString()) : params.delete("isExpense");
                 amountFromFilter ? params.set("amountFrom", amountFromFilter.toString()) : params.delete("amountFrom");
                 amountToFilter ? params.set("amountTo", amountToFilter.toString()) : params.delete("amountTo");
@@ -66,21 +71,6 @@ export function TransactionsPage() {
             })
         },
         [debouncedQueryParams]);
-
-    useEffect(() => {
-            if (!searchParams.size) {
-                setQueryParams({
-                    dateFrom: startOfMonth(new Date()),
-                    dateTo: endOfMonth(new Date()),
-                    isExpenseFilter: undefined,
-                    amountFromFilter: undefined,
-                    amountToFilter: undefined,
-                    subcategoryIdFilter: undefined,
-                    vendorIdFilter: undefined
-                });
-            }
-        },
-        [searchParams]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
@@ -125,8 +115,8 @@ export function TransactionsPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
-                    dateFrom && setQueryParams(prevState => ({...prevState, dateFrom}));
-                    dateTo && setQueryParams(prevState => ({...prevState, dateTo}));
+                    setQueryParams(prevState => ({...prevState, dateFrom}));
+                    setQueryParams(prevState => ({...prevState, dateTo}));
                 }}/>
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
                         onValueChange={val => setQueryParams(prevState => ({
@@ -193,6 +183,24 @@ export function TransactionsPage() {
                 </Select>
             </div>
 
+            {(!transactionsQuery.isEnabled && <Alert  className="mb-6" variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>Doprecyzuj filtry.</AlertTitle>
+                <AlertDescription>
+                    <p>Parametry wyszukiwania są zbyt ogólne</p>
+                    <ul className="list-inside list-disc text-sm">
+                        <li>Wskaż zakres dat do przeszukania</li>
+                        <li>lub uzupełnij filtry kwoty/sprzedawcy/kategorii</li>
+                    </ul>
+                </AlertDescription>
+            </Alert>)}
+            {(transactionsQuery.data?.length == 1000 && <Alert className="mb-6" variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>Osiągnięto limit znalezionych transakcji.</AlertTitle>
+                <AlertDescription>
+                    <p>Maksymalna ilość znalezionych transakcji jest ograniczona do 1000. Spróbuj użyć bardziej precyzyjnych kryteriów.</p>
+                </AlertDescription>
+            </Alert>)}
             {(transactionsQuery.isLoading || vendorsQuery.isLoading || subcategoriesQuery.isLoading || tagsQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
             {(transactionsQuery.isError || vendorsQuery.isError || subcategoriesQuery.isError || tagsQuery.isError) &&
