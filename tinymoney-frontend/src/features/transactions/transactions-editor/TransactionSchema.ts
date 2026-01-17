@@ -5,7 +5,7 @@ export const transactionSchema = z.object({
     isExpense: z.boolean(),
     transactionDate: z.iso.date(),//.string().refine((val) => !isNaN(Date.parse(val)), "Nieprawidłowa data"),
     description: z.string().min(3, "Opis musi mieć min. 3 znaki").optional().or(z.literal('')),
-    subcategoryId: z.coerce.number().min(1, "Kategoria jest wymagana"),
+    subcategoryId: z.coerce.number<number>().min(1, "Kategoria jest wymagana"),
     vendor: z.object({
         id: z.number().optional(),
         name: z.string().min(1, "Sprzedawca wymagany")

@@ -66,7 +66,7 @@ export type NewTransaction = {
     amount: number;
     isExpense: boolean;
     transactionDate: string;
-    description: string | undefined,
+    description?: string | undefined,
     vendor: VendorUpsert,
     subcategoryId: number;
     tags: TagUpsert[]

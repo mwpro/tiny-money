@@ -198,7 +198,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             name="subcategoryId"
                             render={({field}) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))}
-                                        value={(field.value > 0) ? field.value.toString() : undefined}>
+                                        value={(field.value > 0) ? field.value.toString() : ""}>
                                     <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
                                         {categoriesQuery.data && categoriesQuery.data.map(category => (
