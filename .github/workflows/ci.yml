@@ -1,0 +1,18 @@
+name: CI Build
+on:
+  push:
+    branches: [ master, release-pipeline ]
+    paths:
+      - tinymoney-frontend
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install && npm run build
+        working-directory: tinymoney-frontend
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-files
+          path: tinymoney-frontend/dist/
+          retention-days: 7
