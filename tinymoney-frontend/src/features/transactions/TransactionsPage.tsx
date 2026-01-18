@@ -115,8 +115,7 @@ export function TransactionsPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
-                    setQueryParams(prevState => ({...prevState, dateFrom}));
-                    setQueryParams(prevState => ({...prevState, dateTo}));
+                    setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
                 }}/>
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
                         onValueChange={val => setQueryParams(prevState => ({

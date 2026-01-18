@@ -23,6 +23,8 @@ namespace MW.TinyMoney.Api.Transaction
     {
         private readonly MySqlConnectionFactory _mySqlConnectionFactory;
 
+        private const int TransactionsLimit = 1000;
+
         public MySqlTransactionStore(MySqlConnectionFactory mySqlConnectionFactory)
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
@@ -112,7 +114,7 @@ namespace MW.TinyMoney.Api.Transaction
                 AND (@vendorId IS NULL OR t.vendor_id = @vendorId)
                 AND (@subcategoryId IS NULL OR t.subcategory_id = @subcategoryId)
             ORDER BY t.transaction_date
-            LIMIT 1000";
+            LIMIT @transactionsLimit";
 
         private const string DeleteTransactionQuery =
             @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId; 
@@ -234,7 +236,8 @@ namespace MW.TinyMoney.Api.Transaction
                         amountFrom = amountFrom,
                         amountTo = amountTo,
                         vendorId = vendorId,
-                        subcategoryId = subcategoryId
+                        subcategoryId = subcategoryId,
+                        TransactionsLimit
                     }, splitOn: "tagId");
 
                 return transactionsDictionary.Values;

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react"
-import {Controller, useForm} from "react-hook-form"
+import {type Control, Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
@@ -30,9 +30,12 @@ import Autocomplete from "@/components/Autocomplete.tsx";
 import {transactionSchema} from "@/features/transactions/transactions-editor/TransactionSchema.ts";
 import {format} from "date-fns";
 import {Textarea} from "@/components/ui/textarea.tsx";
-import {Fcal} from "fcal";
+import {
+    ParsedDescription,
+    type WithDescription
+} from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 
-type TransactionFormValues = z.infer<typeof transactionSchema>
+export type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionEditorDialogProps {
     transactionToEdit?: Transaction,
@@ -64,7 +67,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
-    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset, watch} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             amount: transactionToEdit?.amount || 0,
@@ -77,8 +80,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         }
     })
     
-    const descriptionWatch = watch("description");
-
     useEffect(() => {
         setOpen(!!transactionToEdit);
         if (transactionToEdit) {
@@ -130,22 +131,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             onClose();
         }
     }, [open]);
-    
-    const descriptionParser = (description: string | undefined): string[] => {
-        if (!description)
-            return [];
-        const fcal = new Fcal();
-        return description.split("\n").map((line) => {
-            const lineReplaced = line.replaceAll(",", ".");
-            try {
-                const evaluated = fcal.evaluate(lineReplaced);
-                return evaluated.toString();
-            } catch (e) {
-                return "";
-            }
-        })
-    }
-    const parsedDescription = descriptionParser(descriptionWatch);
     
     return (
         <Dialog open={open} onOpenChange={(v) => {
@@ -249,10 +234,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                     <div className="grid gap-2">
                         <Label>Opis</Label>
-                        <div className={(parsedDescription?.length > 0 && parsedDescription.some(l => !!l)) ? "grid grid-cols-3 gap-4" : ""}>
-                            <Textarea className={"col-span-2"} {...register("description")} />
-                            {(parsedDescription?.length > 0 && parsedDescription.some(l => !!l)) && <div className="px-3 py-2 min-h-16 w-full text-base md:text-sm">
-                                {descriptionParser(descriptionWatch).map((l, i) => (<p key={i}>{l || (<span>&nbsp;</span>)}</p>))}</div>}
+                        <div className="flex gap-2">
+                            <Textarea className="grow-2" {...register("description")} />
+                            <ParsedDescription control={control as unknown as Control<WithDescription>} onResultClick={calculatedAmount =>
+                                setValue("amount", calculatedAmount, {
+                                    shouldValidate: true,
+                                    shouldDirty: true
+                                })} />
                         </div>
                         {errors.description &&
                             <span className="text-red-500 text-xs">{errors.description.message}</span>}
