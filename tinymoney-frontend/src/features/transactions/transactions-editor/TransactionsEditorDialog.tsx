@@ -29,6 +29,8 @@ import {TagsInput} from "@/components/TagsInput.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {transactionSchema} from "@/features/transactions/transactions-editor/TransactionSchema.ts";
 import {format} from "date-fns";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {Fcal} from "fcal";
 
 type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -62,7 +64,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
-    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset, watch} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
             amount: transactionToEdit?.amount || 0,
@@ -74,6 +76,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             tags: []
         }
     })
+    
+    const descriptionWatch = watch("description");
 
     useEffect(() => {
         setOpen(!!transactionToEdit);
@@ -126,7 +130,23 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             onClose();
         }
     }, [open]);
-
+    
+    const descriptionParser = (description: string | undefined): string[] => {
+        if (!description)
+            return [];
+        const fcal = new Fcal();
+        return description.split("\n").map((line) => {
+            const lineReplaced = line.replaceAll(",", ".");
+            try {
+                const evaluated = fcal.evaluate(lineReplaced);
+                return evaluated.toString();
+            } catch (e) {
+                return "";
+            }
+        })
+    }
+    const parsedDescription = descriptionParser(descriptionWatch);
+    
     return (
         <Dialog open={open} onOpenChange={(v) => {
             setOpen(v);
@@ -145,20 +165,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
 
-                    {/* Wiersz 1: Opis i Data */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label>Opis</Label>
-                            <Input {...register("description")} />
-                            {errors.description &&
-                                <span className="text-red-500 text-xs">{errors.description.message}</span>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Data</Label>
-                            <Input type="date" {...register("transactionDate")} />
-                        </div>
+                    <div className="grid gap-2">
+                        <Label>Data</Label>
+                        <Input type="date" {...register("transactionDate")} />
                     </div>
-
+                    
                     <div className="grid gap-2">
                         <Label>Sprzedawca</Label>
                         <Controller
@@ -234,6 +245,17 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             )}
                         />
                         <Label htmlFor="isExpense">To jest wydatek</Label>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Opis</Label>
+                        <div className={(parsedDescription?.length > 0 && parsedDescription.some(l => !!l)) ? "grid grid-cols-3 gap-4" : ""}>
+                            <Textarea className={"col-span-2"} {...register("description")} />
+                            {(parsedDescription?.length > 0 && parsedDescription.some(l => !!l)) && <div className="px-3 py-2 min-h-16 w-full text-base md:text-sm">
+                                {descriptionParser(descriptionWatch).map((l, i) => (<p key={i}>{l || (<span>&nbsp;</span>)}</p>))}</div>}
+                        </div>
+                        {errors.description &&
+                            <span className="text-red-500 text-xs">{errors.description.message}</span>}
                     </div>
 
                     <div className="grid gap-2">
