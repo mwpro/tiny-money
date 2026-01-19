@@ -23,9 +23,14 @@ export function Layout() {
                                     Transakcje
                                 </Button>
                             </Link>
+                            <Link to="/budgets">
+                                <Button variant={isActive("/budgets") ? "secondary" : "ghost"}>
+                                    Budżet
+                                </Button>
+                            </Link>
                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/budgets" target="_blank">
                                 <Button variant="ghost">
-                                    Budżet
+                                    Budżet (stary)
                                 </Button>
                             </Link>
                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/buffer" target="_blank">
@@ -35,12 +40,12 @@ export function Layout() {
                             </Link>
                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">
                                 <Button variant="ghost">
-                                    Raporty
+                                    Raporty (stare)
                                 </Button>
                             </Link>
                             <Link to="/reports">
                                 <Button variant={isActive("/reports") ? "secondary" : "ghost"}>
-                                    Raporty (nowe)
+                                    Raporty
                                 </Button>
                             </Link>
                         </nav>
