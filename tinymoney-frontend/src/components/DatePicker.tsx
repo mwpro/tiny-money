@@ -24,7 +24,7 @@ interface DatePickerProps {
 
 interface DateRangePreset {
     name: string,
-    preset: (now: Date) => { dateFrom: Date, dateTo: Date }
+    preset: (now: Date) => { dateFrom: Date | undefined, dateTo: Date | undefined }
 }
 
 const presets: DateRangePreset[] = [
@@ -68,12 +68,21 @@ const presets: DateRangePreset[] = [
             });
         }
     },
+    {
+        name: "Cały czas", preset: () => {
+            return ({
+                dateFrom: undefined,
+                dateTo: undefined
+            });
+        }
+    },
 ];
 
 export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
-        return dateFrom && dateTo && isSameDay(pValue.dateFrom, dateFrom) && isSameDay(pValue.dateTo, dateTo);
+        return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
+            || (pValue.dateFrom && pValue.dateTo && dateFrom && dateTo && isSameDay(pValue.dateFrom, dateFrom) && isSameDay(pValue.dateTo, dateTo));
     }) ?? undefined;
     const [open, setOpen] = useState(false)
     const [usedPreset, setUsedPreset] = useState<DateRangePreset | undefined>(defaultPreset);
@@ -94,8 +103,8 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
         const val = preset.preset(new Date());
         setDateFromInternal(val.dateFrom);
         setDateToInternal(val.dateTo);
-        setMonthFrom(val.dateFrom);
-        setMonthTo(val.dateTo);
+        val.dateFrom && setMonthFrom(val.dateFrom);
+        val.dateTo && setMonthTo(val.dateTo);
         setUsedPresetInternal(preset);
         setUsedPreset(preset);
         setOpen(false);
@@ -133,8 +142,8 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
                         id="date"
                         className="justify-between font-normal"
                     >
-                        {usedPreset ? usedPreset.name : "Własny zakres"} -&nbsp;
-                        {dateFrom && dateTo ? `${format(dateFrom, 'yyyy-MM-dd')} - ${format(dateTo, 'yyyy-MM-dd')}` : "Wybierz zakres dat"}
+                        {usedPreset ? usedPreset.name : "Własny zakres"}
+                        {dateFrom && dateTo && ` - ${format(dateFrom, 'yyyy-MM-dd')} - ${format(dateTo, 'yyyy-MM-dd')}`}
                         <ChevronDownIcon/>
                     </Button>
                 </PopoverTrigger>

@@ -15,8 +15,8 @@ export type Transaction = {
 }
 
 export interface TransactionQueryParams {
-    dateFrom: Date,
-    dateTo: Date;
+    dateFrom: Date | undefined,
+    dateTo: Date | undefined;
     isExpenseFilter: boolean | undefined;
     vendorIdFilter: number | undefined;
     subcategoryIdFilter: Number | undefined;
@@ -29,10 +29,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<Transaction[]> => {
     const token = await auth.getAccessTokenSilently();
     const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter} = params;
-    const queryParams = new URLSearchParams({
-        dateFrom: format(dateFrom, 'yyyy-MM-dd'),
-        dateTo: format(dateTo, 'yyyy-MM-dd'),
-    });
+    const queryParams = new URLSearchParams();
+    if (dateFrom) {
+        queryParams.append('dateFrom', format(dateFrom, 'yyyy-MM-dd'))        
+    }
+    if (dateTo) {
+        queryParams.append('dateTo', format(dateTo, 'yyyy-MM-dd'));
+    }
     if (isExpenseFilter != undefined) {
         queryParams.append('isExpense', isExpenseFilter.toString());
     }

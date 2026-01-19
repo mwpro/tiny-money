@@ -1,12 +1,14 @@
 import {Outlet, Link, useLocation} from "react-router-dom"
 import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
+import {endOfMonth, format, startOfMonth} from "date-fns";
 
 export function Layout() {
     const location = useLocation()
     const {logout, user} = useAuth0();
 
-    const isActive = (path: string) => location.pathname === path
+    const isActive = (path: string) => location.pathname === path;
+    const defaultTransactionsUrl = `/transactions?dateFrom=${format(startOfMonth(new Date()), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(new Date()), "yyyy-MM-dd")}`
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -16,7 +18,7 @@ export function Layout() {
                         <span className="text-xl font-bold tracking-tight">TINY-Money</span>
 
                         <nav className="flex gap-4">
-                            <Link to="/transactions">
+                            <Link to={defaultTransactionsUrl} reloadDocument>
                                 <Button variant={isActive("/transactions") ? "secondary" : "ghost"}>
                                     Transakcje
                                 </Button>

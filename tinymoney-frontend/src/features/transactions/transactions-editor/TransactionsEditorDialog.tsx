@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react"
-import {Controller, useForm} from "react-hook-form"
+import {type Control, Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
@@ -29,8 +29,13 @@ import {TagsInput} from "@/components/TagsInput.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {transactionSchema} from "@/features/transactions/transactions-editor/TransactionSchema.ts";
 import {format} from "date-fns";
+import {Textarea} from "@/components/ui/textarea.tsx";
+import {
+    ParsedDescription,
+    type WithDescription
+} from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 
-type TransactionFormValues = z.infer<typeof transactionSchema>
+export type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionEditorDialogProps {
     transactionToEdit?: Transaction,
@@ -74,7 +79,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             tags: []
         }
     })
-
+    
     useEffect(() => {
         setOpen(!!transactionToEdit);
         if (transactionToEdit) {
@@ -126,7 +131,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             onClose();
         }
     }, [open]);
-
+    
     return (
         <Dialog open={open} onOpenChange={(v) => {
             setOpen(v);
@@ -145,20 +150,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
 
-                    {/* Wiersz 1: Opis i Data */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label>Opis</Label>
-                            <Input {...register("description")} />
-                            {errors.description &&
-                                <span className="text-red-500 text-xs">{errors.description.message}</span>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Data</Label>
-                            <Input type="date" {...register("transactionDate")} />
-                        </div>
+                    <div className="grid gap-2">
+                        <Label>Data</Label>
+                        <Input type="date" {...register("transactionDate")} />
                     </div>
-
+                    
                     <div className="grid gap-2">
                         <Label>Sprzedawca</Label>
                         <Controller
@@ -234,6 +230,20 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             )}
                         />
                         <Label htmlFor="isExpense">To jest wydatek</Label>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label>Opis</Label>
+                        <div className="flex gap-2">
+                            <Textarea className="grow-2" {...register("description")} />
+                            <ParsedDescription control={control as unknown as Control<WithDescription>} onResultClick={calculatedAmount =>
+                                setValue("amount", calculatedAmount, {
+                                    shouldValidate: true,
+                                    shouldDirty: true
+                                })} />
+                        </div>
+                        {errors.description &&
+                            <span className="text-red-500 text-xs">{errors.description.message}</span>}
                     </div>
 
                     <div className="grid gap-2">
