@@ -38,7 +38,7 @@ export function BudgetTable({categories, budget}: TransactionsTableProps) {
                                 const budgetRealization = budgetForSubcategory.amount - budgetForSubcategory.usedAmount;
                                                                
                                 return (
-                                    <TableRow key={`${category.id}-${subcategory.id}`}>
+                                    <TableRow key={`${category.id}-${subcategory.id}`} className={ !budgetForSubcategory.amount ? "text-gray-400" : ""}>
                                         <TableCell>{subcategory.name}</TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             <BudgetInput budget={budgetForSubcategory} />
