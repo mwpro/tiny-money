@@ -1,15 +1,17 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import type {Budget, Category} from "@/lib/api.ts";
 import {Fragment} from "react";
-import {BudgetInput} from "@/features/budgets/BudgetInput.tsx";
+import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
+import type {MonthSelection} from "@/components/MonthPicker.tsx";
 
 interface TransactionsTableProps {
     categories: Category[],
-    budget: Budget
+    budget: Budget,
+    budgetPeriod: MonthSelection
 }
 
 
-export function BudgetTable({categories, budget}: TransactionsTableProps) {
+export function BudgetTable({categories, budget, budgetPeriod}: TransactionsTableProps) {
     return (
         <div className="border rounded-md">
             <Table>
@@ -36,20 +38,22 @@ export function BudgetTable({categories, budget}: TransactionsTableProps) {
                                     notes: undefined
                                 };
                                 const budgetRealization = budgetForSubcategory.amount - budgetForSubcategory.usedAmount;
-                                                               
+
                                 return (
-                                    <TableRow key={`${category.id}-${subcategory.id}`} className={ !budgetForSubcategory.amount ? "text-gray-400" : ""}>
+                                    <TableRow key={`${category.id}-${subcategory.id}`}
+                                              className={!budgetForSubcategory.amount ? "text-gray-400" : ""}>
                                         <TableCell>{subcategory.name}</TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            <BudgetInput budget={budgetForSubcategory} />
+                                            <BudgetAmountInput budgetPeriod={budgetPeriod} budget={budgetForSubcategory}/>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                                {new Intl.NumberFormat('pl-PL', {
+                                            {new Intl.NumberFormat('pl-PL', {
                                                 style: 'currency',
                                                 currency: 'PLN'
                                             }).format(budgetForSubcategory.usedAmount)}
                                         </TableCell>
-                                        <TableCell className={`text-right font-mono ${(budgetForSubcategory.amount && budgetRealization >= 0) && "text-green-600"} ${(budgetRealization < 0 && "text-red-600")}`}>
+                                        <TableCell
+                                            className={`text-right font-mono ${(budgetForSubcategory.amount && budgetRealization >= 0) && "text-green-600"} ${(budgetRealization < 0 && "text-red-600")}`}>
                                             {new Intl.NumberFormat('pl-PL', {
                                                 style: 'currency',
                                                 currency: 'PLN'

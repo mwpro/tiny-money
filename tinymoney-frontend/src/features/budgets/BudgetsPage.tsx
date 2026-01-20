@@ -42,7 +42,7 @@ export function BudgetsPage() {
             {(categoriesQuery.isError || budgetQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {categoriesQuery.data && budgetQuery.data &&
-                <BudgetTable categories={categoriesQuery.data} budget={budgetQuery.data}/>
+                <BudgetTable categories={categoriesQuery.data} budget={budgetQuery.data} budgetPeriod={budgetPeriod}/>
             }
         </div>
     )

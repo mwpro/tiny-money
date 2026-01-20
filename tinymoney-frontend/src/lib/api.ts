@@ -200,3 +200,24 @@ export const getBudget = async (auth: Auth0ContextInterface, month: MonthSelecti
     if (!res.ok) throw new Error('Błąd pobierania budżetu');
     return res.json();
 };
+
+export const saveBudget = async (month: MonthSelection, subcategoryId: number, amount: number, notes: string | undefined,
+                                 auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+
+    const response = await fetch(`${API_URL}/budget/${month.year}/${month.month}/subcategory/${subcategoryId}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            budgetAmount: amount,
+            notes: notes
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisu budżetu');
+    }
+}
