@@ -1,5 +1,6 @@
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
 import {format} from "date-fns";
+import type {MonthSelection} from "@/components/MonthPicker.tsx";
 
 export type Transaction = {
     id: number;
@@ -22,7 +23,18 @@ export interface TransactionQueryParams {
     subcategoryIdFilter: Number | undefined;
     amountFromFilter: Number | undefined;
     amountToFilter: Number | undefined
-};
+}
+
+export interface Budget {
+    budgetEntries: BudgetEntry[]
+}
+
+export interface BudgetEntry {
+    amount: number,
+    notes: string | undefined,
+    subcategoryId: number,
+    usedAmount: number
+}
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -175,5 +187,16 @@ export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania tagów');
+    return res.json();
+};
+
+export const getBudget = async (auth: Auth0ContextInterface, month: MonthSelection): Promise<Budget> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/budget/${month.year}/${month.month}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania budżetu');
     return res.json();
 };
