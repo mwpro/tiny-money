@@ -1,6 +1,7 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import type {Budget, Category} from "@/lib/api.ts";
 import {Fragment} from "react";
+import {BudgetInput} from "@/features/budgets/BudgetInput.tsx";
 
 interface TransactionsTableProps {
     categories: Category[],
@@ -40,18 +41,15 @@ export function BudgetTable({categories, budget}: TransactionsTableProps) {
                                     <TableRow key={`${category.id}-${subcategory.id}`}>
                                         <TableCell>{subcategory.name}</TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            {new Intl.NumberFormat('pl-PL', {
-                                                style: 'currency',
-                                                currency: 'PLN'
-                                            }).format(budgetForSubcategory.amount)}
+                                            <BudgetInput budget={budgetForSubcategory} />
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            {new Intl.NumberFormat('pl-PL', {
+                                                {new Intl.NumberFormat('pl-PL', {
                                                 style: 'currency',
                                                 currency: 'PLN'
                                             }).format(budgetForSubcategory.usedAmount)}
                                         </TableCell>
-                                        <TableCell className={`text-right font-mono ${budgetForSubcategory.amount && ((budgetRealization >= 0) ? "text-green-600" : "text-red-600")}`}>
+                                        <TableCell className={`text-right font-mono ${(budgetForSubcategory.amount && budgetRealization >= 0) && "text-green-600"} ${(budgetRealization < 0 && "text-red-600")}`}>
                                             {new Intl.NumberFormat('pl-PL', {
                                                 style: 'currency',
                                                 currency: 'PLN'
@@ -63,52 +61,6 @@ export function BudgetTable({categories, budget}: TransactionsTableProps) {
                             })}
                         </Fragment>
                     ))}
-                    {/*{transactions.map((t) => (*/}
-                    {/*    <TableRow key={t.id}>*/}
-                    {/*        <TableCell className="w-[120px]">*/}
-                    {/*            {new Date(t.transactionDate).toLocaleDateString('pl-PL')}*/}
-                    {/*        </TableCell>*/}
-                    {/*        <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>*/}
-                    {/*        <TableCell>{getVendorName(t.vendorId)}</TableCell>*/}
-                    {/*        <TableCell className="font-medium">{t.description}</TableCell>*/}
-                    {/*        <TableCell>*/}
-                    {/*            <div className="flex gap-1 flex-wrap">*/}
-                    {/*                {getTagNames(t.tagIds).map((tag) => (*/}
-                    {/*                    <Badge key={tag.id} variant="secondary" className="text-xs font-normal">*/}
-                    {/*                        {tag.name}*/}
-                    {/*                    </Badge>*/}
-                    {/*                ))}*/}
-                    {/*            </div>*/}
-                    {/*        </TableCell>*/}
-                    {/*        <TableCell*/}
-                    {/*            className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>*/}
-                    {/*            {new Intl.NumberFormat('pl-PL', {*/}
-                    {/*                style: 'currency',*/}
-                    {/*                currency: 'PLN'*/}
-                    {/*            }).format(t.amount)}*/}
-                    {/*        </TableCell>*/}
-                    {/*        <TableCell>*/}
-                    {/*            <ButtonGroup>*/}
-                    {/*                <Button variant="outline" onClick={() => onEditClick(t)}*/}
-                    {/*                >Edytuj</Button>*/}
-                    {/*                <DropdownMenu>*/}
-                    {/*                   <DropdownMenuTrigger asChild>*/}
-                    {/*                        <Button variant="outline" size="icon" aria-label="More Options">*/}
-                    {/*                            ...*/}
-                    {/*                        </Button>*/}
-                    {/*                    </DropdownMenuTrigger>*/}
-                    {/*                    <DropdownMenuContent align="end" className="w-52">*/}
-                    {/*                        <DropdownMenuGroup>*/}
-                    {/*                            <DropdownMenuItem variant="destructive" onClick={() => onDeleteClick(t)}>*/}
-                    {/*                                Usuń*/}
-                    {/*                            </DropdownMenuItem>*/}
-                    {/*                        </DropdownMenuGroup>*/}
-                    {/*                    </DropdownMenuContent>*/}
-                    {/*                </DropdownMenu>*/}
-                    {/*            </ButtonGroup>*/}
-                    {/*        </TableCell>*/}
-                    {/*    </TableRow>*/}
-                    {/*))}*/}
                 </TableBody>
             </Table>
         </div>
