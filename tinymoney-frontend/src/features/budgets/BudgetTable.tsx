@@ -5,6 +5,8 @@ import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 import {curr} from "@/lib/utils.ts";
+import {Link} from "react-router-dom";
+import {endOfMonth, format, startOfMonth} from "date-fns";
 
 interface BudgetTableProps {
     budget: Budget,
@@ -12,6 +14,8 @@ interface BudgetTableProps {
 }
 
 export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
+    const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
+    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&`
     return (
         <div className="border rounded-md">
             <Table>
@@ -44,7 +48,11 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                                 return (
                                     <TableRow key={`${categoryBudget.categoryId}-${subcategoryBudget.subcategoryId}`}
                                               className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-gray-400" : ""}>
-                                        <TableCell>{subcategoryBudget.subcategoryName}</TableCell>
+                                        <TableCell>
+                                            <Link to={`${transactionsListPath}&subcategoryId=${subcategoryBudget.subcategoryId}`} target={"_blank"}>
+                                                {subcategoryBudget.subcategoryName}
+                                            </Link>
+                                        </TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod}/>
                                         </TableCell>
