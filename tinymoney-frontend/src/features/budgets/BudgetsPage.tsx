@@ -2,7 +2,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
 import {useEffect, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getBudget, getCategories} from "@/lib/api.ts";
+import {getBudget} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
@@ -35,13 +35,6 @@ export function BudgetsPage() {
         },
         [searchParams]);
 
-    const dictionariesConfig = {staleTime: 1000 * 60 * 5}
-    const categoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
-        ...dictionariesConfig
-    })
-
     const budgetQuery = useQuery({
         queryKey: ['budget', budgetPeriod],
         queryFn: () => getBudget(auth, budgetPeriod)
@@ -57,12 +50,12 @@ export function BudgetsPage() {
                 <MonthPicker month={budgetPeriod} onChange={setBudgetPeriod}/>
             </div>
 
-            {(categoriesQuery.isLoading || budgetQuery.isLoading) &&
+            {(budgetQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
-            {(categoriesQuery.isError || budgetQuery.isError) &&
+            {(budgetQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {categoriesQuery.data && budgetQuery.data &&
-                <BudgetTable categories={categoriesQuery.data} budget={budgetQuery.data} budgetPeriod={budgetPeriod}/>
+            {budgetQuery.data &&
+                <BudgetTable budget={budgetQuery.data} budgetPeriod={budgetPeriod}/>
             }
         </div>
     )

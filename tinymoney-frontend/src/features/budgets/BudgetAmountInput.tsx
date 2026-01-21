@@ -1,4 +1,4 @@
-import {type BudgetEntry, saveBudget} from "@/lib/api.ts";
+import {saveBudget, type SubcategoryBudget} from "@/lib/api.ts";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {useEffect, useState} from "react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";
@@ -8,7 +8,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 
 interface BudgetAmountInputProps {
-    budget: BudgetEntry,
+    budget: SubcategoryBudget,
     budgetPeriod: MonthSelection
 }
 

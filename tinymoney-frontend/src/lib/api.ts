@@ -26,14 +26,37 @@ export interface TransactionQueryParams {
 }
 
 export interface Budget {
-    budgetEntries: BudgetEntry[]
+    monthlyBudget: MonthlyBudget
 }
 
-export interface BudgetEntry {
+export interface MonthlyBudget {
     amount: number,
-    notes: string | undefined,
-    subcategoryId: number,
+    usedAmount: number,
+    amountLeft: number,
+    
+    categoryBudgets: CategoryBudget[]
+}
+
+export interface CategoryBudget {
+    categoryId: number,
+    categoryName: string,
+    
+    amount: number,
     usedAmount: number
+    amountLeft: number,
+    
+    subcategoryBudgets: SubcategoryBudget[]
+}
+
+export interface SubcategoryBudget {
+    subcategoryId: number,
+    subcategoryName: string,
+    
+    amount: number,
+    usedAmount: number
+    amountLeft: number,
+    
+    notes: string | undefined
 }
 
 const API_URL = import.meta.env.VITE_API_URL;

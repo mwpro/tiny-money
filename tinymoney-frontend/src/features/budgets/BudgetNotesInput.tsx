@@ -1,4 +1,4 @@
-import {type BudgetEntry, saveBudget} from "@/lib/api.ts";
+import {saveBudget, type SubcategoryBudget} from "@/lib/api.ts";
 import {useEffect, useState} from "react";
 import {useMutation} from "@tanstack/react-query";
 import {toast} from "sonner";
@@ -8,7 +8,7 @@ import {Input} from "@/components/ui/input.tsx";
 import {Field} from "@/components/ui/field.tsx";
 
 interface BudgetNotesInputProps {
-    budget: BudgetEntry,
+    budget: SubcategoryBudget,
     budgetPeriod: MonthSelection
 }
 
