@@ -76,6 +76,7 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                             className={`text-right font-mono ${(budget.monthlyBudget.amount && budget.monthlyBudget.amountLeft >= 0) && "text-green-600"} ${(budget.monthlyBudget.amountLeft < 0 && "text-red-600")}`}>
                             {curr(budget.monthlyBudget.amountLeft)}
                         </TableCell>
+                        <TableCell />
                     </TableRow>
                 </TableFooter>
             </Table>

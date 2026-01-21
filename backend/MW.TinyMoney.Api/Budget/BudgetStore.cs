@@ -63,32 +63,45 @@ namespace MW.TinyMoney.Api.Budget
 
         public async Task<MonthlyBudget> GetMonthlyBudget(int year, int month)
         {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-
-                var categoryBudgets = await connection.QueryAsync<CategoryBudget, SubcategoryBudget, CategoryBudget>(
-                    MonthlyBudgetQuery,
-                    (category, subcategory) =>
-                    {
-                        category.SubcategoryBudgets = category.SubcategoryBudgets == null
-                            ? new[] { subcategory }
-                            : category.SubcategoryBudgets.Append(subcategory);
-                        return category;
-                    },
-                    new { year = year, month = month },
-                    splitOn: "subcategoryId");
-
-                return new MonthlyBudget()
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            var categoryBudgets = new Dictionary<int, CategoryBudget>();
+            await connection.QueryAsync<CategoryBudget, SubcategoryBudget, CategoryBudget>(
+                MonthlyBudgetQuery,
+                (category, subcategory) =>
                 {
-                    CategoryBudgets = categoryBudgets.GroupBy(p => p.CategoryId).Select(g =>
+                    if (!categoryBudgets .TryGetValue(category.CategoryId, out var categoryEntry))
                     {
-                        var groupedPost = g.First();
-                        groupedPost.SubcategoryBudgets = g.Select(p => p.SubcategoryBudgets.Single()).ToList();
-                        return groupedPost;
-                    }).ToList()
-                };
+                        categoryEntry = category;
+                        categoryBudgets .Add(categoryEntry.CategoryId, categoryEntry);
+                    }
+
+                    if (subcategory != null)
+                    {
+                        categoryEntry.SubcategoryBudgets ??= new List<SubcategoryBudget>();
+                        categoryEntry.SubcategoryBudgets.Add(subcategory);
+                    }
+                        
+                    return categoryEntry;
+                },
+                new { year = year, month = month },
+                splitOn: "subcategoryId");
+            
+            foreach (var (_, categoryBudget) in categoryBudgets)
+            {
+                categoryBudget.Amount = categoryBudget.SubcategoryBudgets.Sum(s => s.Amount);
+                categoryBudget.UsedAmount = categoryBudget.SubcategoryBudgets.Sum(s => s.UsedAmount);
+                categoryBudget.AmountLeft = categoryBudget.SubcategoryBudgets.Sum(s => s.AmountLeft);
             }
+
+            return new MonthlyBudget()
+            {
+                CategoryBudgets = categoryBudgets.Values,
+                Amount = categoryBudgets.Values.Sum(s => s.Amount),
+                UsedAmount = categoryBudgets.Values.Sum(s => s.UsedAmount),
+                AmountLeft = categoryBudgets.Values.Sum(s => s.AmountLeft),
+            };
         }
 
         public async Task SetBudget(int year, int month, int subcategoryId, decimal budgetAmount, string budgetNotes)

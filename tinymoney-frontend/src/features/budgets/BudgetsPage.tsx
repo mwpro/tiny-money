@@ -1,6 +1,6 @@
 import {useAuth0} from "@auth0/auth0-react";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getBudget} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
@@ -11,29 +11,25 @@ import {parse} from "date-fns";
 export function BudgetsPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [budgetPeriod, setBudgetPeriod] = useState<MonthSelection>(() => {
-        const fromSearchParams = searchParams.get("budgetPeriod") ? parse(searchParams.get("budgetPeriod") as string, "yyyy-MM", new Date()) : new Date()
+    
+    const handlePeriodChange = (newPeriod: MonthSelection) => {
+        setSearchParams({ budgetPeriod: `${newPeriod.year}-${String(newPeriod.month).padStart(2, '0')}` });
+    };
+    
+    const budgetPeriod = useMemo(() => {
+        const periodStr = searchParams.get("budgetPeriod");
+        const date = periodStr ? parse(periodStr, "yyyy-MM", new Date()) : new Date();
         return {
-            year: fromSearchParams.getFullYear(),
-            month: fromSearchParams.getMonth() + 1
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
         };
-    });
-
+    }, [searchParams]);
+    
     useEffect(() => {
-            setSearchParams((params) => {
-                budgetPeriod && params.set("budgetPeriod", `${budgetPeriod.year}-${budgetPeriod.month}`);
-                return params;
-            })
-        },
-        [budgetPeriod]);
-    useEffect(() => {
-            const fromSearchParams = searchParams.get("budgetPeriod") ? parse(searchParams.get("budgetPeriod") as string, "yyyy-MM", new Date()) : new Date()
-            setBudgetPeriod({
-                year: fromSearchParams.getFullYear(),
-                month: fromSearchParams.getMonth() + 1
-            });
-        },
-        [searchParams]);
+        if (!searchParams.get("budgetPeriod")) {
+            handlePeriodChange(budgetPeriod);
+        }
+    }, [budgetPeriod]);
 
     const budgetQuery = useQuery({
         queryKey: ['budget', budgetPeriod],
@@ -47,7 +43,7 @@ export function BudgetsPage() {
             </div>
 
             <div className="flex flex-row gap-3 mb-6">
-                <MonthPicker month={budgetPeriod} onChange={setBudgetPeriod}/>
+                <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
             </div>
 
             {(budgetQuery.isLoading) &&
