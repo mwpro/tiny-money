@@ -6,4 +6,8 @@ namespace MW.TinyMoney.Api.Budget.ApiModels
     {
         public IEnumerable<BudgetEntry> BudgetEntries { get; set; }
     }
+    public class BudgetResponseV2
+    {
+        public MonthlyBudget MonthlyBudget { get; set; }
+    }
 }

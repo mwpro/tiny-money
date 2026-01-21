@@ -1,5 +1,6 @@
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
 import {format} from "date-fns";
+import type {MonthSelection} from "@/components/MonthPicker.tsx";
 
 export type Transaction = {
     id: number;
@@ -19,10 +20,44 @@ export interface TransactionQueryParams {
     dateTo: Date | undefined;
     isExpenseFilter: boolean | undefined;
     vendorIdFilter: number | undefined;
-    subcategoryIdFilter: Number | undefined;
-    amountFromFilter: Number | undefined;
-    amountToFilter: Number | undefined
-};
+    subcategoryIdFilter: number | undefined;
+    amountFromFilter: number | undefined;
+    amountToFilter: number | undefined
+}
+
+export interface Budget {
+    monthlyBudget: MonthlyBudget
+}
+
+export interface MonthlyBudget {
+    amount: number,
+    usedAmount: number,
+    amountLeft: number,
+    
+    categoryBudgets: CategoryBudget[]
+}
+
+export interface CategoryBudget {
+    categoryId: number,
+    categoryName: string,
+    
+    amount: number,
+    usedAmount: number
+    amountLeft: number,
+    
+    subcategoryBudgets: SubcategoryBudget[]
+}
+
+export interface SubcategoryBudget {
+    subcategoryId: number,
+    subcategoryName: string,
+    
+    amount: number,
+    usedAmount: number
+    amountLeft: number,
+    
+    notes: string | undefined
+}
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -177,3 +212,35 @@ export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
     if (!res.ok) throw new Error('Błąd pobierania tagów');
     return res.json();
 };
+
+export const getBudget = async (auth: Auth0ContextInterface, month: MonthSelection): Promise<Budget> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/budget/${month.year}/${month.month}?useV2=true`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania budżetu');
+    return res.json();
+};
+
+export const saveBudget = async (month: MonthSelection, subcategoryId: number, amount: number, notes: string | undefined,
+                                 auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+
+    const response = await fetch(`${API_URL}/budget/${month.year}/${month.month}/subcategory/${subcategoryId}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            budgetAmount: amount,
+            notes: notes
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisu budżetu');
+    }
+}

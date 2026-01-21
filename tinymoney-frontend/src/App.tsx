@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect} from "react";
+import {BudgetsPage} from "@/features/budgets/BudgetsPage.tsx";
 
 // Możesz stworzyć pusty komponent dla raportów na razie, żeby link działał
 const ReportsPage = () => <div className="text-center p-10 text-2xl">Tutaj będą wykresy 📈</div>
@@ -50,6 +51,7 @@ function App() {
                     {/* Konkretne podstrony */}
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
+                    <Route path="budgets" element={<BudgetsPage />} />
 
                 </Route>
             </Routes>

@@ -16,10 +16,18 @@ namespace MW.TinyMoney.Api.Budget
         }
 
         [HttpGet("{year}/{month}")]
-        public async Task<IActionResult> GetBudget([FromRoute]int year, [FromRoute]int month)
+        public async Task<IActionResult> GetBudget([FromRoute]int year, [FromRoute]int month, bool useV2 = false)
         {
-            var monthlyBudget = await _budgetStore.GetMonthlyBudget(year, month);
-            return Ok(new BudgetResponse() { BudgetEntries = monthlyBudget });
+            if (useV2)
+            {
+                var monthlyBudget = await _budgetStore.GetMonthlyBudget(year, month);
+                return Ok(new BudgetResponseV2() { MonthlyBudget = monthlyBudget });
+            }
+            else
+            {
+                var monthlyBudget = await _budgetStore.GetMonthlyBudgetOld(year, month);
+                return Ok(new BudgetResponse() { BudgetEntries = monthlyBudget });
+            }
         }
 
         [HttpPost("{year}/{month}/subcategory/{subcategoryId}")]

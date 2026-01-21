@@ -10,6 +10,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {getVendors, removeTransaction, type Transaction} from "@/lib/api.ts";
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
+import {curr} from "@/lib/utils.ts";
 
 interface TransactionRemovalDialogProps {
     transactionToRemove?: Transaction,
@@ -55,7 +56,7 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>
                     <AlertDialogDescription>
                         <span className={`font-mono ${transactionToRemove.isExpense ? "text-red-600" : "text-green-600"}`}>
-                            {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(transactionToRemove.amount)}
+                            {curr(transactionToRemove.amount)}
                         </span> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
