@@ -25,7 +25,6 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
         setCommandInput(budget.amount.toString())
     }, [budget]);
 
-
     const saveBudgetMutation = useMutation({
         mutationFn: (budgetValue: number) => saveBudget(budgetPeriod, budget.subcategoryId, budgetValue, budget.notes, auth),
         onSuccess: () => {
@@ -38,7 +37,6 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
         }
     })
 
-
     const suggestions = [
         {"value": 32.64, "label": "Poprzedni miesiąc - budżet"},
         {"value": 256.32, "label": "Poprzedni miesiąc - wydatki"},
@@ -46,7 +44,6 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
         {"value": 300, "label": "Ten miesiąc rok temu - wydatki"},
     ];
 
-    console.log([budget, budgetValue])
     return (<>
         <Popover open={isOpen} onOpenChange={setOpen}>
             <PopoverTrigger className={"cursor-text"}>

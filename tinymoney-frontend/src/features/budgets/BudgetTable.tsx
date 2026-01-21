@@ -3,6 +3,7 @@ import type {Budget, Category} from "@/lib/api.ts";
 import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
+import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 
 interface TransactionsTableProps {
     categories: Category[],
@@ -41,10 +42,10 @@ export function BudgetTable({categories, budget, budgetPeriod}: TransactionsTabl
 
                                 return (
                                     <TableRow key={`${category.id}-${subcategory.id}`}
-                                              className={!budgetForSubcategory.amount ? "text-gray-400" : ""}>
+                                              className={!budgetForSubcategory.amount && !budgetRealization ? "text-gray-400" : ""}>
                                         <TableCell>{subcategory.name}</TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            <BudgetAmountInput budgetPeriod={budgetPeriod} budget={budgetForSubcategory}/>
+                                            <BudgetAmountInput budget={budgetForSubcategory} budgetPeriod={budgetPeriod}/>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             {new Intl.NumberFormat('pl-PL', {
@@ -59,7 +60,7 @@ export function BudgetTable({categories, budget, budgetPeriod}: TransactionsTabl
                                                 currency: 'PLN'
                                             }).format(budgetRealization)}
                                         </TableCell>
-                                        <TableCell>{budgetForSubcategory.notes}</TableCell>
+                                        <TableCell><BudgetNotesInput budget={budgetForSubcategory} budgetPeriod={budgetPeriod} /></TableCell>
                                     </TableRow>
                                 );
                             })}
