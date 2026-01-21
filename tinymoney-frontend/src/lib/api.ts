@@ -20,9 +20,9 @@ export interface TransactionQueryParams {
     dateTo: Date | undefined;
     isExpenseFilter: boolean | undefined;
     vendorIdFilter: number | undefined;
-    subcategoryIdFilter: Number | undefined;
-    amountFromFilter: Number | undefined;
-    amountToFilter: Number | undefined
+    subcategoryIdFilter: number | undefined;
+    amountFromFilter: number | undefined;
+    amountToFilter: number | undefined
 }
 
 export interface Budget {

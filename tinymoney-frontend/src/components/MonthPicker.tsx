@@ -1,5 +1,5 @@
 import {Calendar} from "@/components/ui/calendar.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import { pl } from "react-day-picker/locale";
 
 interface MonthPickerProps {
@@ -21,6 +21,10 @@ export function MonthPicker({month, onChange}: MonthPickerProps) {
     }
     
     const [monthInternal, setMonthInternal] = useState<Date>(new Date(month.year, month.month - 1, 1));
+
+    useEffect(() => {
+        setMonthInternal(new Date(month.year, month.month - 1, 1));
+    }, [month]);
     return (
         <>
             <Calendar
@@ -28,7 +32,7 @@ export function MonthPicker({month, onChange}: MonthPickerProps) {
                 disabled={true}
                 locale={pl}
                 defaultMonth={monthInternal}
-                className={"p-0 bg-transparent text-"}
+                className={"p-0 bg-transparent"}
                 classNames={{
                     month: "gap-0",
                     caption_label: "text-base font-bold"

@@ -8,9 +8,12 @@ import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 
 export function BudgetsPage() {
     const auth = useAuth0();
-    const [budgetPeriod, setBudgetPeriod] = useState<MonthSelection>({
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1
+    const [budgetPeriod, setBudgetPeriod] = useState<MonthSelection>(() => {
+        const now = new Date();
+        return {
+            year: now.getFullYear(),
+            month: now.getMonth() + 1
+        };
     })
     
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
@@ -32,9 +35,7 @@ export function BudgetsPage() {
             </div>
 
             <div className="flex flex-row gap-3 mb-6">
-                <MonthPicker month={budgetPeriod}  onChange={(month) => {
-                    setBudgetPeriod(month);
-                }}/>
+                <MonthPicker month={budgetPeriod} onChange={setBudgetPeriod}/>
             </div>
 
             {(categoriesQuery.isLoading || budgetQuery.isLoading) &&

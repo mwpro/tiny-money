@@ -5,14 +5,13 @@ import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 
-interface TransactionsTableProps {
+interface BudgetTableProps {
     categories: Category[],
     budget: Budget,
     budgetPeriod: MonthSelection
 }
 
-
-export function BudgetTable({categories, budget, budgetPeriod}: TransactionsTableProps) {
+export function BudgetTable({categories, budget, budgetPeriod}: BudgetTableProps) {
     return (
         <div className="border rounded-md">
             <Table>
