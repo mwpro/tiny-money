@@ -4,6 +4,7 @@ import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
+import {curr} from "@/lib/utils.ts";
 
 interface BudgetTableProps {
     budget: Budget,
@@ -29,23 +30,14 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                             <TableRow className={`font-bold ${!categoryBudget.amount && !categoryBudget.amountLeft ? "text-gray-400" : ""}`}>
                                 <TableCell>{categoryBudget.categoryName}</TableCell>
                                 <TableCell className={`text-right font-mono`}>
-                                    {new Intl.NumberFormat('pl-PL', {
-                                        style: 'currency',
-                                        currency: 'PLN'
-                                    }).format(categoryBudget.amount)}
+                                    {curr(categoryBudget.amount)}
                                 </TableCell>
                                 <TableCell className={`text-right font-mono`}>
-                                    {new Intl.NumberFormat('pl-PL', {
-                                        style: 'currency',
-                                        currency: 'PLN'
-                                    }).format(categoryBudget.usedAmount)}
+                                    {curr(categoryBudget.usedAmount)}
                                 </TableCell>
                                 <TableCell
                                     className={`text-right font-mono ${(categoryBudget.amount && categoryBudget.amountLeft >= 0) && "text-green-600"} ${(categoryBudget.amountLeft < 0 && "text-red-600")}`}>
-                                    {new Intl.NumberFormat('pl-PL', {
-                                        style: 'currency',
-                                        currency: 'PLN'
-                                    }).format(categoryBudget.amountLeft)}
+                                    {curr(categoryBudget.amountLeft)}
                                 </TableCell>
                             </TableRow>
                             {categoryBudget.subcategoryBudgets.map(subcategoryBudget => {
@@ -57,17 +49,11 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                                             <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod}/>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            {new Intl.NumberFormat('pl-PL', {
-                                                style: 'currency',
-                                                currency: 'PLN'
-                                            }).format(subcategoryBudget.usedAmount)}
+                                            {curr(subcategoryBudget.usedAmount)}
                                         </TableCell>
                                         <TableCell
                                             className={`text-right font-mono ${(subcategoryBudget.amount && subcategoryBudget.amountLeft >= 0) && "text-green-600"} ${(subcategoryBudget.amountLeft < 0 && "text-red-600")}`}>
-                                            {new Intl.NumberFormat('pl-PL', {
-                                                style: 'currency',
-                                                currency: 'PLN'
-                                            }).format(subcategoryBudget.amountLeft)}
+                                            {curr(subcategoryBudget.amountLeft)}
                                         </TableCell>
                                         <TableCell><BudgetNotesInput budget={subcategoryBudget} budgetPeriod={budgetPeriod} /></TableCell>
                                     </TableRow>
@@ -81,23 +67,14 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                     <TableRow className={`font-bold ${!budget.monthlyBudget.amount && !budget.monthlyBudget.amountLeft ? "text-gray-400" : ""}`}>
                         <TableCell />
                         <TableCell className={`text-right font-mono`}>
-                            {new Intl.NumberFormat('pl-PL', {
-                                style: 'currency',
-                                currency: 'PLN'
-                            }).format(budget.monthlyBudget.amount)}
+                            {curr(budget.monthlyBudget.amount)}
                         </TableCell>
                         <TableCell className={`text-right font-mono`}>
-                            {new Intl.NumberFormat('pl-PL', {
-                                style: 'currency',
-                                currency: 'PLN'
-                            }).format(budget.monthlyBudget.usedAmount)}
+                            {curr(budget.monthlyBudget.usedAmount)}
                         </TableCell>
                         <TableCell
                             className={`text-right font-mono ${(budget.monthlyBudget.amount && budget.monthlyBudget.amountLeft >= 0) && "text-green-600"} ${(budget.monthlyBudget.amountLeft < 0 && "text-red-600")}`}>
-                            {new Intl.NumberFormat('pl-PL', {
-                                style: 'currency',
-                                currency: 'PLN'
-                            }).format(budget.monthlyBudget.amountLeft)}
+                            {curr(budget.monthlyBudget.amountLeft)}
                         </TableCell>
                     </TableRow>
                 </TableFooter>

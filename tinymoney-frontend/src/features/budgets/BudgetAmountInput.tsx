@@ -6,6 +6,7 @@ import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
+import {curr} from "@/lib/utils.ts";
 
 interface BudgetAmountInputProps {
     budget: SubcategoryBudget,
@@ -47,10 +48,7 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
     return (<>
         <Popover open={isOpen} onOpenChange={setOpen}>
             <PopoverTrigger className={"cursor-text"}>
-                {new Intl.NumberFormat('pl-PL', {
-                    style: 'currency',
-                    currency: 'PLN'
-                }).format(budgetValue)}
+                {curr(budgetValue)}
             </PopoverTrigger>
             <PopoverContent className="p-0" side="bottom" align="start">
                 <Command shouldFilter={false}>
@@ -71,10 +69,7 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
                                 >
                                     <div>Własna wartość</div>
                                     <div className={"font-mono text-right"}>
-                                        {new Intl.NumberFormat('pl-PL', {
-                                            style: 'currency',
-                                            currency: 'PLN'
-                                        }).format(Number(commandInput.replace(",", ".")))}
+                                        {curr(commandInput)}
                                     </div>
                                 </CommandItem>
                             )
@@ -92,10 +87,7 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
                                 >
                                     <div>{suggestion.label}</div>
                                     <div className={"font-mono text-right"}>
-                                        {new Intl.NumberFormat('pl-PL', {
-                                            style: 'currency',
-                                            currency: 'PLN'
-                                        }).format(suggestion.value)}
+                                        {curr(suggestion.value)}
                                     </div>
                                 </CommandItem>
                             ))}
