@@ -25,6 +25,7 @@ export function MonthPicker({month, onChange}: MonthPickerProps) {
     useEffect(() => {
         setMonthInternal(new Date(month.year, month.month - 1, 1));
     }, [month]);
+    
     return (
         <>
             <Calendar
@@ -32,6 +33,7 @@ export function MonthPicker({month, onChange}: MonthPickerProps) {
                 disabled={true}
                 locale={pl}
                 defaultMonth={monthInternal}
+                month={monthInternal}
                 className={"p-0 bg-transparent"}
                 classNames={{
                     month: "gap-0",

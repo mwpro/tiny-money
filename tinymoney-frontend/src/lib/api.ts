@@ -192,7 +192,7 @@ export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
 
 export const getBudget = async (auth: Auth0ContextInterface, month: MonthSelection): Promise<Budget> => {
     const token = await auth.getAccessTokenSilently();
-    const res = await fetch(`${API_URL}/budget/${month.year}/${month.month}`, {
+    const res = await fetch(`${API_URL}/budget/${month.year}/${month.month}?useV2=true`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
