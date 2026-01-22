@@ -1,5 +1,5 @@
 import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {Budget} from "@/lib/api.ts";
+import type {Budget, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
 import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
@@ -10,10 +10,11 @@ import {endOfMonth, format, startOfMonth} from "date-fns";
 
 interface BudgetTableProps {
     budget: Budget,
-    budgetPeriod: MonthSelection
+    budgetPeriod: MonthSelection,
+    budgetSuggestions: SubcategoryBudgetSuggestions[]
 }
 
-export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
+export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTableProps) {
     const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
     const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&`
     return (
@@ -54,7 +55,7 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                                             </Link>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod}/>
+                                            <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestions.find(s => s.subcategoryId == subcategoryBudget.subcategoryId)}/>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             {curr(subcategoryBudget.usedAmount)}

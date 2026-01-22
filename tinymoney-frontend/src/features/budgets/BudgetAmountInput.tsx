@@ -1,4 +1,4 @@
-import {saveBudget, type SubcategoryBudget} from "@/lib/api.ts";
+import {saveBudget, type SubcategoryBudget, type SubcategoryBudgetSuggestions} from "@/lib/api.ts";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {useEffect, useState} from "react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";
@@ -10,10 +10,11 @@ import {curr} from "@/lib/utils.ts";
 
 interface BudgetAmountInputProps {
     budget: SubcategoryBudget,
-    budgetPeriod: MonthSelection
+    budgetPeriod: MonthSelection,
+    budgetSuggestions: SubcategoryBudgetSuggestions | undefined
 }
 
-export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps) {
+export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: BudgetAmountInputProps) {
     const auth = useAuth0();
     const queryClient = useQueryClient()
 
@@ -38,13 +39,6 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
         }
     })
 
-    const suggestions = [
-        {"value": 32.64, "label": "Poprzedni miesiąc - budżet"},
-        {"value": 256.32, "label": "Poprzedni miesiąc - wydatki"},
-        {"value": 128.64, "label": "Średnie wydatki za 3 ostatnie mc"},
-        {"value": 300, "label": "Ten miesiąc rok temu - wydatki"},
-    ];
-
     return (<>
         <Popover open={isOpen} onOpenChange={setOpen}>
             <PopoverTrigger className={"cursor-text"}>
@@ -53,7 +47,7 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
             <PopoverContent className="p-0" side="bottom" align="start">
                 <Command shouldFilter={false}>
                     <CommandInput placeholder="Podaj kwotę..." value={commandInput}
-                                  onValueChange={v => setCommandInput(v)}/>
+                                  onValueChange={v => setCommandInput(v)} />
                     <CommandList>
                         <CommandEmpty>No results found.</CommandEmpty>
                         <CommandGroup>
@@ -74,20 +68,19 @@ export function BudgetAmountInput({budget, budgetPeriod}: BudgetAmountInputProps
                                 </CommandItem>
                             )
                             }
-                            {suggestions.map((suggestion) => (
+                            {budgetSuggestions?.suggestions.map((suggestion) => (
                                 <CommandItem
-                                    key={suggestion.value}
-                                    value={suggestion.value.toString()}
-                                    onSelect={(value) => {
-                                        const parsed = Number(value);
-                                        setBudgetValue(parsed)
-                                        saveBudgetMutation.mutate(parsed)
+                                    key={suggestion.suggestionName}
+                                    value={suggestion.suggestionName}
+                                    onSelect={() => {
+                                        setBudgetValue(suggestion.suggestedAmount)
+                                        saveBudgetMutation.mutate(suggestion.suggestedAmount)
                                     }}
                                     className={"flex justify-between"}
                                 >
-                                    <div>{suggestion.label}</div>
+                                    <div>{suggestion.suggestionName}</div>
                                     <div className={"font-mono text-right"}>
-                                        {curr(suggestion.value)}
+                                        {curr(suggestion.suggestedAmount)}
                                     </div>
                                 </CommandItem>
                             ))}
