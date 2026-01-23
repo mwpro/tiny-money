@@ -25,6 +25,20 @@ export interface TransactionQueryParams {
     amountToFilter: number | undefined
 }
 
+export interface BudgetSuggestionsResponse {
+    subcategoryBudgetSuggestions: SubcategoryBudgetSuggestions[]
+}
+
+export interface SubcategoryBudgetSuggestions {
+    subcategoryId: number,
+    suggestions: BudgetSuggestion[]
+}
+
+export interface BudgetSuggestion {
+    suggestionName: string,
+    suggestedAmount: number
+}
+
 export interface Budget {
     monthlyBudget: MonthlyBudget
 }
@@ -221,6 +235,17 @@ export const getBudget = async (auth: Auth0ContextInterface, month: MonthSelecti
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania budżetu');
+    return res.json();
+};
+
+export const getBudgetSuggestions = async (auth: Auth0ContextInterface, month: MonthSelection): Promise<BudgetSuggestionsResponse> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/budget/${month.year}/${month.month}/suggestions`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania podpowiedzi budżetu');
     return res.json();
 };
 

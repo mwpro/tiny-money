@@ -1,5 +1,5 @@
 import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {Budget} from "@/lib/api.ts";
+import type {Budget, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
 import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
@@ -7,15 +7,17 @@ import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 import {curr} from "@/lib/utils.ts";
 import {Link} from "react-router-dom";
 import {endOfMonth, format, startOfMonth} from "date-fns";
+import {ListIcon} from "lucide-react";
 
 interface BudgetTableProps {
     budget: Budget,
-    budgetPeriod: MonthSelection
+    budgetPeriod: MonthSelection,
+    budgetSuggestions: SubcategoryBudgetSuggestions[]
 }
 
-export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
+export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTableProps) {
     const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
-    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&`
+    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
     return (
         <div className="border rounded-md">
             <Table>
@@ -50,11 +52,12 @@ export function BudgetTable({budget, budgetPeriod}: BudgetTableProps) {
                                               className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-gray-400" : ""}>
                                         <TableCell>
                                             <Link to={`${transactionsListPath}&subcategoryId=${subcategoryBudget.subcategoryId}`} target={"_blank"}>
-                                                {subcategoryBudget.subcategoryName}
+                                                <ListIcon className={"inline pr-1"} size={19} />
                                             </Link>
+                                            {subcategoryBudget.subcategoryName}
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
-                                            <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod}/>
+                                            <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestions.find(s => s.subcategoryId == subcategoryBudget.subcategoryId)}/>
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             {curr(subcategoryBudget.usedAmount)}

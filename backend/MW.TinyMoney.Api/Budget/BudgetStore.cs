@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Budget.ApiModels;
-using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Budget
@@ -15,6 +14,7 @@ namespace MW.TinyMoney.Api.Budget
         Task<MonthlyBudget> GetMonthlyBudget(int year, int month);
         Task SetBudget(int year, int month, int subcategoryId, decimal budgetAmount, string budgetNotes);
         Task CopyBudget(int yearFrom, int monthFrom, int yearTo, int monthTo);
+        Task<IEnumerable<SubcategoryBudgetSuggestions>> GetBudgetSuggestions(int year, int month);
     }
 
     public class BudgetStore : IBudgetStore
@@ -45,6 +45,48 @@ namespace MW.TinyMoney.Api.Budget
                         WHERE f.year = @yearFrom AND f.month = @monthFrom
                      ON DUPLICATE KEY UPDATE
                         amount = f.amount, notes = f.notes, modified_date = @modifiedDate;";
+
+        private const string SubcategoryBudgetSuggestionsQuery = @"
+                SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - budżet' AS 'suggestionName', COALESCE(b.amount, 0) AS 'suggestedAmount'
+                FROM subcategory s
+	            LEFT JOIN budget b ON b.subcategory_id = s.id AND b.year = @previousPeriodYear AND b.month = @previousPeriodMonth
+	            
+	            UNION ALL
+	            
+	            SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
+                FROM subcategory s
+                LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @previousPeriodYear AND MONTH(t.transaction_date) = @previousPeriodMonth
+	            GROUP BY s.id
+	            
+	            UNION ALL
+	            
+	            SELECT
+                    s.id AS `subcategoryId`,
+                    'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName',
+                    COALESCE(avg_sums.avg_amount, 0) AS 'suggestedAmount'
+                FROM subcategory s
+                         LEFT JOIN (
+                    SELECT
+                        subcategory_id,
+                        AVG(monthlySum) as avg_amount
+                    FROM (
+                             SELECT
+                                 t.subcategory_id,
+                                 SUM(t.amount) as monthlySum
+                             FROM transaction t
+                             WHERE t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
+                             GROUP BY t.subcategory_id, YEAR(t.transaction_date), MONTH(t.transaction_date)
+                         ) monthlySums
+                    GROUP BY subcategory_id
+                ) avg_sums ON s.id = avg_sums.subcategory_id
+	            
+	            UNION ALL
+	            
+	            SELECT s.id AS `subcategoryId`, 'Ten miesiąc rok temu - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
+                FROM subcategory s
+                LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
+	            GROUP BY s.id
+	            ";
 
         public BudgetStore(MySqlConnectionFactory mySqlConnectionFactory)
         {
@@ -134,6 +176,54 @@ namespace MW.TinyMoney.Api.Budget
                     modifiedDate = DateTime.UtcNow
                 });
             }
+        }
+
+        public async Task<IEnumerable<SubcategoryBudgetSuggestions>> GetBudgetSuggestions(int year, int month)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            var dateFromPeriod = new DateTime(year, month, 1);
+            var previousPeriod = dateFromPeriod.AddMonths(-1);
+            var thisPeriodLastYear = dateFromPeriod.AddYears(-1);
+            var last3mPeriodStart = dateFromPeriod.AddMonths(-3);
+            var last3mPeriodEnd = dateFromPeriod.AddDays(-1);
+
+            var suggestionsResult = new Dictionary<int, ICollection<BudgetSuggestion>>();
+            await connection.QueryAsync<SubcategoryBudgetSuggestions, BudgetSuggestion, SubcategoryBudgetSuggestions>(
+                SubcategoryBudgetSuggestionsQuery,
+                (subcategory, suggestion) =>
+                {
+                    if (!suggestionsResult.TryGetValue(subcategory.SubcategoryId, out var subcategoryBudgetSuggestions))
+                    {
+                        subcategoryBudgetSuggestions = new List<BudgetSuggestion>();
+                        suggestionsResult.Add(subcategory.SubcategoryId, subcategoryBudgetSuggestions);
+                    }
+
+                    if (suggestion != null)
+                    {
+                        subcategoryBudgetSuggestions.Add(suggestion);
+                    }
+                        
+                    return subcategory;
+                },
+                new
+                {
+                    previousPeriodYear = previousPeriod.Year, previousPeriodMonth = previousPeriod.Month,
+                    thisPeriodLastYearYear = thisPeriodLastYear.Year, thisPeriodLastYearMonth = thisPeriodLastYear.Month,
+                    last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd
+                },
+                splitOn: "suggestionName");
+            
+            return suggestionsResult.Select(kv =>
+            {
+                var (subcategoryId, suggestions) = kv;
+                return new SubcategoryBudgetSuggestions()
+                {
+                    SubcategoryId = subcategoryId,
+                    Suggestions = suggestions
+                };
+            });
         }
     }
 }
