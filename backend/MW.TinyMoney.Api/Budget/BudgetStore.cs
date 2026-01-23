@@ -60,15 +60,25 @@ namespace MW.TinyMoney.Api.Budget
 	            
 	            UNION ALL
 	            
-	            SELECT s.id AS `subcategoryId`, 'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName', COALESCE((
-                    SELECT AVG(monthlySum) FROM (
-                                      SELECT COALESCE(SUM(t.amount), 0) AS 'monthlySum'
-                                      FROM transaction t
-                                      WHERE t.subcategory_id = s.id AND t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
-                                      GROUP BY YEAR(t.transaction_date), MONTH(t.transaction_date)
-                                  ) monthlySums), 0)
-                    AS 'suggestedAmount'
+	            SELECT
+                    s.id AS `subcategoryId`,
+                    'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName',
+                    COALESCE(avg_sums.avg_amount, 0) AS 'suggestedAmount'
                 FROM subcategory s
+                         LEFT JOIN (
+                    SELECT
+                        subcategory_id,
+                        AVG(monthlySum) as avg_amount
+                    FROM (
+                             SELECT
+                                 t.subcategory_id,
+                                 SUM(t.amount) as monthlySum
+                             FROM transaction t
+                             WHERE t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
+                             GROUP BY t.subcategory_id, YEAR(t.transaction_date), MONTH(t.transaction_date)
+                         ) monthlySums
+                    GROUP BY subcategory_id
+                ) avg_sums ON s.id = avg_sums.subcategory_id
 	            
 	            UNION ALL
 	            
@@ -76,8 +86,6 @@ namespace MW.TinyMoney.Api.Budget
                 FROM subcategory s
                 LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
 	            GROUP BY s.id
-                
-                -- todo Ten miesiąc rok temu - wydatki
 	            ";
 
         public BudgetStore(MySqlConnectionFactory mySqlConnectionFactory)
@@ -181,15 +189,15 @@ namespace MW.TinyMoney.Api.Budget
             var last3mPeriodStart = dateFromPeriod.AddMonths(-3);
             var last3mPeriodEnd = dateFromPeriod.AddDays(-1);
 
-            var subcategoryBudgetsSuggestions = new Dictionary<int, ICollection<BudgetSuggestion>>();
+            var suggestionsResult = new Dictionary<int, ICollection<BudgetSuggestion>>();
             await connection.QueryAsync<SubcategoryBudgetSuggestions, BudgetSuggestion, SubcategoryBudgetSuggestions>(
                 SubcategoryBudgetSuggestionsQuery,
                 (subcategory, suggestion) =>
                 {
-                    if (!subcategoryBudgetsSuggestions.TryGetValue(subcategory.SubcategoryId, out var subcategoryBudgetSuggestions))
+                    if (!suggestionsResult.TryGetValue(subcategory.SubcategoryId, out var subcategoryBudgetSuggestions))
                     {
                         subcategoryBudgetSuggestions = new List<BudgetSuggestion>();
-                        subcategoryBudgetsSuggestions.Add(subcategory.SubcategoryId, subcategoryBudgetSuggestions);
+                        suggestionsResult.Add(subcategory.SubcategoryId, subcategoryBudgetSuggestions);
                     }
 
                     if (suggestion != null)
@@ -207,7 +215,7 @@ namespace MW.TinyMoney.Api.Budget
                 },
                 splitOn: "suggestionName");
             
-            return subcategoryBudgetsSuggestions.Select(kv =>
+            return suggestionsResult.Select(kv =>
             {
                 var (subcategoryId, suggestions) = kv;
                 return new SubcategoryBudgetSuggestions()

@@ -7,6 +7,7 @@ import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 import {curr} from "@/lib/utils.ts";
 import {Link} from "react-router-dom";
 import {endOfMonth, format, startOfMonth} from "date-fns";
+import {ListIcon} from "lucide-react";
 
 interface BudgetTableProps {
     budget: Budget,
@@ -16,7 +17,7 @@ interface BudgetTableProps {
 
 export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTableProps) {
     const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
-    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&`
+    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
     return (
         <div className="border rounded-md">
             <Table>
@@ -51,8 +52,9 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                                               className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-gray-400" : ""}>
                                         <TableCell>
                                             <Link to={`${transactionsListPath}&subcategoryId=${subcategoryBudget.subcategoryId}`} target={"_blank"}>
-                                                {subcategoryBudget.subcategoryName}
+                                                <ListIcon className={"inline pr-1"} size={19} />
                                             </Link>
+                                            {subcategoryBudget.subcategoryName}
                                         </TableCell>
                                         <TableCell className={`text-right font-mono`}>
                                             <BudgetAmountInput budget={subcategoryBudget} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestions.find(s => s.subcategoryId == subcategoryBudget.subcategoryId)}/>
