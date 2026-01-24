@@ -54,7 +54,7 @@ export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
     
     return (
         <>
-            <Button onClick={() => setIsOpen(!isOpen)}>Skopiuj budżet</Button>
+            <Button onClick={() => setIsOpen(true)}>Skopiuj budżet</Button>
             <AlertDialog open={isOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

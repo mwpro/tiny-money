@@ -65,7 +65,7 @@ export function BudgetsPage() {
                         <Card>
                             <CardHeader>
                                 <CardDescription>Miesięczny budżet</CardDescription>
-                                <CardTitle className="text-2xl font-semibold font-mono">
+                                <CardTitle className="text-2xl font-mono">
                                     {curr(budgetQuery.data.monthlyBudget.amount)}
                                 </CardTitle>
                             </CardHeader>
@@ -73,7 +73,7 @@ export function BudgetsPage() {
                         <Card>
                             <CardHeader>
                                 <CardDescription>Rzeczywiste wydatki</CardDescription>
-                                <CardTitle className="text-2xl font-semibold font-mono">
+                                <CardTitle className="text-2xl font-mono">
                                     {curr(budgetQuery.data.monthlyBudget.usedAmount)}
                                 </CardTitle>
                             </CardHeader>
@@ -81,7 +81,7 @@ export function BudgetsPage() {
                         <Card>
                             <CardHeader>
                                 <CardDescription>Różnica</CardDescription>
-                                <CardTitle className={`text-2xl font-semibold font-mono ${budgetQuery.data.monthlyBudget.amountLeft >= 0 ? "text-green-600" : "text-destructive"}`}>
+                                <CardTitle className={`text-2xl font-mono ${budgetQuery.data.monthlyBudget.amountLeft >= 0 ? "text-green-600" : "text-destructive"}`}>
                                     {curr(budgetQuery.data.monthlyBudget.amountLeft)}
                                 </CardTitle>
                             </CardHeader>
