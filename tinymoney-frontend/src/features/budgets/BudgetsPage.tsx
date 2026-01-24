@@ -6,6 +6,7 @@ import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
+import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
 
 
 export function BudgetsPage() {
@@ -49,6 +50,10 @@ export function BudgetsPage() {
 
             <div className="flex flex-row gap-3 mb-6">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
+            </div>
+
+            <div className="flex flex-row gap-3 mb-6">
+                <CopyBudgetDialog currentMonth={budgetPeriod} />
             </div>
 
             {(budgetQuery.isLoading || budgetSuggestionsQuery.isLoading) &&
