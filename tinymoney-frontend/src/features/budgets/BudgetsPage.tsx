@@ -8,7 +8,7 @@ import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
 import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
 import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {curr} from "@/lib/utils.ts";
+import {Curr} from "@/components/Curr.tsx";
 
 
 export function BudgetsPage() {
@@ -65,24 +65,24 @@ export function BudgetsPage() {
                         <Card>
                             <CardHeader>
                                 <CardDescription>Miesięczny budżet</CardDescription>
-                                <CardTitle className="text-2xl font-mono">
-                                    {curr(budgetQuery.data.monthlyBudget.amount)}
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.amount} />
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                         <Card>
                             <CardHeader>
                                 <CardDescription>Rzeczywiste wydatki</CardDescription>
-                                <CardTitle className="text-2xl font-mono">
-                                    {curr(budgetQuery.data.monthlyBudget.usedAmount)}
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.usedAmount} />
                                 </CardTitle>
                             </CardHeader>
                         </Card>
                         <Card>
                             <CardHeader>
                                 <CardDescription>Różnica</CardDescription>
-                                <CardTitle className={`text-2xl font-mono ${budgetQuery.data.monthlyBudget.amountLeft >= 0 ? "text-green-600" : "text-destructive"}`}>
-                                    {curr(budgetQuery.data.monthlyBudget.amountLeft)}
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.amountLeft} colored />
                                 </CardTitle>
                             </CardHeader>
                         </Card>

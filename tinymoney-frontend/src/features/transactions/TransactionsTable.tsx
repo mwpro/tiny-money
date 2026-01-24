@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import type {Subcategories, Tag, Transaction, Vendor} from "@/lib/api.ts";
-import {curr} from "@/lib/utils.ts";
+import {Curr} from "@/components/Curr.tsx";
 
 interface TransactionsTableProps {
     transactions: Transaction[];
@@ -67,9 +67,8 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                                 ))}
                             </div>
                         </TableCell>
-                        <TableCell
-                            className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                            {curr(t.amount)}
+                        <TableCell>
+                            <Curr input={t.amount} colored isPositive={!t.isExpense} />
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>

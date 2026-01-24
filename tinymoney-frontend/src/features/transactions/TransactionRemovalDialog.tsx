@@ -10,7 +10,7 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {getVendors, removeTransaction, type Transaction} from "@/lib/api.ts";
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
-import {curr} from "@/lib/utils.ts";
+import {Curr} from "@/components/Curr.tsx";
 
 interface TransactionRemovalDialogProps {
     transactionToRemove?: Transaction,
@@ -24,7 +24,6 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
     const deleteMutation = useMutation({
         mutationFn: (transactionId: number) => removeTransaction(transactionId, auth),
         onSuccess: () => {
-            // Sukces!
             queryClient.invalidateQueries({queryKey: ['transactions']})
             toast.success("Transakcja usunięta")
             onClose()
@@ -55,8 +54,8 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <span className={`font-mono ${transactionToRemove.isExpense ? "text-red-600" : "text-green-600"}`}>
-                            {curr(transactionToRemove.amount)}
+                        <span>
+                            <Curr input={transactionToRemove.amount} colored isPositive={!transactionToRemove.isExpense}/>
                         </span> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
