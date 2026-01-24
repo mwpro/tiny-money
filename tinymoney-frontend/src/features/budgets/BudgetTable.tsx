@@ -1,4 +1,4 @@
-import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import type {Budget, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
 import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
@@ -73,23 +73,6 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                         </Fragment>
                     ))}
                 </TableBody>
-
-                <TableFooter>
-                    <TableRow className={`font-bold ${!budget.monthlyBudget.amount && !budget.monthlyBudget.amountLeft ? "text-gray-400" : ""}`}>
-                        <TableCell />
-                        <TableCell className={`text-right font-mono`}>
-                            {curr(budget.monthlyBudget.amount)}
-                        </TableCell>
-                        <TableCell className={`text-right font-mono`}>
-                            {curr(budget.monthlyBudget.usedAmount)}
-                        </TableCell>
-                        <TableCell
-                            className={`text-right font-mono ${(budget.monthlyBudget.amount && budget.monthlyBudget.amountLeft >= 0) && "text-green-600"} ${(budget.monthlyBudget.amountLeft < 0 && "text-red-600")}`}>
-                            {curr(budget.monthlyBudget.amountLeft)}
-                        </TableCell>
-                        <TableCell />
-                    </TableRow>
-                </TableFooter>
             </Table>
         </div>
     );

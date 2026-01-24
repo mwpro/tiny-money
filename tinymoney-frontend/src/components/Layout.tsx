@@ -28,11 +28,6 @@ export function Layout() {
                                     Budżet
                                 </Button>
                             </Link>
-                            <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/budgets" target="_blank">
-                                <Button variant="ghost">
-                                    Budżet (stary)
-                                </Button>
-                            </Link>
                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/buffer" target="_blank">
                                 <Button variant="ghost">
                                     Import

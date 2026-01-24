@@ -7,6 +7,8 @@ import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
 import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
+import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {curr} from "@/lib/utils.ts";
 
 
 export function BudgetsPage() {
@@ -48,11 +50,8 @@ export function BudgetsPage() {
                 <h1 className="text-2xl font-bold">Budżet</h1>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6">
+            <div className="flex flex-row gap-3 mb-6 justify-between">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
-            </div>
-
-            <div className="flex flex-row gap-3 mb-6">
                 <CopyBudgetDialog currentMonth={budgetPeriod} />
             </div>
 
@@ -61,7 +60,36 @@ export function BudgetsPage() {
             {(budgetQuery.isError || budgetSuggestionsQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {budgetQuery.data && budgetSuggestionsQuery.data &&
-                <BudgetTable budget={budgetQuery.data} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestionsQuery.data.subcategoryBudgetSuggestions} />
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Miesięczny budżet</CardDescription>
+                                <CardTitle className="text-2xl font-semibold font-mono">
+                                    {curr(budgetQuery.data.monthlyBudget.amount)}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Rzeczywiste wydatki</CardDescription>
+                                <CardTitle className="text-2xl font-semibold font-mono">
+                                    {curr(budgetQuery.data.monthlyBudget.usedAmount)}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Różnica</CardDescription>
+                                <CardTitle className={`text-2xl font-semibold font-mono ${budgetQuery.data.monthlyBudget.amountLeft >= 0 ? "text-green-600" : "text-destructive"}`}>
+                                    {curr(budgetQuery.data.monthlyBudget.amountLeft)}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                    
+                    <BudgetTable budget={budgetQuery.data} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestionsQuery.data.subcategoryBudgetSuggestions} />
+                </>
             }
         </div>
     )
