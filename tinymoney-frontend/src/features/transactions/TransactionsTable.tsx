@@ -52,7 +52,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
             <TableBody>
                 {transactions.map((t) => (
                     <TableRow key={t.id}>
-                        <TableCell className="w-[120px]">
+                        <TableCell>
                             {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
                         </TableCell>
                         <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
@@ -72,15 +72,15 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
-                                <Button variant="outline" onClick={() => onEditClick(t)}
+                                <Button variant="outline" size="sm" onClick={() => onEditClick(t)}
                                 >Edytuj</Button>
                                 <DropdownMenu>
                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" aria-label="More Options">
+                                        <Button variant="outline" size="icon-sm" aria-label="More Options">
                                             ...
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-52">
+                                    <DropdownMenuContent align="end">
                                         <DropdownMenuGroup>
                                             <DropdownMenuItem variant="destructive" onClick={() => onDeleteClick(t)}>
                                                 Usuń
