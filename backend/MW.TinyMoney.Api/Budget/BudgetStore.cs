@@ -63,22 +63,12 @@ namespace MW.TinyMoney.Api.Budget
 	            SELECT
                     s.id AS `subcategoryId`,
                     'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName',
-                    COALESCE(avg_sums.avg_amount, 0) AS 'suggestedAmount'
+                    COALESCE(SUM(t.amount), 0) / 3 AS 'suggestedAmount'
                 FROM subcategory s
-                         LEFT JOIN (
-                    SELECT
-                        subcategory_id,
-                        AVG(monthlySum) as avg_amount
-                    FROM (
-                             SELECT
-                                 t.subcategory_id,
-                                 SUM(t.amount) as monthlySum
-                             FROM transaction t
-                             WHERE t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
-                             GROUP BY t.subcategory_id, YEAR(t.transaction_date), MONTH(t.transaction_date)
-                         ) monthlySums
-                    GROUP BY subcategory_id
-                ) avg_sums ON s.id = avg_sums.subcategory_id
+                    LEFT JOIN transaction t ON t.subcategory_id = s.id 
+                       AND t.is_expense = 1 
+                       AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
+                GROUP BY s.id
 	            
 	            UNION ALL
 	            
