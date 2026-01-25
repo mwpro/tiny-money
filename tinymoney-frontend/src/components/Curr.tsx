@@ -11,9 +11,10 @@ interface CurrProps {
 
 export function Curr({input, colored, isPositive}: CurrProps){
     let inputAsNumber: number = 0;
-    if (input as number) {
+    if (typeof input === "number") {
         inputAsNumber = input as number;
-    } else if (input as string) {
+    } else if (typeof input === "string") {
+        console.log("Akuku")
         inputAsNumber = Number((input as string).replace(",", "."));
     }
     

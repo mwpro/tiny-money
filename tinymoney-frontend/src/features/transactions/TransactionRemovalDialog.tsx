@@ -54,9 +54,7 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <span>
-                            <Curr input={transactionToRemove.amount} colored isPositive={!transactionToRemove.isExpense}/>
-                        </span> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
+                        <Curr input={transactionToRemove.amount} colored isPositive={!transactionToRemove.isExpense}/> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -65,11 +65,11 @@ export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
                     </AlertDialogHeader>
                     <div className="flex flex-row gap-3 items-center">
                         <div>Z: </div>
-                        <MonthPicker month={fromPeriod} onChange={newPeriod => setFromPeriod({ year: newPeriod.year, month: newPeriod.month })} />
+                        <MonthPicker month={fromPeriod} onChange={setFromPeriod} />
                     </div>
                     <div className="flex flex-row gap-3 items-center">
                         <div>Do: </div>
-                        <MonthPicker month={toPeriod} onChange={newPeriod => setToPeriod({ year: newPeriod.year, month: newPeriod.month })} />
+                        <MonthPicker month={toPeriod} onChange={setToPeriod} />
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setIsOpen(false)}>Anuluj</AlertDialogCancel>
