@@ -12,10 +12,9 @@ interface CurrProps {
 export function Curr({input, colored, isPositive}: CurrProps){
     let inputAsNumber: number = 0;
     if (typeof input === "number") {
-        inputAsNumber = input as number;
+        inputAsNumber = input;
     } else if (typeof input === "string") {
-        console.log("Akuku")
-        inputAsNumber = Number((input as string).replace(",", "."));
+        inputAsNumber = Number(input.replace(",", "."));
     }
     
     const colorDecision = (isPositive == undefined && inputAsNumber >= 0) || isPositive;
