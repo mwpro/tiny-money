@@ -87,7 +87,7 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
         setIsOpen(!!transactionToEdit);
         if (transactionToEdit) {
             setValue("amount", transactionToEdit.amount)
-            setValue("description", transactionToEdit.description)
+            setValue("description", transactionToEdit.description ?? "")
             setValue("isExpense", transactionToEdit.isExpense);
             setValue("transactionDate", format(transactionToEdit.transactionDate, "yyyy-MM-dd"));
             setValue("subcategoryId", transactionToEdit.subcategoryId);
