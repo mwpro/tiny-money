@@ -35,7 +35,9 @@ export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) 
         <Field orientation="horizontal">
             <Input value={budgetNotes ?? ""} onChange={v => setBudgetNotes(v.target.value)} 
                    onKeyDown={k => k.key ===  "Enter" && budgetNotes !== budget.notes && saveBudgetMutation.mutate(budgetNotes)}
-                   onBlur={() => budgetNotes !== budget.notes && saveBudgetMutation.mutate(budgetNotes)} />
+                   onBlur={() => budgetNotes !== budget.notes && saveBudgetMutation.mutate(budgetNotes)}
+                   className={"h-5 text-xs px-2"}
+             />
         </Field>
     </>);
 }

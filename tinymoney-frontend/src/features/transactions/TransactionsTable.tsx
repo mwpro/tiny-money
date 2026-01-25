@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
 import type {Subcategories, Tag, Transaction, Vendor} from "@/lib/api.ts";
-import {curr} from "@/lib/utils.ts";
+import {Curr} from "@/components/Curr.tsx";
 
 interface TransactionsTableProps {
     transactions: Transaction[];
@@ -52,7 +52,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
             <TableBody>
                 {transactions.map((t) => (
                     <TableRow key={t.id}>
-                        <TableCell className="w-[120px]">
+                        <TableCell>
                             {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
                         </TableCell>
                         <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
@@ -67,21 +67,20 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                                 ))}
                             </div>
                         </TableCell>
-                        <TableCell
-                            className={`text-right font-mono ${t.isExpense ? "text-red-600" : "text-green-600"}`}>
-                            {curr(t.amount)}
+                        <TableCell>
+                            <Curr input={t.amount} colored isPositive={!t.isExpense} />
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
-                                <Button variant="outline" onClick={() => onEditClick(t)}
+                                <Button variant="outline" size="sm" onClick={() => onEditClick(t)}
                                 >Edytuj</Button>
                                 <DropdownMenu>
                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" aria-label="More Options">
+                                        <Button variant="outline" size="icon-sm" aria-label="More Options">
                                             ...
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-52">
+                                    <DropdownMenuContent align="end">
                                         <DropdownMenuGroup>
                                             <DropdownMenuItem variant="destructive" onClick={() => onDeleteClick(t)}>
                                                 Usuń

@@ -38,14 +38,17 @@ import {
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionEditorDialogProps {
-    transactionToEdit?: Transaction,
-    onClose: () => void
+    transactionToEdit?: Transaction
 }
 
-export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
-    const [open, setOpen] = useState(false)
+export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorDialogProps) {
+    const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
     const auth = useAuth0();
+
+    useEffect(() => {
+        setIsOpen(!!transactionToEdit);
+    }, [transactionToEdit]);
     
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
 
@@ -81,10 +84,10 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     })
     
     useEffect(() => {
-        setOpen(!!transactionToEdit);
+        setIsOpen(!!transactionToEdit);
         if (transactionToEdit) {
             setValue("amount", transactionToEdit.amount)
-            setValue("description", transactionToEdit.description)
+            setValue("description", transactionToEdit.description ?? "")
             setValue("isExpense", transactionToEdit.isExpense);
             setValue("transactionDate", format(transactionToEdit.transactionDate, "yyyy-MM-dd"));
             setValue("subcategoryId", transactionToEdit.subcategoryId);
@@ -112,7 +115,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             queryClient.invalidateQueries({queryKey: ['tags']})
             if (transactionToEdit) {
                 reset();
-                setOpen(false);
+                setIsOpen(false);
             } else {
                 reset({...defaultValues, transactionDate: getValues("transactionDate")})
             }
@@ -126,21 +129,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         mutation.mutate(data)
     }
 
-    useEffect(() => {
-        if (!open) {
-            onClose();
-        }
-    }, [open]);
-    
     return (
-        <Dialog open={open} onOpenChange={(v) => {
-            setOpen(v);
+        <Dialog open={isOpen} onOpenChange={(v) => {
+            setIsOpen(v);
             reset();
         }}>
             <DialogTrigger asChild>
                 <Button>Dodaj Transakcję</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" onCloseAutoFocus={e => e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle>{transactionToEdit ? "Edytuj transakcję" : "Dodaj nową transakcję"}</DialogTitle>
                     <DialogDescription>

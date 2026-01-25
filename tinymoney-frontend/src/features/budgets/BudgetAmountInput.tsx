@@ -6,7 +6,7 @@ import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
-import {curr} from "@/lib/utils.ts";
+import {Curr} from "@/components/Curr.tsx";
 
 interface BudgetAmountInputProps {
     budget: SubcategoryBudget,
@@ -42,7 +42,7 @@ export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: Bud
     return (<>
         <Popover open={isOpen} onOpenChange={setOpen}>
             <PopoverTrigger className={"cursor-text"}>
-                {curr(budgetValue)}
+                <Curr input={budgetValue} />
             </PopoverTrigger>
             <PopoverContent className="p-0" side="bottom" align="start">
                 <Command shouldFilter={false}>
@@ -62,8 +62,8 @@ export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: Bud
                                     className={"flex justify-between"}
                                 >
                                     <div>Własna wartość</div>
-                                    <div className={"font-mono text-right"}>
-                                        {curr(commandInput)}
+                                    <div className={"text-right"}>
+                                        <Curr input={commandInput} />
                                     </div>
                                 </CommandItem>
                             )
@@ -80,7 +80,7 @@ export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: Bud
                                 >
                                     <div>{suggestion.suggestionName}</div>
                                     <div className={"font-mono text-right"}>
-                                        {curr(suggestion.suggestedAmount)}
+                                        <Curr input={suggestion.suggestedAmount} />
                                     </div>
                                 </CommandItem>
                             ))}

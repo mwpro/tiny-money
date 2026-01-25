@@ -6,6 +6,9 @@ import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
+import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
+import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Curr} from "@/components/Curr.tsx";
 
 
 export function BudgetsPage() {
@@ -47,8 +50,9 @@ export function BudgetsPage() {
                 <h1 className="text-2xl font-bold">Budżet</h1>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6">
+            <div className="flex flex-row gap-3 mb-6 justify-between">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
+                <CopyBudgetDialog currentMonth={budgetPeriod} />
             </div>
 
             {(budgetQuery.isLoading || budgetSuggestionsQuery.isLoading) &&
@@ -56,7 +60,36 @@ export function BudgetsPage() {
             {(budgetQuery.isError || budgetSuggestionsQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {budgetQuery.data && budgetSuggestionsQuery.data &&
-                <BudgetTable budget={budgetQuery.data} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestionsQuery.data.subcategoryBudgetSuggestions} />
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Miesięczny budżet</CardDescription>
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.amount} />
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Rzeczywiste wydatki</CardDescription>
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.usedAmount} />
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardDescription>Różnica</CardDescription>
+                                <CardTitle className="text-2xl">
+                                    <Curr input={budgetQuery.data.monthlyBudget.amountLeft} colored />
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                    
+                    <BudgetTable budget={budgetQuery.data} budgetPeriod={budgetPeriod} budgetSuggestions={budgetSuggestionsQuery.data.subcategoryBudgetSuggestions} />
+                </>
             }
         </div>
     )
