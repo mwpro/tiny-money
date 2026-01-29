@@ -67,7 +67,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                                 ))}
                             </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-right">
                             <Curr input={t.amount} colored isPositive={!t.isExpense} />
                         </TableCell>
                         <TableCell>
