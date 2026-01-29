@@ -30,8 +30,8 @@ export function TransactionsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() =>
-        ({
+    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => {
+        return ({
             dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
             dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
             isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
@@ -39,7 +39,8 @@ export function TransactionsPage() {
             amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
             subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
             vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
-        })); 
+        });
+    }); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",

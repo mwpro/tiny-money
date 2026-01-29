@@ -18,7 +18,12 @@ export function Layout() {
                         <span className="text-xl font-bold tracking-tight">TINY-Money</span>
 
                         <nav className="flex gap-4">
-                            <Link to={defaultTransactionsUrl} reloadDocument>
+                            <Link to="/dashboard">
+                                <Button variant={isActive("/dashboard") ? "secondary" : "ghost"}>
+                                    Dashboard
+                                </Button>
+                            </Link>
+                            <Link to={defaultTransactionsUrl}>
                                 <Button variant={isActive("/transactions") ? "secondary" : "ghost"}>
                                     Transakcje
                                 </Button>
