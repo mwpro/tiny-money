@@ -1,16 +1,17 @@
-INSERT INTO `category` (`id`, `name`) VALUES
-(1,	'Jedzenie'),
-(2,	'Mieszkanie / dom'),
-(3,	'Transport'),
-(4,	'Usługi'),
-(5,	'Opieka zdrowotna'),
-(6,	'Ubrania'),
-(7,	'Higiena'),
-(8,	'Elektronika'),
-(9,	'Rozrywka'),
-(10,	'Zwierzaki'),
-(11,	'Podróże'),
-(12,	'Inne');
+INSERT INTO `category` (`id`, `name`, `is_income`) VALUES
+(1,	'Jedzenie', 0),
+(2,	'Mieszkanie / dom', 0),
+(3,	'Transport', 0),
+(4,	'Usługi', 0),
+(5,	'Opieka zdrowotna', 0),
+(6,	'Ubrania', 0),
+(7,	'Higiena', 0),
+(8,	'Elektronika', 0),
+(9,	'Rozrywka', 0),
+(10,	'Zwierzaki', 0),
+(11,	'Podróże', 0),
+(12,	'Inne', 0),
+(14,	'Przychody', 1);
 
 INSERT INTO `subcategory` (`id`, `name`, `parent_category_id`) VALUES
 (1,	'Dom',	1),
@@ -53,4 +54,7 @@ INSERT INTO `subcategory` (`id`, `name`, `parent_category_id`) VALUES
 (38,	'Kosmetyki',	7),
 (39,	'Inne',	7),
 (40,	'Ubrania',	6),
-(41,	'Buty',	6);
+(41,	'Buty',	6),
+(42,	'Praca główna',	14),
+(42,	'Praca dodatkowa',	14),
+(42,	'Inwestycje',	14);

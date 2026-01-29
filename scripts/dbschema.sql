@@ -15,6 +15,7 @@ create table category
     id   int auto_increment
         primary key,
     name varchar(255) not null
+    is_income bit not null
 )
     charset = latin2;
 
