@@ -25,22 +25,24 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon} from "lucide-react";
 
 
+function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
+    return {
+        dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
+        dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
+        isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
+        amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
+        amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
+        subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
+        vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
+    };
+}
+
 export function TransactionsPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => {
-        return ({
-            dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
-            dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
-            isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
-            amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
-            amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
-            subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
-            vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
-        });
-    }); 
+    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => buildTransactionQueryParamsFromSearchParams(searchParams)); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",
@@ -72,6 +74,11 @@ export function TransactionsPage() {
             })
         },
         [debouncedQueryParams]);
+
+
+    useEffect(() => {
+        setQueryParams(buildTransactionQueryParamsFromSearchParams(searchParams));
+    }, [searchParams]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
