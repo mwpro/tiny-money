@@ -51,7 +51,7 @@ namespace MW.TinyMoney.Api.Categories
         }
         
         private const string GetCategoriesQuery =
-              @"SELECT c.id, c.name, c.is_income, s.id, s.name
+              @"SELECT c.id, c.name, c.is_income AS 'isIncome', s.id, s.name
                 FROM category c
                 LEFT JOIN subcategory s ON c.id = s.parent_category_id";
 

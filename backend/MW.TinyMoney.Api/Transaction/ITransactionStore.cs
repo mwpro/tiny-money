@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
-using MW.TinyMoney.Api.Transaction.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction
 {
