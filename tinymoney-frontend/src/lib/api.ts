@@ -189,7 +189,7 @@ export const removeTransaction = async (transactionId: number, auth: Auth0Contex
 };
 
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
-export type Category = { id: number, name: string, subcategories: Subcategory[] };
+export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
 export type Subcategories = Map<number, string>;

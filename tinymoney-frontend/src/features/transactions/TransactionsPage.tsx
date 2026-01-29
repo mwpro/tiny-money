@@ -177,7 +177,9 @@ export function TransactionsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
-                        {categoriesQuery.data && categoriesQuery.data.map(category => (
+                        {categoriesQuery.data && categoriesQuery.data
+                            .filter(c => queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome )
+                            .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
                                 {category.subcategories.map(subcategory => 
