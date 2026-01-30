@@ -135,8 +135,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(newIsOpen) => {
-            setIsOpen(newIsOpen);
+        <Dialog open={isOpen} onOpenChange={(v) => {
+            setIsOpen(v);
             reset();
         }}>
             <DialogTrigger asChild>

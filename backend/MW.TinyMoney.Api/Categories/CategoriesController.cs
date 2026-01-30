@@ -20,7 +20,7 @@ namespace MW.TinyMoney.Api.Categories
 
         [HttpGet, Route("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
-        public async Task<IActionResult> GetCategories(bool useV2 = false)
+        public async Task<IActionResult> GetCategories()
         {
             var categories = await _categoriesStore.GetCategories();
             return Ok(categories.Select(x => x.ToDto()));

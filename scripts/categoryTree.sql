@@ -56,5 +56,5 @@ INSERT INTO `subcategory` (`id`, `name`, `parent_category_id`) VALUES
 (40,	'Ubrania',	6),
 (41,	'Buty',	6),
 (42,	'Praca główna',	14),
-(42,	'Praca dodatkowa',	14),
-(42,	'Inwestycje',	14);
+(43,	'Praca dodatkowa',	14),
+(44,	'Inwestycje',	14);
