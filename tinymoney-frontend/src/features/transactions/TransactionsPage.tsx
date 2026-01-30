@@ -59,8 +59,7 @@ export function TransactionsPage() {
         id: Number(searchParams.get("tagId")),
         name: ""
     } : undefined);
-
-
+    
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 500
     });
