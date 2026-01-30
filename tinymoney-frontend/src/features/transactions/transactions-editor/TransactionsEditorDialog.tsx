@@ -175,6 +175,13 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
                                                               shouldValidate: true,
                                                               shouldDirty: true
                                                           })
+                                                          const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === selectedVendor.defaultSubcategoryId))?.isIncome;
+                                                          if (isIncomeCategory !== undefined) {
+                                                              setValue("isExpense", !isIncomeCategory, {
+                                                                  shouldValidate: true,
+                                                                  shouldDirty: true
+                                                              })
+                                                          }
                                                       }
                                                   }
                                               }} allowCustomValues={true}/>
@@ -190,8 +197,19 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
                             control={control}
                             name="subcategoryId"
                             render={({field}) => (
-                                <Select onValueChange={(val) => field.onChange(Number(val))}
-                                        value={(field.value > 0) ? field.value.toString() : ""}>
+                                <Select onValueChange={(val) => {
+                                    const parsedSubcategoryId = Number(val);
+                                    field.onChange(parsedSubcategoryId);
+                                    if (parsedSubcategoryId) {
+                                        const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === parsedSubcategoryId))?.isIncome;
+                                        if (isIncomeCategory !== undefined) {
+                                            setValue("isExpense", !isIncomeCategory, {
+                                                shouldValidate: true,
+                                                shouldDirty: true
+                                            })
+                                        }
+                                    }
+                                }} value={(field.value > 0) ? field.value.toString() : ""}>
                                     <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
                                         {categoriesQuery.data && categoriesQuery.data.map(category => (

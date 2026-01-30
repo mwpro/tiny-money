@@ -24,7 +24,6 @@ import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon} from "lucide-react";
 
-
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
         dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
@@ -54,8 +53,7 @@ export function TransactionsPage() {
     });
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => getTransactions(auth, debouncedQueryParams),
-        
+        queryFn: () => getTransactions(auth, debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter)
     })
