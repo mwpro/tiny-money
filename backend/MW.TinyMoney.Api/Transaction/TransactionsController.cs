@@ -27,23 +27,25 @@ namespace MW.TinyMoney.Api.Transaction
         [HttpGet("")]
         [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
-            [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId)
+            [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId,
+            [FromQuery] int? tagId)
         {
             if (month.HasValue) // legacy model
             {
                 var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1), 
-                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), null, null, null, null, null);
+                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), 
+                    null, null, null, null, null, null);
                 return Ok(transactions);
             }
             else
             {
-                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue)
+                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue)
                 {
                     return BadRequest("Dates must be provided when no other filters were specified");
                 }
                 var transactions = await _transactionStore.GetTransactions(
                     dateFrom, dateTo, isExpense, amountFrom, amountTo,
-                    vendorId, subcategoryId);
+                    vendorId, subcategoryId, tagId);
                 return Ok(new TransactionsResponse
                 {
                     Transactions = transactions,

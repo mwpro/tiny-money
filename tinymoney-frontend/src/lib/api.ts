@@ -35,7 +35,8 @@ export interface TransactionQueryParams {
     vendorIdFilter: number | undefined;
     subcategoryIdFilter: number | undefined;
     amountFromFilter: number | undefined;
-    amountToFilter: number | undefined
+    amountToFilter: number | undefined,
+    tagIdFilter: number | undefined,
 }
 
 export interface BudgetSuggestionsResponse {
@@ -90,7 +91,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<TransactionsResponse> => {
     const token = await auth.getAccessTokenSilently();
-    const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter} = params;
+    const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter, tagIdFilter} = params;
     const queryParams = new URLSearchParams();
     if (dateFrom) {
         queryParams.append('dateFrom', format(dateFrom, 'yyyy-MM-dd'))        
@@ -112,6 +113,9 @@ export const getTransactions = async (auth: Auth0ContextInterface, params: Trans
     }
     if (amountToFilter != undefined) {
         queryParams.append('amountTo', amountToFilter.toString());
+    }
+    if (tagIdFilter != undefined) {
+        queryParams.append('tagId', tagIdFilter.toString());
     }
     
     const response = await fetch(`${API_URL}/transactions?${queryParams}`, {
