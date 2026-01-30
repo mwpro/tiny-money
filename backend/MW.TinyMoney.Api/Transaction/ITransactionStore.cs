@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
-using MW.TinyMoney.Api.Transaction.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction
 {
@@ -14,7 +13,7 @@ namespace MW.TinyMoney.Api.Transaction
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
-        Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
+        Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
@@ -203,7 +202,7 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
         
-        public async Task<IEnumerable<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
+        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())

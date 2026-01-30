@@ -15,6 +15,19 @@ export type Transaction = {
     tagIds: number[];
 }
 
+export type TransactionsResponse = {
+    transactions: Transaction[];
+    summary: TransactionsSummary;
+}
+
+export type TransactionsSummary = {
+    incomesTotal: number;
+    incomesCount: number;
+    expensesTotal: number;
+    expensesCount: number;
+    balance: number;
+}
+
 export interface TransactionQueryParams {
     dateFrom: Date | undefined,
     dateTo: Date | undefined;
@@ -75,7 +88,7 @@ export interface SubcategoryBudget {
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<Transaction[]> => {
+export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<TransactionsResponse> => {
     const token = await auth.getAccessTokenSilently();
     const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter} = params;
     const queryParams = new URLSearchParams();
@@ -189,7 +202,7 @@ export const removeTransaction = async (transactionId: number, auth: Auth0Contex
 };
 
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
-export type Category = { id: number, name: string, subcategories: Subcategory[] };
+export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string };
 export type Subcategories = Map<number, string>;

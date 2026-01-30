@@ -24,22 +24,24 @@ import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon} from "lucide-react";
 
+function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
+    return {
+        dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
+        dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
+        isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
+        amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
+        amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
+        subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
+        vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
+    };
+}
 
 export function TransactionsPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
-    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() =>
-        ({
-            dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
-            dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
-            isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
-            amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
-            amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
-            subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
-            vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
-        })); 
+    const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => buildTransactionQueryParamsFromSearchParams(searchParams)); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",
@@ -51,8 +53,7 @@ export function TransactionsPage() {
     });
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => getTransactions(auth, debouncedQueryParams),
-        
+        queryFn: () => getTransactions(auth, debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter)
     })
@@ -71,6 +72,11 @@ export function TransactionsPage() {
             })
         },
         [debouncedQueryParams]);
+
+
+    useEffect(() => {
+        setQueryParams(buildTransactionQueryParamsFromSearchParams(searchParams));
+    }, [searchParams]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
@@ -106,7 +112,7 @@ export function TransactionsPage() {
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} />
+                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
             </div>
 
@@ -169,7 +175,9 @@ export function TransactionsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
-                        {categoriesQuery.data && categoriesQuery.data.map(category => (
+                        {categoriesQuery.data && categoriesQuery.data
+                            .filter(c => queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome )
+                            .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
                                 {category.subcategories.map(subcategory => 
@@ -191,7 +199,7 @@ export function TransactionsPage() {
                     </ul>
                 </AlertDescription>
             </Alert>)}
-            {(transactionsQuery.data?.length == 1000 && <Alert className="mb-6" variant="destructive">
+            {(transactionsQuery.data?.transactions.length == 1000 && <Alert className="mb-6" variant="destructive">
                 <AlertCircleIcon />
                 <AlertTitle>Osiągnięto limit znalezionych transakcji.</AlertTitle>
                 <AlertDescription>

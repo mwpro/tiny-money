@@ -30,6 +30,7 @@ namespace MW.TinyMoney.Api.Budget
                 LEFT JOIN subcategory s ON s.parent_category_id = c.id 
 	            LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
 	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1
+                WHERE c.is_income = 0
 	            GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes";
 
         private const string SetBudgetQuery =
@@ -48,14 +49,18 @@ namespace MW.TinyMoney.Api.Budget
 
         private const string SubcategoryBudgetSuggestionsQuery = @"
                 SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - budżet' AS 'suggestionName', COALESCE(b.amount, 0) AS 'suggestedAmount'
-                FROM subcategory s
+                FROM category c
+                LEFT JOIN subcategory s ON s.parent_category_id = c.id 
 	            LEFT JOIN budget b ON b.subcategory_id = s.id AND b.year = @previousPeriodYear AND b.month = @previousPeriodMonth
+                WHERE c.is_income = 0
 	            
 	            UNION ALL
 	            
 	            SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
-                FROM subcategory s
+                FROM category c
+                LEFT JOIN subcategory s ON s.parent_category_id = c.id 
                 LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @previousPeriodYear AND MONTH(t.transaction_date) = @previousPeriodMonth
+                WHERE c.is_income = 0
 	            GROUP BY s.id
 	            
 	            UNION ALL
@@ -64,17 +69,21 @@ namespace MW.TinyMoney.Api.Budget
                     s.id AS `subcategoryId`,
                     'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName',
                     COALESCE(SUM(t.amount), 0) / 3 AS 'suggestedAmount'
-                FROM subcategory s
+                FROM category c
+                LEFT JOIN subcategory s ON s.parent_category_id = c.id 
                     LEFT JOIN transaction t ON t.subcategory_id = s.id 
                        AND t.is_expense = 1 
                        AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
+                WHERE c.is_income = 0
                 GROUP BY s.id
 	            
 	            UNION ALL
 	            
 	            SELECT s.id AS `subcategoryId`, 'Ten miesiąc rok temu - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
-                FROM subcategory s
+                FROM category c
+                LEFT JOIN subcategory s ON s.parent_category_id = c.id 
                 LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
+                WHERE c.is_income = 0
 	            GROUP BY s.id
 	            ";
 

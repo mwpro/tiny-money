@@ -1,10 +1,14 @@
 // src/App.tsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom"
 import { Layout } from "@/components/Layout"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect} from "react";
 import {BudgetsPage} from "@/features/budgets/BudgetsPage.tsx";
+import {DashboardPage} from "@/features/dashboard/DashboardPage.tsx";
+import {Spinner} from "@/components/ui/spinner.tsx";
+import {AlertCircleIcon} from "lucide-react";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 
 // Możesz stworzyć pusty komponent dla raportów na razie, żeby link działał
 const ReportsPage = () => <div className="text-center p-10 text-2xl">Tutaj będą wykresy 📈</div>
@@ -17,24 +21,33 @@ function App() {
         }
     }, [isLoading, isAuthenticated, error, loginWithRedirect]);
     
-    if (isLoading) {
+    if (isLoading || error) {
         return (
-            <div className="app-container">
-                <div className="loading-state">
-                    <div className="loading-text">Loading...</div>
-                </div>
-            </div>
-        );
-    }
+            <div className="min-h-screen bg-slate-50 flex flex-col">
+                <header className="border-b bg-white">
+                    <div className="max-w-7xl mx-auto h-16 flex items-center justify-between">
+                        <div className="flex items-center gap-8 text-center">
+                            <span className="text-xl font-bold tracking-tight">TINY-Money</span>
+                        </div>
+                    </div>
+                </header>
 
-    if (error) {
-        return (
-            <div className="app-container">
-                <div className="error-state">
-                    <div className="error-title">Oops!</div>
-                    <div className="error-message">Something went wrong</div>
-                    <div className="error-sub-message">{error.message}</div>
-                </div>
+                <main className="flex-1 py-8">
+                    {isLoading && 
+                        <div className="max-w-7xl mx-auto text-2xl flex items-center flex-col gap-3">
+                            <div>Ładowanie</div>
+                            <Spinner className="size-8" />
+                        </div>}
+                    {error &&
+                        <Alert className="max-w-7xl mx-auto mb-6" variant="destructive">
+                            <AlertCircleIcon />
+                            <AlertTitle>Ups!</AlertTitle>
+                            <AlertDescription>
+                                <p>Wystąpił błąd.</p>
+                                <p>{error.message}</p>
+                            </AlertDescription>
+                        </Alert>}
+                </main>
             </div>
         );
     }
@@ -42,13 +55,11 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Ścieżka główna otacza wszystko Layoutem */}
                 <Route path="/" element={<Layout />}>
 
-                    {/* Przekierowanie: Jak wejdziesz na "/", idź od razu do "/transactions" */}
-                    <Route index element={<Navigate to="/transactions" replace />} />
+                    <Route index element={<Navigate to="/dashboard" replace />} />
 
-                    {/* Konkretne podstrony */}
+                    <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="budgets" element={<BudgetsPage />} />
