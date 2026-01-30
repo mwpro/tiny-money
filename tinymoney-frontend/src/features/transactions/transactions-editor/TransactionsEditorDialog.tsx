@@ -38,10 +38,11 @@ import {
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionEditorDialogProps {
-    transactionToEdit?: Transaction
+    transactionToEdit?: Transaction,
+    onClose?: () => void
 }
 
-export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorDialogProps) {
+export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
     const auth = useAuth0();
@@ -49,7 +50,11 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
     }, [transactionToEdit]);
-    
+
+    useEffect(() => {
+        !isOpen && onClose && onClose();
+    }, [isOpen]);
+
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
 
     const vendorsQuery = useQuery({
@@ -82,7 +87,7 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
             tags: []
         }
     })
-    
+
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
         if (transactionToEdit) {
@@ -130,8 +135,8 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(v) => {
-            setIsOpen(v);
+        <Dialog open={isOpen} onOpenChange={(newIsOpen) => {
+            setIsOpen(newIsOpen);
             reset();
         }}>
             <DialogTrigger asChild>
@@ -151,7 +156,7 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
                         <Label>Data</Label>
                         <Input type="date" {...register("transactionDate")} />
                     </div>
-                    
+
                     <div className="grid gap-2">
                         <Label>Sprzedawca</Label>
                         <Controller
@@ -210,12 +215,15 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
                                         }
                                     }
                                 }} value={(field.value > 0) ? field.value.toString() : ""}>
-                                    <SelectTrigger className="w-full"><SelectValue placeholder="Wybierz kategorię"/></SelectTrigger>
+                                    <SelectTrigger className="w-full"><SelectValue
+                                        placeholder="Wybierz kategorię"/></SelectTrigger>
                                     <SelectContent>
                                         {categoriesQuery.data && categoriesQuery.data.map(category => (
                                             <SelectGroup key={category.id}>
                                                 <SelectLabel>{category.name}</SelectLabel>
-                                                {category.subcategories.map(subcategory => (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
+                                                {category.subcategories.map(subcategory => (
+                                                    <SelectItem key={subcategory.id}
+                                                                value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                                             </SelectGroup>
                                         ))}
                                     </SelectContent>
@@ -251,11 +259,12 @@ export function TransactionsEditorDialog({transactionToEdit}: TransactionEditorD
                         <Label>Opis</Label>
                         <div className="flex gap-2">
                             <Textarea className="grow-2" {...register("description")} />
-                            <ParsedDescription control={control as unknown as Control<WithDescription>} onResultClick={calculatedAmount =>
-                                setValue("amount", calculatedAmount, {
-                                    shouldValidate: true,
-                                    shouldDirty: true
-                                })} />
+                            <ParsedDescription control={control as unknown as Control<WithDescription>}
+                                               onResultClick={calculatedAmount =>
+                                                   setValue("amount", calculatedAmount, {
+                                                       shouldValidate: true,
+                                                       shouldDirty: true
+                                                   })}/>
                         </div>
                         {errors.description &&
                             <span className="text-red-500 text-xs">{errors.description.message}</span>}

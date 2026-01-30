@@ -112,7 +112,7 @@ export function TransactionsPage() {
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} />
+                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
             </div>
 
