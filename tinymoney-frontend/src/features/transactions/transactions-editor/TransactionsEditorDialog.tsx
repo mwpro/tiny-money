@@ -16,7 +16,6 @@ import {
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
-import {Checkbox} from "@/components/ui/checkbox"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
@@ -34,6 +33,8 @@ import {
     ParsedDescription,
     type WithDescription
 } from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
+import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
+import {Minus, Plus} from "lucide-react";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -150,7 +151,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
 
                     <div className="grid gap-2">
                         <Label>Data</Label>
@@ -236,23 +237,27 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                     <div className="grid gap-2">
                         <Label>Kwota</Label>
-                        <Input type="number" step="0.01" {...register("amount")} />
-                        {errors.amount && <span className="text-red-500 text-xs">{errors.amount.message}</span>}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Controller
-                            control={control}
-                            name="isExpense"
-                            render={({field}) => (
-                                <Checkbox
-                                    id="isExpense"
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
+                        <InputGroup>
+                            <InputGroupAddon>
+                                <Controller
+                                    control={control}
+                                    name="isExpense"
+                                    render={({field}) => (<InputGroupButton
+                                            onClick={() => field.onChange(!field.value)}
+                                            
+                                        >
+                                            {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
+                                        </InputGroupButton>
+                                    )}
                                 />
-                            )}
-                        />
-                        <Label htmlFor="isExpense">To jest wydatek</Label>
+                                
+                            </InputGroupAddon>
+                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} />
+                            <InputGroupAddon align="inline-end">
+                                <InputGroupText>zł</InputGroupText>
+                            </InputGroupAddon>
+                        </InputGroup>
+                        {errors.amount && <span className="text-red-500 text-xs">{errors.amount.message}</span>}
                     </div>
 
                     <div className="grid gap-2">

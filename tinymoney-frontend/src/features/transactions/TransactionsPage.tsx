@@ -1,6 +1,13 @@
 import {useQuery} from "@tanstack/react-query"
 import {
-    getCategories, getTags, getTransactions, getVendors, type Transaction, type TransactionQueryParams, type Vendor
+    getCategories,
+    getTags,
+    getTransactions,
+    getVendors,
+    type Tag,
+    type Transaction,
+    type TransactionQueryParams,
+    type Vendor
 } from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
@@ -32,7 +39,8 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
         amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
         amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
         subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
-        vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined
+        vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined,
+        tagIdFilter: searchParams.get("tagId") ? Number(searchParams.get("tagId")) : undefined,
     };
 }
 
@@ -47,7 +55,11 @@ export function TransactionsPage() {
         name: "",
         defaultSubcategoryId: 0
     } : undefined);
-   
+    const [tagFilter, setTagFilter] = useState<Tag | undefined>(() => searchParams.get("tagId") ? {
+        id: Number(searchParams.get("tagId")),
+        name: ""
+    } : undefined);
+    
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 500
     });
@@ -55,11 +67,12 @@ export function TransactionsPage() {
         queryKey: ['transactions', debouncedQueryParams],
         queryFn: () => getTransactions(auth, debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
-            || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter)
+            || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter
+            || debouncedQueryParams.tagIdFilter)
     })
 
     useEffect(() => {
-            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter} = debouncedQueryParams;
+            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter} = debouncedQueryParams;
             setSearchParams((params) => {
                 dateFrom ? params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")) : params.delete("dateFrom");
                 dateTo ? params.set("dateTo", format(dateTo, "yyyy-MM-dd")) : params.delete("dateTo");
@@ -68,6 +81,7 @@ export function TransactionsPage() {
                 amountToFilter ? params.set("amountTo", amountToFilter.toString()) : params.delete("amountTo");
                 vendorIdFilter ? params.set("vendorId", vendorIdFilter.toString()) : params.delete("vendorId");
                 subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
+                tagIdFilter ? params.set("tagId", tagIdFilter.toString()) : params.delete("tagId");
                 return params;
             })
         },
@@ -107,6 +121,13 @@ export function TransactionsPage() {
             setVendorFilter(selectedVendor)
         }
     }, [vendorsQuery.data, queryParams.vendorIdFilter]);
+    
+    useEffect(() => {
+        if (tagsQuery.data && queryParams.tagIdFilter) {
+            const selectedTag = tagsQuery.data?.find(v => v.id === queryParams.tagIdFilter)
+            setTagFilter(selectedTag)
+        }
+    }, [tagsQuery.data, queryParams.tagIdFilter]);
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -186,6 +207,20 @@ export function TransactionsPage() {
                         ))}
                     </SelectContent>
                 </Select>
+                <Autocomplete className="bg-background"
+                              fetchSuggestions={async input => (tagsQuery.data || []).filter(o =>
+                                  o.name.toLowerCase().includes(input.toLowerCase()))}
+                              value={tagFilter?.name} clearQueryAfterSelection={false}
+                              onChange={value => {
+                                  if (value?.id) {
+                                      const selectedTag = tagsQuery.data?.find(t => t.id === value.id)
+                                      setTagFilter(selectedTag);
+                                      setQueryParams(prevState => ({...prevState, tagIdFilter: selectedTag?.id}));
+                                  } else {
+                                      setTagFilter(undefined);
+                                      setQueryParams(prevState => ({...prevState, tagIdFilter: undefined}));
+                                  }
+                              }} allowCustomValues={false} placeholder="Tag"/>
             </div>
 
             {(!transactionsQuery.isEnabled && <Alert  className="mb-6" variant="destructive">
@@ -195,7 +230,7 @@ export function TransactionsPage() {
                     <p>Parametry wyszukiwania są zbyt ogólne</p>
                     <ul className="list-inside list-disc text-sm">
                         <li>Wskaż zakres dat do przeszukania</li>
-                        <li>lub uzupełnij filtry kwoty/sprzedawcy/kategorii</li>
+                        <li>lub uzupełnij filtry kwoty/sprzedawcy/kategorii/tagu</li>
                     </ul>
                 </AlertDescription>
             </Alert>)}

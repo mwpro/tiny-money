@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu.tsx";
 import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/lib/api.ts";
 import {Curr} from "@/components/Curr.tsx";
+import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -50,6 +51,14 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                 </TableRow>
             </TableHeader>
             <TableBody>
+                {transactions.transactions.length == 0 && 
+                    <TableRow>
+                        <TableCell colSpan={7} className={"text-center"}>
+                            <Alert className="mb-6" variant="default">
+                                <AlertTitle>Nie znaleziono transakcji.</AlertTitle>
+                            </Alert>
+                        </TableCell>
+                    </TableRow> }
                 {transactions.transactions.map((t) => (
                     <TableRow key={t.id}>
                         <TableCell>

@@ -13,7 +13,7 @@ import {
     startOfMonth,
     endOfYear,
     startOfYear,
-    isSameDay
+    isSameDay, startOfDay
 } from 'date-fns';
 
 interface DatePickerProps {
@@ -78,6 +78,10 @@ const presets: DateRangePreset[] = [
     },
 ];
 
+function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | undefined) : [dateFrom: Date | undefined, dateTo: Date | undefined] {
+    return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
+}
+
 export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
@@ -101,19 +105,20 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
 
     const usePreset = (preset: DateRangePreset) => {
         const val = preset.preset(new Date());
-        setDateFromInternal(val.dateFrom);
-        setDateToInternal(val.dateTo);
-        val.dateFrom && setMonthFrom(val.dateFrom);
-        val.dateTo && setMonthTo(val.dateTo);
+        const [dateFrom, dateTo] = normalizeRangeToStartOfDay(val.dateFrom, val.dateTo);
+        setDateFromInternal(dateFrom);
+        setDateToInternal(dateTo);
+        dateFrom && setMonthFrom(dateFrom);
+        dateTo && setMonthTo(dateTo);
         setUsedPresetInternal(preset);
         setUsedPreset(preset);
         setOpen(false);
-        onChange(val.dateFrom, val.dateTo);
+        onChange(dateFrom, dateTo);
     };
 
     const applyCustomRange = () => {
         setOpen(false);
-        onChange(dateFromInternal, dateToInternal);
+        onChange(...normalizeRangeToStartOfDay(dateFromInternal, dateToInternal));
         setUsedPreset(undefined);
     };
 

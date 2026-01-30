@@ -3,7 +3,7 @@
   "profiles": {
     "MW.TinyMoney.Api": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "",
       "applicationUrl": "http://localhost:52386",
       "environmentVariables": {

@@ -4,12 +4,13 @@ import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
-import {useSearchParams} from "react-router-dom";
-import {parse} from "date-fns";
+import {Link, useSearchParams} from "react-router-dom";
+import {endOfMonth, format, parse, startOfMonth} from "date-fns";
 import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
 import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Curr} from "@/components/Curr.tsx";
-
+import {Button} from "@/components/ui/button.tsx";
+import {ButtonGroup, ButtonGroupSeparator} from "@/components/ui/button-group.tsx";
 
 export function BudgetsPage() {
     const auth = useAuth0();
@@ -27,7 +28,10 @@ export function BudgetsPage() {
             month: date.getMonth() + 1,
         };
     }, [searchParams]);
-    
+    const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
+    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
+
+
     useEffect(() => {
         if (!searchParams.get("budgetPeriod")) {
             handlePeriodChange(budgetPeriod);
@@ -52,7 +56,15 @@ export function BudgetsPage() {
 
             <div className="flex flex-row gap-3 mb-6 justify-between">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
-                <CopyBudgetDialog currentMonth={budgetPeriod} />
+                <ButtonGroup>
+                    <CopyBudgetDialog currentMonth={budgetPeriod} />
+                    <ButtonGroupSeparator />
+                    <Button asChild>
+                        <Link to={transactionsListPath} target={"_blank"}>
+                            Zobacz transakcje
+                        </Link>
+                    </Button>                    
+                </ButtonGroup>
             </div>
 
             {(budgetQuery.isLoading || budgetSuggestionsQuery.isLoading) &&

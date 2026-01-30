@@ -14,7 +14,7 @@ namespace MW.TinyMoney.Api.Transaction
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
-            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId);
+            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -100,10 +100,8 @@ namespace MW.TinyMoney.Api.Transaction
                 t.modified_date AS 'modifiedDate',
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
-                t.subcategory_id AS 'subcategoryId',
-                tt.tag_id AS 'tagId'
+                t.subcategory_id AS 'subcategoryId'
             FROM transaction t
-            LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
             WHERE 
                 (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
                 AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
@@ -112,13 +110,19 @@ namespace MW.TinyMoney.Api.Transaction
                 AND (@amountTo IS NULL OR t.amount <= @amountTo)
                 AND (@vendorId IS NULL OR t.vendor_id = @vendorId)
                 AND (@subcategoryId IS NULL OR t.subcategory_id = @subcategoryId)
+                AND (@tagId IS NULL OR EXISTS(SELECT 1 FROM transaction_tag tte WHERE tte.transaction_id = t.id AND tte.tag_id = @tagId))
             ORDER BY t.transaction_date
             LIMIT @transactionsLimit";
 
         private const string DeleteTransactionQuery =
             @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId; 
               DELETE FROM transaction WHERE id = @transactionId;";
-        
+
+        private const string GetTagsForTransactions = 
+            @"SELECT transaction_id AS transactionId, tag_id AS tagId 
+              FROM transaction_tag 
+              WHERE transaction_id in @transactionIds";
+
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -202,33 +206,15 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
         
-        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
-            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId)
+        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom,
+            DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
 
-                var transactionsDictionary = new Dictionary<int, Transaction.ApiModels.Transaction>();
-
-                await connection.QueryAsync<Transaction.ApiModels.Transaction, int?, Transaction.ApiModels.Transaction>(
-                    GetTransactionsQuery,
-                    (transaction, tagId) =>
-                    {
-                        if (!transactionsDictionary.TryGetValue(transaction.Id, out var transactionEntry))
-                        {
-                            transactionEntry = transaction;
-                            transactionEntry.TagIds = new List<int>();
-                            transactionsDictionary.Add(transaction.Id, transactionEntry);
-                        }
-
-                        if (tagId.HasValue)
-                        {
-                            transactionEntry.TagIds.Add(tagId.Value);                            
-                        }
-                        
-                        return transactionEntry;
-                    }, new
+                var transactions = (await connection.QueryAsync<Transaction.ApiModels.Transaction>(
+                    GetTransactionsQuery, new
                     {
                         dateFrom, dateTo, 
                         isExpense = isExpense,
@@ -236,10 +222,23 @@ namespace MW.TinyMoney.Api.Transaction
                         amountTo = amountTo,
                         vendorId = vendorId,
                         subcategoryId = subcategoryId,
+                        tagId = tagId,
                         TransactionsLimit
-                    }, splitOn: "tagId");
+                    })).ToList();
 
-                return transactionsDictionary.Values;
+                var transactionsTags = (await connection.QueryAsync<(int transactionId, int tagId)>(
+                    GetTagsForTransactions, new
+                    {
+                        transactionIds = transactions.Select(t => t.Id)
+                    })).ToList();
+
+                foreach (var transaction in transactions)
+                {
+                    transaction.TagIds = transactionsTags.Where(t => t.transactionId == transaction.Id)
+                        .Select(t => t.tagId).ToList();
+                }
+                
+                return transactions;
             }
         }
 
