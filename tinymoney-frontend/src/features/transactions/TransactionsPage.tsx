@@ -199,7 +199,7 @@ export function TransactionsPage() {
                     </ul>
                 </AlertDescription>
             </Alert>)}
-            {(transactionsQuery.data?.length == 1000 && <Alert className="mb-6" variant="destructive">
+            {(transactionsQuery.data?.transactions.length == 1000 && <Alert className="mb-6" variant="destructive">
                 <AlertCircleIcon />
                 <AlertTitle>Osiągnięto limit znalezionych transakcji.</AlertTitle>
                 <AlertDescription>

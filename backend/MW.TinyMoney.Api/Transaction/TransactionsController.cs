@@ -25,6 +25,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpGet("")]
+        [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
             [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId)
         {
@@ -43,7 +44,17 @@ namespace MW.TinyMoney.Api.Transaction
                 var transactions = await _transactionStore.GetTransactions(
                     dateFrom, dateTo, isExpense, amountFrom, amountTo,
                     vendorId, subcategoryId);
-                return Ok(transactions);
+                return Ok(new TransactionsResponse
+                {
+                    Transactions = transactions,
+                    Summary = new TransactionsSummary()
+                    {
+                        IncomesTotal = transactions.Where(t => !t.IsExpense).Sum(t => t.Amount),
+                        IncomesCount = transactions.Count(t => !t.IsExpense),
+                        ExpensesTotal = transactions.Where(t => t.IsExpense).Sum(t => t.Amount),
+                        ExpensesCount = transactions.Count(t => t.IsExpense)
+                    }
+                });
             }
         }
         

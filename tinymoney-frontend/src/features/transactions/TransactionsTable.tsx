@@ -1,4 +1,4 @@
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
+import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -8,11 +8,11 @@ import {
     DropdownMenuGroup, DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
-import type {Subcategories, Tag, Transaction, Vendor} from "@/lib/api.ts";
+import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/lib/api.ts";
 import {Curr} from "@/components/Curr.tsx";
 
 interface TransactionsTableProps {
-    transactions: Transaction[];
+    transactions: TransactionsResponse;
     vendors: Vendor[];
     subcategories: Subcategories,
     tags: Tag[],
@@ -50,7 +50,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {transactions.map((t) => (
+                {transactions.transactions.map((t) => (
                     <TableRow key={t.id}>
                         <TableCell>
                             {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
@@ -93,6 +93,20 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                     </TableRow>
                 ))}
             </TableBody>
+            <TableFooter>
+                {transactions.summary.expensesCount > 0 && <TableRow>
+                    <TableCell className="text-right" colSpan={5}>Razem - wydatki ({transactions.summary.expensesCount})</TableCell>
+                    <TableCell className="text-right"><Curr input={transactions.summary.expensesTotal} colored isPositive={false} /></TableCell>
+                </TableRow>}
+                {transactions.summary.incomesCount > 0 && <TableRow>
+                    <TableCell className="text-right" colSpan={5}>Razem - przychody ({transactions.summary.incomesCount})</TableCell>
+                    <TableCell className="text-right"><Curr input={transactions.summary.incomesTotal} colored /></TableCell>
+                </TableRow>}
+                {transactions.summary.expensesCount > 0 && transactions.summary.incomesCount > 0 && <TableRow>
+                    <TableCell className="text-right" colSpan={5}>Bilans ({transactions.summary.expensesCount + transactions.summary.incomesCount})</TableCell>
+                    <TableCell className="text-right"><Curr input={transactions.summary.balance} colored /></TableCell>
+                </TableRow>}
+            </TableFooter>
         </Table>
     </div>
     );
