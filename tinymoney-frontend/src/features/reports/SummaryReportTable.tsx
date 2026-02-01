@@ -36,10 +36,11 @@ export function SummaryReportTable({budgetPeriod, reportPeriods}: BudgetTablePro
                     </TableRow>
                     <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
                         <TableCell>Budżet</TableCell>
+                        {/*nie pokazywać per rok*/}
                         {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500}/></TableCell>))}
-                        <TableCell><Curr input={500}/></TableCell>
-                        <TableCell><Curr input={500}/></TableCell>
+                            <TableCell className="text-right"><Curr input={500} colored/></TableCell>))}
+                        <TableCell><Curr input={500} colored/></TableCell>
+                        <TableCell><Curr input={500} colored/></TableCell>
                     </TableRow>
                     <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
                         <TableCell>Wydatki</TableCell>
@@ -51,9 +52,9 @@ export function SummaryReportTable({budgetPeriod, reportPeriods}: BudgetTablePro
                     <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
                         <TableCell>Blians</TableCell>
                         {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500}/></TableCell>))}
-                        <TableCell><Curr input={500}/></TableCell>
-                        <TableCell><Curr input={500}/></TableCell>
+                            <TableCell className="text-right"><Curr input={500} colored/></TableCell>))}
+                        <TableCell><Curr input={500} colored/></TableCell>
+                        <TableCell><Curr input={500} colored/></TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

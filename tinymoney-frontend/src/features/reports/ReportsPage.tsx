@@ -125,10 +125,34 @@ export function ReportsPage() {
                         </Card>
                     </div>
                     <h2 className="text-xl font-bold">Podsumowanie</h2>
+                    <div>
+                        <ul>
+                            <li>Miesiące: Wykres: liniowy: x: miesiąc, y: przychody, wydatki, budżet, bilans
+                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
+                            <li>Lata: Wykres: liniowy: x: rok, y: przychody, wydatki, bilans
+                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
+                        </ul>
+                    </div>
                     <SummaryReportTable budgetPeriod={budgetPeriod} reportPeriods={reportPeriods} />
                     <h2 className="text-xl font-bold">Przychody</h2>
+                    <div>
+                        <ul>
+                            <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
+                            <li>Wykres: słupkowy: x: miesiąc lub rok, y: słupki kategorii w danym miesiącu;
+                                Rozbicia na podkategorie?
+                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
+                        </ul>
+                    </div>
                     <CategoriesReportTable categories={categoriesQuery.data.filter(c => c.isIncome)} budgetPeriod={budgetPeriod} reportPeriods={reportPeriods} />
                     <h2 className="text-xl font-bold">Wydatki</h2>
+                    <div>
+                        <ul>
+                            <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
+                            <li>Wykres: słupkowy: x: miesiąc lub rok, y: słupki kategorii w danym miesiącu; 
+                                Rozbicia na podkategorie?
+                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
+                        </ul>
+                    </div>
                     <CategoriesReportTable categories={categoriesQuery.data.filter(c => !c.isIncome)} budgetPeriod={budgetPeriod} reportPeriods={reportPeriods} />
                 </>
             }
