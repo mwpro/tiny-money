@@ -1,11 +1,12 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {Budget, Category, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
+import type {Category} from "@/lib/api.ts";
 import {Fragment} from "react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {Link} from "react-router-dom";
 import {endOfMonth, format, startOfMonth} from "date-fns";
 import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface BudgetTableProps {
     categories: Category[],
@@ -48,8 +49,23 @@ export function CategoriesReportTable({categories, budgetPeriod, reportPeriods}:
                                             </Link>
                                             {subcategory.name}
                                         </TableCell>
-                                        {reportPeriods.map(() => (<TableCell className="text-right"><Curr input={125}
-                                                                                                   colored={false}/></TableCell>))}
+                                        {reportPeriods.map(() => (
+                                            <TableCell className="text-right">
+                                                <Tooltip>
+                                                    <TooltipTrigger className={"underline"} style={
+                                                        {
+                                                            "textDecorationStyle": "dashed",
+                                                            "textDecorationColor": 100 ? "var(--chart-2)": "var(--color-destructive)"
+                                                        }
+                                                    }>
+                                                        <Curr input={125} colored={false}/>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side={"bottom"} className={"font-mono"}>
+                                                        <p>+<Curr input={12} /> (+12%) r/r</p>
+                                                        <p>2024: <Curr input={125} /></p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TableCell>))}
                                         <TableCell><Curr input={125} colored={false}/></TableCell>
                                         <TableCell><Curr input={125} colored={false}/></TableCell>
                                     </TableRow>
