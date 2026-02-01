@@ -14,7 +14,7 @@ interface BudgetTableProps {
 }
 
 export function CategoriesReportTable({categories, budgetPeriod}: BudgetTableProps) {
-    const [showSubcategories, setShowSubcategories] = useState(true)
+    const [showSubcategories, setShowSubcategories] = useState(false)
     const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
     const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
     

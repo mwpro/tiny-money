@@ -352,9 +352,12 @@ export const saveBudget = async (month: MonthSelection, subcategoryId: number, a
     }
 }
 
-export const getCategoriesReport = async (auth: Auth0ContextInterface): Promise<CategoriesReport> => {
+export const getCategoriesReport = async (auth: Auth0ContextInterface, splitByMonth: boolean): Promise<CategoriesReport> => {
     const token = await auth.getAccessTokenSilently();
-    const res = await fetch(`${API_URL}/reports/categories-report`, {
+    const queryParams = new URLSearchParams();
+    queryParams.append('splitByMonth', splitByMonth ? "true" : "false");
+
+    const res = await fetch(`${API_URL}/reports/categories-report?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }

@@ -1,16 +1,19 @@
 import {useAuth0} from "@auth0/auth0-react";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
-import {useEffect, useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getCategoriesReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {parse} from "date-fns";
 import {CategoriesReportTable} from "@/features/reports/CategoriesReportTable.tsx";
 import {SummaryReportTable} from "@/features/reports/SummaryReportTable.tsx";
+import {ButtonGroup} from "@/components/ui/button-group.tsx";
+import {Button} from "@/components/ui/button.tsx";
 
 export function ReportsPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [splitByMonth, setSplitByMonth] = useState(false);
 
     const handlePeriodChange = (newPeriod: MonthSelection) => {
         setSearchParams({ budgetPeriod: `${newPeriod.year}-${String(newPeriod.month).padStart(2, '0')}` });
@@ -32,8 +35,8 @@ export function ReportsPage() {
     }, [budgetPeriod]);
 
     const reportQuery = useQuery({
-        queryKey: ['categoriesReport', budgetPeriod],
-        queryFn: () => getCategoriesReport(auth)
+        queryKey: ['categoriesReport', budgetPeriod, splitByMonth],
+        queryFn: () => getCategoriesReport(auth, splitByMonth)
     })
 
     return (
@@ -44,6 +47,11 @@ export function ReportsPage() {
 
             <div className="flex flex-row gap-3 mb-6 justify-between">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
+                <ButtonGroup>
+                    <Button onClick={() => setSplitByMonth(prevState => !prevState)}>
+                        Przęłącz na poziom {splitByMonth ? "roku" : "miesiąca"}
+                    </Button>
+                </ButtonGroup>
             </div>
 
             {(reportQuery.isLoading) &&
