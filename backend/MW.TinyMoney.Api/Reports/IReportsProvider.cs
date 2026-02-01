@@ -2,6 +2,7 @@
 using Dapper;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports
@@ -9,22 +10,32 @@ namespace MW.TinyMoney.Api.Reports
     public interface IReportsProvider
     {
         Dictionary<int, IEnumerable<int>> GetAvailableMonths();
+
         IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareIncomeBreakdownReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(
             IEnumerable<DateTime> reportParametersMonths);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(
             DateTime reportParametersMonth);
+
         IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(
             IEnumerable<DateTime> reportParametersMonths);
+
+        Task<CategoriesReportModel> PrepareCategoriesReport();
     }
 
     public class ReportQueryResult<TValue>
@@ -79,7 +90,7 @@ namespace MW.TinyMoney.Api.Reports
                        DATE_FORMAT(transaction_date, '%Y-%m'),
                        sc.parent_category_id
                 ORDER BY transaction_date";
-        
+
         private const string CategoriesBreakdownReportQuery =
             @"SELECT
                    sc.parent_category_id AS `xLabel`,
@@ -90,7 +101,7 @@ namespace MW.TinyMoney.Api.Reports
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1 
             GROUP BY sc.parent_category_id
             ORDER BY value DESC";
-        
+
         private const string IncomeBreakdownReportQuery =
             @"SELECT
                     sc.id AS `xLabel`,
@@ -101,7 +112,7 @@ namespace MW.TinyMoney.Api.Reports
                 WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 0
                 GROUP BY sc.id
                 ORDER BY value DESC";
-        
+
         private const string TopVendorsReportQuery =
             @"SELECT
                    t.vendor_id AS `xLabel`,
@@ -112,7 +123,7 @@ namespace MW.TinyMoney.Api.Reports
             GROUP BY t.vendor_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
-        
+
         private const string TopTagsReportQuery =
             @"SELECT
                 tt.tag_id AS `xLabel`,
@@ -124,7 +135,7 @@ namespace MW.TinyMoney.Api.Reports
             GROUP BY tt.tag_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
-        
+
         private const string BudgetBurndownQuery =
             @"SELECT SUM(amount) AS 'budget'
                 FROM budget b
@@ -138,7 +149,7 @@ namespace MW.TinyMoney.Api.Reports
                 GROUP BY DATE_FORMAT(transaction_date, '%Y-%m-%d')
                 ORDER BY STR_TO_DATE(xLabel, '%Y-%m-%d');";
 
-        private const string TotalsReportQuery = 
+        private const string TotalsReportQuery =
             @"SELECT (IF(is_expense = 1, 'expensesSum', 'incomesSum')) AS `series`,
                    SUM(amount) AS `value`
             FROM transaction t
@@ -161,11 +172,11 @@ namespace MW.TinyMoney.Api.Reports
                 connection.Open();
                 var queryResult = connection.Query(GetAvailableMonthsQuery);
                 return queryResult.GroupBy(x => x.year)
-                    .ToDictionary(x => (int)x.Key, 
+                    .ToDictionary(x => (int)x.Key,
                         x => x.Select(v => (int)v.month));
             }
         }
-        
+
         public IEnumerable<ReportQueryResult<decimal>> PrepareExpensesByMonthReport(
             IEnumerable<DateTime> reportParametersMonths)
         {
@@ -179,7 +190,8 @@ namespace MW.TinyMoney.Api.Reports
             }
         }
 
-        public IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(IEnumerable<DateTime> reportParametersMonths)
+        public IEnumerable<ReportQueryResult<decimal>> PrepareMonthsSummaryReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -190,8 +202,9 @@ namespace MW.TinyMoney.Api.Reports
                 });
             }
         }
-        
-        public IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(IEnumerable<DateTime> reportParametersMonths)
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareCategoriesBreakdownReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -203,7 +216,8 @@ namespace MW.TinyMoney.Api.Reports
             }
         }
 
-        public IEnumerable<ReportQueryResult<decimal>> PrepareIncomeBreakdownReport(IEnumerable<DateTime> reportParametersMonths)
+        public IEnumerable<ReportQueryResult<decimal>> PrepareIncomeBreakdownReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -215,7 +229,8 @@ namespace MW.TinyMoney.Api.Reports
             }
         }
 
-        public IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(IEnumerable<DateTime> reportParametersMonths)
+        public IEnumerable<ReportQueryResult<decimal>> PrepareTopVendorsReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -226,8 +241,9 @@ namespace MW.TinyMoney.Api.Reports
                 });
             }
         }
-        
-        public IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(IEnumerable<DateTime> reportParametersMonths)
+
+        public IEnumerable<ReportQueryResult<decimal>> PrepareTopTagsReport(
+            IEnumerable<DateTime> reportParametersMonths)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -251,18 +267,118 @@ namespace MW.TinyMoney.Api.Reports
             }
         }
 
+        private class CategoriesReportQueryResult
+        {
+            public string Period { get; set; }
+            public bool IsIncome => !IsExpense;
+            public bool IsExpense { get; set; }
+            public int CategoryId { get; set; }
+            public string CategoryName { get; set; }
+            public int SubcategoryId { get; set; }
+            public string SubcategoryName { get; set; }
+            public decimal TransactionsSum { get; set; }
+        }
+
+        public async Task<CategoriesReportModel> PrepareCategoriesReport()
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(@"
+                    select concat(year(transaction_date), '-', lpad(month(transaction_date), 2, '0')) as 'period', is_expense as 'isExpense', 
+                           c.id as 'categoryId', c.name as 'categoryName', 
+                           s.id as 'subcategoryId', s.name as 'subcategoryName',
+                           sum(amount) as 'transactionsSum'
+                    from transaction t
+                    left join subcategory s ON t.subcategory_id = s.id
+                    left join category c ON s.parent_category_id = c.id
+                    group by year(transaction_date), month(transaction_date), t.is_expense, subcategory_id
+                    order by categoryId, subcategoryId, period;");
+            var result = new CategoriesReportModel();
+
+            result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))
+                .Select(category =>
+                {
+                    var categoryInfo = category.First();
+                    var periodsOnCategoryLevel = category.GroupBy(c => c.Period)
+                        .Select(p => new ReportPeriodCategory()
+                        {
+                            PeriodLabel = p.Key,
+                            TransactionsSum = p.Sum(t => t.TransactionsSum)
+                        });
+                    var subcategories = category.GroupBy(c => c.SubcategoryId)
+                        .Select(subcategory =>
+                        {
+                            var subcategoryInfo = subcategory.First();
+                            var periodsOnSubcategoryLevel = subcategory.GroupBy(c => c.Period)
+                                .Select(p => new ReportPeriodSubcategory()
+                                {
+                                    PeriodLabel = p.Key,
+                                    TransactionsSum = p.Sum(t => t.TransactionsSum)
+                                });
+                            return new ReportSubcategory()
+                            {
+                                SubcategoryId = subcategoryInfo.SubcategoryId,
+                                SubcategoryName = subcategoryInfo.SubcategoryName,
+                                TransactionsSum = periodsOnSubcategoryLevel.Sum(p => p.TransactionsSum),
+                                TransactionsAvg = periodsOnSubcategoryLevel.Average(p => p.TransactionsSum),
+                                Periods = periodsOnSubcategoryLevel
+                            };
+                        });
+
+                    return new ReportCategory()
+                    {
+                        CategoryId = categoryInfo.CategoryId,
+                        CategoryName = categoryInfo.CategoryName,
+                        IsIncome = categoryInfo.IsIncome,
+                        Periods = periodsOnCategoryLevel,
+                        Subcategories = subcategories,
+                        TransactionsSum = periodsOnCategoryLevel.Sum(p => p.TransactionsSum),
+                        TransactionsAvg = periodsOnCategoryLevel.Average(p => p.TransactionsSum)
+                    };
+                });
+
+            result.Periods = queryResults.GroupBy(r => r.Period)
+                .Select(p =>
+                {
+                    var expensesSum = p.Where(x => !x.IsIncome).Sum(x => x.TransactionsSum);
+                    var incomesSum = p.Where(x => x.IsIncome).Sum(x => x.TransactionsSum);
+
+                    return new ReportPeriod()
+                    {
+                        PeriodLabel = p.Key,
+                        ExpensesSum = expensesSum,
+                        IncomesSum = incomesSum,
+                        Balance = incomesSum - expensesSum,
+                        Budget = -1,
+                    };
+                });
+
+            result.BudgetAvg = -1; // todo budgets
+            result.BudgetSum = -1;
+            result.IncomesAvg = result.Periods.Average(p => p.IncomesSum);
+            result.IncomesSum = result.Periods.Sum(p => p.IncomesSum);
+            result.ExpensesAvg = result.Periods.Average(p => p.ExpensesSum);
+            result.ExpensesSum = result.Periods.Sum(p => p.ExpensesSum);
+            result.BalanceAvg = result.Periods.Average(p => p.Balance);
+            result.BalanceSum = result.Periods.Sum(p => p.Balance);
+
+            return result;
+        }
+
+
         public IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(DateTime reportParametersMonth)
         {
             const string seriesName = "budgetLeft";
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
-                using (var multiQuery = connection.QueryMultiple(BudgetBurndownQuery, 
+                using (var multiQuery = connection.QueryMultiple(BudgetBurndownQuery,
                            new { month = reportParametersMonth.ToString("yyyy-MM") }))
                 {
                     var monthlyBudget = multiQuery.ReadSingle<decimal>();
                     var expensesByDay = multiQuery.Read<ReportQueryResult<decimal>>();
-                    
+
                     var result = new List<ReportQueryResult<decimal>>
                     {
                         new()
@@ -283,7 +399,7 @@ namespace MW.TinyMoney.Api.Reports
                             Value = monthlyBudget
                         });
                     }
-                    
+
                     return result;
                 }
             }

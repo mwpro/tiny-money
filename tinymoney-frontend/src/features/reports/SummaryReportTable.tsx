@@ -1,60 +1,48 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {Budget, Category, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
-import {Fragment} from "react";
-import type {MonthSelection} from "@/components/MonthPicker.tsx";
-import {Link} from "react-router-dom";
-import {endOfMonth, format, startOfMonth} from "date-fns";
-import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
+import type {CategoriesReport} from "@/lib/api.ts";
 
 interface BudgetTableProps {
-    budgetPeriod: MonthSelection,
-    reportPeriods: string[]
+    reportData: CategoriesReport
 }
 
-export function SummaryReportTable({budgetPeriod, reportPeriods}: BudgetTableProps) {
-    const budgetPeriodReferenceDate = new Date(budgetPeriod.year, budgetPeriod.month - 1, 1);
-    const transactionsListPath = `/transactions?dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
+export function SummaryReportTable({reportData}: BudgetTableProps) {
     return (
         <div className="border rounded-md">
             <Table>
                 <TableHeader>
                     <TableRow>
                         <TableHead></TableHead>
-                        {reportPeriods.map(month => (<TableHead className="text-right">{month}</TableHead>))}
+                        {reportData.periods.map(period => (<TableHead className="text-right">{period.periodLabel}</TableHead>))}
                         <TableHead>Suma</TableHead>
                         <TableHead>Średnia</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
+                    <TableRow>
                         <TableCell>Przychody</TableCell>
-                        {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500} colored={false}/></TableCell>))}
-                        <TableCell><Curr input={500} colored={false}/></TableCell>
-                        <TableCell><Curr input={500} colored={false}/></TableCell>
+                        {reportData.periods.map(period => (<TableCell className="text-right"><Curr input={period.incomesSum}/></TableCell>))}
+                        <TableCell><Curr input={reportData.incomesSum}/></TableCell>
+                        <TableCell><Curr input={reportData.incomesAvg}/></TableCell>
                     </TableRow>
-                    <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
+                    <TableRow>
                         <TableCell>Budżet</TableCell>
-                        {/*nie pokazywać per rok*/}
-                        {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500} colored/></TableCell>))}
-                        <TableCell><Curr input={500} colored/></TableCell>
-                        <TableCell><Curr input={500} colored/></TableCell>
+                        {/*todo nie pokazywać per rok*/}
+                        {reportData.periods.map(period => (<TableCell className="text-right"><Curr input={period.budget} colored/></TableCell>))}
+                        <TableCell><Curr input={reportData.budgetSum}/></TableCell>
+                        <TableCell><Curr input={reportData.budgetAvg}/></TableCell>
                     </TableRow>
-                    <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
+                    <TableRow>
                         <TableCell>Wydatki</TableCell>
-                        {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500} colored={false}/></TableCell>))}
-                        <TableCell><Curr input={500} colored={false}/></TableCell>
-                        <TableCell><Curr input={500} colored={false}/></TableCell>
+                        {reportData.periods.map(period => (<TableCell className="text-right"><Curr input={period.expensesSum}/></TableCell>))}
+                        <TableCell><Curr input={reportData.expensesSum}/></TableCell>
+                        <TableCell><Curr input={reportData.expensesAvg}/></TableCell>
                     </TableRow>
-                    <TableRow className={`${!100 ? "text-gray-400" : ""}`}>
+                    <TableRow>
                         <TableCell>Blians</TableCell>
-                        {reportPeriods.map(() => (
-                            <TableCell className="text-right"><Curr input={500} colored/></TableCell>))}
-                        <TableCell><Curr input={500} colored/></TableCell>
-                        <TableCell><Curr input={500} colored/></TableCell>
+                        {reportData.periods.map(period => (<TableCell className="text-right"><Curr input={period.balance} colored/></TableCell>))}
+                        <TableCell><Curr input={reportData.balanceSum} colored/></TableCell>
+                        <TableCell><Curr input={reportData.balanceAvg} colored/></TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

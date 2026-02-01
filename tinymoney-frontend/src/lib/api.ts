@@ -87,6 +87,60 @@ export interface SubcategoryBudget {
     notes: string | undefined
 }
 
+export interface CategoriesReport {
+    categories: ReportCategory[]
+    periods: ReportPeriod[],
+    
+    budgetAvg: number,
+    budgetSum: number,
+    incomesAvg: number,
+    incomesSum: number,
+    expensesAvg: number,
+    expensesSum: number,
+    balanceAvg: number,
+    balanceSum: number
+}
+
+export interface ReportPeriod {
+    periodLabel: string,
+    
+    budget: number,
+    incomesSum: number,
+    expensesSum: number,
+    balance: number
+}
+
+export interface ReportCategory
+{
+    categoryId: number,
+    categoryName: string,
+    isIncome: boolean,
+    
+    transactionsSum: number,
+    transactionsAvg: number,
+    
+    periods: ReportPeriodCategory[],
+    subcategories: ReportSubcategory[]
+}
+
+export interface ReportPeriodCategory {
+    periodLabel: string,
+    transactionsSum: number
+}
+export interface ReportSubcategory {
+    subcategoryId: number,
+    subcategoryName: string,
+    
+    transactionsSum: number,
+    transactionsAvg: number,
+
+    periods: ReportPeriodSubcategory[],
+}
+export interface ReportPeriodSubcategory {
+    periodLabel: string,
+    transactionsSum: number
+}
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<TransactionsResponse> => {
@@ -297,3 +351,14 @@ export const saveBudget = async (month: MonthSelection, subcategoryId: number, a
         throw new Error('Błąd podczas zapisu budżetu');
     }
 }
+
+export const getCategoriesReport = async (auth: Auth0ContextInterface): Promise<CategoriesReport> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/reports/categories-report`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania raportu');
+    return res.json();
+};

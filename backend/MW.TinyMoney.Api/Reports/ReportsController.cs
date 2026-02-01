@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Transaction;
@@ -147,6 +148,15 @@ namespace MW.TinyMoney.Api.Reports
             var result = BuildReportModel(reportData);
 
             return Ok(result);
+        }
+
+        [HttpGet, Route("categories-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CategoriesReportModel))]
+        public async Task<IActionResult> GetCategoriesReport()
+        {
+            var reportData = await _reportsProvider.PrepareCategoriesReport();
+            
+            return Ok(reportData);
         }
 
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)
