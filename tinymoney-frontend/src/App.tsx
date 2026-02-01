@@ -1,4 +1,3 @@
-// src/App.tsx
 import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom"
 import { Layout } from "@/components/Layout"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
@@ -9,9 +8,7 @@ import {DashboardPage} from "@/features/dashboard/DashboardPage.tsx";
 import {Spinner} from "@/components/ui/spinner.tsx";
 import {AlertCircleIcon} from "lucide-react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-
-// Możesz stworzyć pusty komponent dla raportów na razie, żeby link działał
-const ReportsPage = () => <div className="text-center p-10 text-2xl">Tutaj będą wykresy 📈</div>
+import {ReportsPage} from "@/features/reports/ReportsPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
