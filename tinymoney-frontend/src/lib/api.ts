@@ -352,9 +352,13 @@ export const saveBudget = async (month: MonthSelection, subcategoryId: number, a
     }
 }
 
-export const getCategoriesReport = async (auth: Auth0ContextInterface, splitByMonth: boolean): Promise<CategoriesReport> => {
+export const getCategoriesReport = async (auth: Auth0ContextInterface, 
+                                          dateFrom: Date | undefined, dateTo: Date | undefined, 
+                                          splitByMonth: boolean): Promise<CategoriesReport> => {
     const token = await auth.getAccessTokenSilently();
     const queryParams = new URLSearchParams();
+    dateFrom && queryParams.append('dateFrom', format(dateFrom, "yyyy-MM-dd"));
+    dateTo && queryParams.append('dateTo', format(dateTo, "yyyy-MM-dd"));
     queryParams.append('splitByMonth', splitByMonth ? "true" : "false");
 
     const res = await fetch(`${API_URL}/reports/categories-report?${queryParams}`, {

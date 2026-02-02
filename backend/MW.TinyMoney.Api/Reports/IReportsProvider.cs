@@ -35,7 +35,7 @@ namespace MW.TinyMoney.Api.Reports
         IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(
             IEnumerable<DateTime> reportParametersMonths);
 
-        Task<CategoriesReportModel> PrepareCategoriesReport(bool splitByMonth);
+        Task<CategoriesReportModel> PrepareCategoriesReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
     }
 
     public class ReportQueryResult<TValue>
@@ -279,7 +279,7 @@ namespace MW.TinyMoney.Api.Reports
             public decimal TransactionsSum { get; set; }
         }
 
-        public async Task<CategoriesReportModel> PrepareCategoriesReport(bool splitByMonth)
+        public async Task<CategoriesReportModel> PrepareCategoriesReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
@@ -292,6 +292,8 @@ namespace MW.TinyMoney.Api.Reports
                     from transaction t
                     left join subcategory s ON t.subcategory_id = s.id
                     left join category c ON s.parent_category_id = c.id
+                    where (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
+                        AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
                     group by year(transaction_date), month(transaction_date), t.is_expense, subcategory_id
                     order by categoryId, subcategoryId, period;" :
                     @"select year(transaction_date) as 'period', is_expense as 'isExpense', 
@@ -301,9 +303,15 @@ namespace MW.TinyMoney.Api.Reports
                     from transaction t
                     left join subcategory s ON t.subcategory_id = s.id
                     left join category c ON s.parent_category_id = c.id
+                    where (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
+                        AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
                     group by year(transaction_date), t.is_expense, subcategory_id
                     order by categoryId, subcategoryId, period;";
-            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(sql);
+            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(sql,
+            new
+            {
+                dateFrom = dateFrom, dateTo = dateTo
+            });
             var result = new CategoriesReportModel();
 
             result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))

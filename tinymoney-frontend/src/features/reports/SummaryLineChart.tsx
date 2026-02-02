@@ -37,7 +37,6 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChartProps) {
-    console.log(reportPeriods);
     return (
         <Card>
             <CardContent>
