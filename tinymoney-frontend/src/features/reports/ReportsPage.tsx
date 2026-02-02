@@ -9,6 +9,7 @@ import {SummaryReportTable} from "@/features/reports/SummaryReportTable.tsx";
 import {SummaryLineChart} from "@/features/reports/SummaryLineChart.tsx";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
+import {CategoryBreakdownPieChart} from "@/features/reports/CategoryBreakdownPieChart.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -83,6 +84,7 @@ export function ReportsPage() {
                     <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
                     <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
                     <h2 className="text-xl font-bold">Przychody</h2>
+                    <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                     <div>
                         <ul>
                             <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
@@ -93,6 +95,7 @@ export function ReportsPage() {
                     </div>
                     <CategoriesReportTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
                     <h2 className="text-xl font-bold">Wydatki</h2>
+                    <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
                     <div>
                         <ul>
                             <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
