@@ -9,6 +9,7 @@ import {CategoriesReportTable} from "@/features/reports/CategoriesReportTable.ts
 import {SummaryReportTable} from "@/features/reports/SummaryReportTable.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {SummaryLineChart} from "@/features/reports/SummaryLineChart.tsx";
 
 export function ReportsPage() {
     const auth = useAuth0();
@@ -61,15 +62,8 @@ export function ReportsPage() {
             {reportQuery.data &&
                 <>
                     <h2 className="text-xl font-bold">Podsumowanie</h2>
-                    <div>
-                        <ul>
-                            <li>Miesiące: Wykres: liniowy: x: miesiąc, y: przychody, wydatki, budżet, bilans
-                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
-                            <li>Lata: Wykres: liniowy: x: rok, y: przychody, wydatki, bilans
-                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
-                        </ul>
-                    </div>
-                    <SummaryReportTable reportData={reportQuery.data} />
+                    <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={splitByMonth} />
+                    <SummaryReportTable reportData={reportQuery.data} splitByMonth={splitByMonth} />
                     <h2 className="text-xl font-bold">Przychody</h2>
                     <div>
                         <ul>
