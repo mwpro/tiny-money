@@ -15,7 +15,7 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                     <TableRow>
                         <TableHead></TableHead>
                         {reportData.periods.map(period => (
-                            <TableHead className="text-right">{period.periodLabel}</TableHead>))}
+                            <TableHead key={period.periodLabel} className="text-right">{period.periodLabel}</TableHead>))}
                         <TableHead>Suma</TableHead>
                         <TableHead>Średnia</TableHead>
                     </TableRow>
@@ -24,7 +24,7 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                     <TableRow>
                         <TableCell>Przychody</TableCell>
                         {reportData.periods.map(period => (
-                            <TableCell className="text-right"><Curr input={period.incomesSum}/></TableCell>))}
+                            <TableCell key={period.periodLabel} className="text-right"><Curr input={period.incomesSum}/></TableCell>))}
                         <TableCell><Curr input={reportData.incomesSum}/></TableCell>
                         <TableCell><Curr input={reportData.incomesAvg}/></TableCell>
                     </TableRow>
@@ -32,21 +32,21 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                         <TableCell>Budżet</TableCell>
                         {/*todo nie pokazywać per rok*/}
                         {reportData.periods.map(period => (
-                            <TableCell className="text-right"><Curr input={period.budget} colored/></TableCell>))}
+                            <TableCell key={period.periodLabel} className="text-right"><Curr input={period.budget} colored/></TableCell>))}
                         <TableCell><Curr input={reportData.budgetSum}/></TableCell>
                         <TableCell><Curr input={reportData.budgetAvg}/></TableCell>
                     </TableRow>}
                     <TableRow>
                         <TableCell>Wydatki</TableCell>
                         {reportData.periods.map(period => (
-                            <TableCell className="text-right"><Curr input={period.expensesSum}/></TableCell>))}
+                            <TableCell key={period.periodLabel} className="text-right"><Curr input={period.expensesSum}/></TableCell>))}
                         <TableCell><Curr input={reportData.expensesSum}/></TableCell>
                         <TableCell><Curr input={reportData.expensesAvg}/></TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Blians</TableCell>
                         {reportData.periods.map(period => (
-                            <TableCell className="text-right"><Curr input={period.balance} colored/></TableCell>))}
+                            <TableCell key={period.periodLabel} className="text-right"><Curr input={period.balance} colored/></TableCell>))}
                         <TableCell><Curr input={reportData.balanceSum} colored/></TableCell>
                         <TableCell><Curr input={reportData.balanceAvg} colored/></TableCell>
                     </TableRow>

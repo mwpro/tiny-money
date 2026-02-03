@@ -10,6 +10,7 @@ import {SummaryLineChart} from "@/features/reports/SummaryLineChart.tsx";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {CategoryBreakdownPieChart} from "@/features/reports/CategoryBreakdownPieChart.tsx";
+import {CategoryBreakdownBarChart} from "@/features/reports/CategoryBreakdownBarChart.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -84,25 +85,15 @@ export function ReportsPage() {
                     <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
                     <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
                     <h2 className="text-xl font-bold">Przychody</h2>
-                    <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
-                    <div>
-                        <ul>
-                            <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
-                            <li>Wykres: słupkowy: x: miesiąc lub rok, y: słupki kategorii w danym miesiącu;
-                                Rozbicia na podkategorie?
-                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
-                        </ul>
+                    <div className={"flex flex-row gap-4"}>
+                        <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
+                        <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                     </div>
                     <CategoriesReportTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
                     <h2 className="text-xl font-bold">Wydatki</h2>
-                    <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
-                    <div>
-                        <ul>
-                            <li>Wykres kołowy: per kategoria, po kliknięciu pokazuje podkategorie?</li>
-                            <li>Wykres: słupkowy: x: miesiąc lub rok, y: słupki kategorii w danym miesiącu; 
-                                Rozbicia na podkategorie?
-                                Czy na wykresie da się/chcemy pokazać zmiany r/r?</li>
-                        </ul>
+                    <div className={"flex flex-row gap-4"}>
+                        <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
+                        <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />                        
                     </div>
                     <CategoriesReportTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
                 </>

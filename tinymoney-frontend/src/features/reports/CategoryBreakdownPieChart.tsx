@@ -7,7 +7,7 @@ import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
-    type ChartConfig,
+    type ChartConfig, ChartLegend,
 } from "@/components/ui/chart"
 import type {ReportCategory} from "@/lib/api.ts";
 
@@ -23,13 +23,12 @@ export function CategoryBreakdownPieChart({categories}: CategoryBreakdownPieChar
         categories.length == 1 ? 
             categories.flatMap(c => c.subcategories).sort((a, b) => a.transactionsSum - b.transactionsSum).map((c, i) => ({...c, label: c.subcategoryName, fill: `var(--chart-${(i%5)+1})`})).sort(c => c.transactionsSum)
             : categories.sort((a, b) => a.transactionsSum - b.transactionsSum).map((c, i) => ({...c, label: c.categoryName, fill: `var(--chart-${(i%5)+1})`}));
-    console.log(sortedCategories);
     return (
-        <Card className="flex flex-col">
+        <Card className="flex flex-col flex-1">
             <CardContent className="flex-1 pb-0">
                 <ChartContainer
                     config={chartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
+                    className="mx-auto aspect-square"
                 >
                     <PieChart>
                         <ChartTooltip
@@ -43,6 +42,7 @@ export function CategoryBreakdownPieChart({categories}: CategoryBreakdownPieChar
                             innerRadius={60}
                             startAngle={-270}
                         />
+                        <ChartLegend  />
                     </PieChart>
                 </ChartContainer>
             </CardContent>

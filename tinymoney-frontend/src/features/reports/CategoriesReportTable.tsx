@@ -23,7 +23,7 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                     <TableRow>
                         <TableHead></TableHead>
                         {categories[0].periods.map(period => (
-                            <TableHead className="text-right">{period.periodLabel}</TableHead>))}
+                            <TableHead key={period.periodLabel} className="text-right">{period.periodLabel}</TableHead>))}
                         <TableHead>Suma</TableHead>
                         <TableHead>Średnia</TableHead>
                     </TableRow>
@@ -34,8 +34,9 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                             {categories.length > 1 && <TableRow key={category.categoryId}>
                                 <TableCell onClick={() => setShowSubcategories(v => !v)}
                                            className={`font-bold`}>{category.categoryName}</TableCell>
-                                {category.periods.map(period => (<TableCell className="text-right"><Curr
-                                    input={period.transactionsSum}/></TableCell>))}
+                                {category.periods.map(period => (<TableCell key={period.periodLabel} className="text-right">
+                                    <Curr input={period.transactionsSum}/>
+                                </TableCell>))}
                                 <TableCell><Curr input={category.transactionsSum}/></TableCell>
                                 <TableCell><Curr input={category.transactionsAvg}/></TableCell>
                             </TableRow>}
@@ -52,7 +53,7 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                                             {subcategory.subcategoryName}
                                         </TableCell>
                                         {subcategory.periods.map(period => (
-                                            <TableCell className="text-right">
+                                            <TableCell key={period.periodLabel} className="text-right">
                                                 <Tooltip>
                                                     <TooltipTrigger className={"underline"} style={
                                                         {
