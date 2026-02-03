@@ -19,6 +19,16 @@ interface CategoryBreakdownPieChartProps {
     categories: ReportCategory[]
 }
 
+export const SeriesColorPalette = [
+    "#2563eb", "#16a34a", "#dc2626", "#d97706", "#7c3aed",
+    "#0891b2", "#4b5563", "#db2777", "#ea580c", "#9333ea",
+    "#60a5fa", "#4ade80", "#f87171", "#fbbf24", "#a78bfa",
+    "#22d3ee", "#9ca3af", "#f472b6", "#fb923c", "#c084fc",
+    "#1e40af", "#166534", "#991b1b", "#92400e", "#5b21b6",
+    "#155e75", "#1f2937", "#9d174d", "#9a3412", "#6b21a8"
+];
+
+
 export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChartProps) {
     let chartData: { [p: string]: any }[];
     let categoryNames: string[];
@@ -49,15 +59,6 @@ export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChar
         categoryNames = categories.map(cat => cat.categoryName);
     }
     const [activeCategories, setActiveCategories] = useState(categoryNames);
-    const COLORS = [
-        "#2563eb", "#16a34a", "#dc2626", "#d97706", "#7c3aed",
-        "#0891b2", "#4b5563", "#db2777", "#ea580c", "#9333ea",
-        "#60a5fa", "#4ade80", "#f87171", "#fbbf24", "#a78bfa",
-        "#22d3ee", "#9ca3af", "#f472b6", "#fb923c", "#c084fc",
-        "#1e40af", "#166534", "#991b1b", "#92400e", "#5b21b6",
-        "#155e75", "#1f2937", "#9d174d", "#9a3412", "#6b21a8"
-    ];
-    
     return (
         <Card className={"flex-2"}>
             <CardContent>
@@ -73,7 +74,6 @@ export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChar
                         <YAxis />
                         <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                         <ChartLegend onClick={(d, _, e) => {
-                            console.log(e);
                             const categoryKey = d.dataKey;
                             if (!categoryKey || typeof categoryKey !== "string") {
                                 return;
@@ -99,7 +99,7 @@ export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChar
                                 dataKey={categoryName}
                                 stackId="a"
                                 name={categoryName}
-                                fill={COLORS[index % COLORS.length]}
+                                fill={SeriesColorPalette[index % SeriesColorPalette.length]}
                             />
                         ))}
                     </BarChart>

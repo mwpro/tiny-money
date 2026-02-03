@@ -10,6 +10,7 @@ import {
     type ChartConfig, ChartLegend,
 } from "@/components/ui/chart"
 import type {ReportCategory} from "@/lib/api.ts";
+import {SeriesColorPalette} from "@/features/reports/CategoryBreakdownBarChart.tsx";
 
 const chartConfig = {
 } satisfies ChartConfig
@@ -21,8 +22,12 @@ interface CategoryBreakdownPieChartProps {
 export function CategoryBreakdownPieChart({categories}: CategoryBreakdownPieChartProps) {
     const sortedCategories = 
         categories.length == 1 ? 
-            categories.flatMap(c => c.subcategories).sort((a, b) => a.transactionsSum - b.transactionsSum).map((c, i) => ({...c, label: c.subcategoryName, fill: `var(--chart-${(i%5)+1})`})).sort(c => c.transactionsSum)
-            : categories.sort((a, b) => a.transactionsSum - b.transactionsSum).map((c, i) => ({...c, label: c.categoryName, fill: `var(--chart-${(i%5)+1})`}));
+            categories.flatMap(c => c.subcategories)
+                .map((c, index) => ({...c, label: c.subcategoryName, fill: SeriesColorPalette[index % SeriesColorPalette.length]}))
+                .sort((a, b) => a.transactionsSum - b.transactionsSum)
+            : categories
+                .map((c, index) => ({...c, label: c.categoryName, fill: SeriesColorPalette[index % SeriesColorPalette.length]}))
+                .sort((a, b) => a.transactionsSum - b.transactionsSum);
     return (
         <Card className="flex flex-col flex-1">
             <CardContent className="flex-1 pb-0">
