@@ -81,21 +81,29 @@ export function ReportsPage() {
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {reportQuery.data &&
                 <>
-                    <h2 className="text-xl font-bold">Podsumowanie</h2>
-                    <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
-                    <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
-                    <h2 className="text-xl font-bold">Przychody</h2>
-                    <div className={"flex flex-row gap-4"}>
-                        <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
-                        <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
+                    <div className="mb-6">
+                        <h2 className="text-xl font-bold mb-3">Podsumowanie</h2>
+                        <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
+                        <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
                     </div>
-                    <CategoriesReportTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
-                    <h2 className="text-xl font-bold">Wydatki</h2>
-                    <div className={"flex flex-row gap-4"}>
-                        <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
-                        <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />                        
+                    
+                    <div className="mb-6">
+                        <h2 className="text-xl font-bold mb-3">Przychody</h2>
+                        <div className={"flex flex-row gap-4 mb-3"}>
+                            <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
+                            <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
+                        </div>
+                        <CategoriesReportTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
                     </div>
-                    <CategoriesReportTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
+                    
+                    <div className="mb-6">
+                        <h2 className="text-xl font-bold mb-3">Wydatki</h2>
+                        <div className={"flex flex-row gap-4 mb-3"}>
+                            <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
+                            <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />                        
+                        </div>
+                        <CategoriesReportTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
+                    </div>
                 </>
             }
         </div>

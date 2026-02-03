@@ -38,7 +38,7 @@ const chartConfig = {
 
 export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChartProps) {
     return (
-        <Card>
+        <Card className={"mb-3"}>
             <CardContent>
                 <ChartContainer config={chartConfig} className={"max-h-80 w-full"}>
                     <LineChart
