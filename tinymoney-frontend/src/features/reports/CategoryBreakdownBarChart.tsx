@@ -20,17 +20,34 @@ interface CategoryBreakdownPieChartProps {
 }
 
 export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChartProps) {
-    const chartData = Array.from(
-        new Set(categories.flatMap(cat => cat.periods.map(p => p.periodLabel)))
-    ).sort().map(period => {
-        const row: {[index: string]:any} = { periodLabel: period };
-        categories.forEach(category => {
-            const periodData = category.periods.find(p => p.periodLabel === period);
-            row[category.categoryName] = periodData ? periodData.transactionsSum : 0;
+    let chartData: { [p: string]: any }[];
+    let categoryNames: string[];
+    if (categories.length == 1) {
+        const subcategories = categories[0].subcategories;
+        chartData = Array.from(
+            new Set(subcategories.flatMap(cat => cat.periods.map(p => p.periodLabel)))
+        ).sort().map(period => {
+            const row: {[index: string]:any} = { periodLabel: period };
+            subcategories.forEach(category => {
+                const periodData = category.periods.find(p => p.periodLabel === period);
+                row[category.subcategoryName] = periodData ? periodData.transactionsSum : 0;
+            });
+            return row;
         });
-        return row;
-    });
-    const categoryNames = categories.map(cat => cat.categoryName);
+        categoryNames = subcategories.map(cat => cat.subcategoryName);
+    } else {
+        chartData = Array.from(
+            new Set(categories.flatMap(cat => cat.periods.map(p => p.periodLabel)))
+        ).sort().map(period => {
+            const row: {[index: string]:any} = { periodLabel: period };
+            categories.forEach(category => {
+                const periodData = category.periods.find(p => p.periodLabel === period);
+                row[category.categoryName] = periodData ? periodData.transactionsSum : 0;
+            });
+            return row;
+        });
+        categoryNames = categories.map(cat => cat.categoryName);
+    }
     const [activeCategories, setActiveCategories] = useState(categoryNames);
     const COLORS = [
         "#2563eb", "#16a34a", "#dc2626", "#d97706", "#7c3aed",
