@@ -14,8 +14,8 @@ interface BudgetTableProps {
 }
 
 export function CategoriesReportTable({categories, reportSettings}: BudgetTableProps) {
-    const [showSubcategories, setShowSubcategories] = useState(false)
-
+    const [expandedCategory, setExpandedCategory] = useState<number | undefined>(undefined);
+    
     return (
         <div className="border rounded-md">
             <Table>
@@ -32,7 +32,7 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                     {categories.map((category) => (
                         <Fragment key={category.categoryId}>
                             {categories.length > 1 && <TableRow key={category.categoryId}>
-                                <TableCell onClick={() => setShowSubcategories(v => !v)}
+                                <TableCell onClick={() => setExpandedCategory(prev => prev !== category.categoryId ? category.categoryId : undefined)}
                                            className={`font-bold`}>{category.categoryName}</TableCell>
                                 {category.periods.map(period => (<TableCell key={period.periodLabel} className="text-right">
                                     <Curr input={period.transactionsSum}/>
@@ -40,7 +40,7 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                                 <TableCell><Curr input={category.transactionsSum}/></TableCell>
                                 <TableCell><Curr input={category.transactionsAvg}/></TableCell>
                             </TableRow>}
-                            {(categories.length == 1 || showSubcategories) && category.subcategories.map(subcategory => {
+                            {(categories.length == 1 || expandedCategory == category.categoryId) && category.subcategories.map(subcategory => {
                                 const transactionsListPath = `/transactions?subcategoryId=${subcategory.subcategoryId}`
                                 return (
                                     <TableRow key={`${category.categoryId}-${subcategory.subcategoryId}`}>
