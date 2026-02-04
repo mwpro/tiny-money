@@ -79,17 +79,18 @@ export function CategoryBreakdownBarChart({categories}: CategoryBreakdownPieChar
                                 return;
                             }
                             
-                            setActiveCategories(prev => {
+                            setActiveCategories(prev => { 
                                 if (e.ctrlKey) {
-                                    return [categoryKey];
+                                    if (prev.includes(categoryKey)) {
+                                        return prev.filter(c => c !== categoryKey);
+                                    } else {
+                                        return [...prev, categoryKey]
+                                    }
                                 }
-                                if (prev.length == 1 && prev.includes(categoryKey))
+                                if (prev.includes(categoryKey) && prev.length == 1) {
                                     return categoryNames;
-                                if (prev.includes(categoryKey)) {
-                                    return prev.filter(el => el !== categoryKey);
-                                } else {
-                                    return [...prev, categoryKey];
-                                }
+                                } 
+                                return [categoryKey];
                             });
                         }} />
                         {categoryNames.map((categoryName, index) => (
