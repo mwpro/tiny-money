@@ -165,6 +165,37 @@ namespace MW.TinyMoney.Api.Reports
                   GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense) byMonth
             GROUP BY series;";
 
+        private const string CategoriesReportQuery = @"WITH periods AS (
+                    SELECT DISTINCT DATE_FORMAT(transaction_date, @periodPattern) AS period_name
+                    FROM transaction
+                    WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                ),
+                    all_combinations AS (
+                         SELECT p.period_name, c.id AS catId, c.is_income as isIncome, c.name AS catName, s.id AS subId, s.name AS subName
+                         FROM periods p
+                                  CROSS JOIN category c
+                                  JOIN subcategory s ON s.parent_category_id = c.id
+                     ),
+                     monthly_sums AS (
+                         SELECT
+                             DATE_FORMAT(transaction_date, @periodPattern) AS period_name,
+                             subcategory_id,
+                             SUM(amount) AS total_amount
+                         FROM transaction
+                         WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                           AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                         GROUP BY period_name, subcategory_id
+                     )
+                SELECT
+                    ac.period_name AS 'period',
+                    ac.catId AS 'categoryId', ac.isIncome AS 'isIncome', ac.catName AS 'categoryName',
+                    ac.subId AS 'subcategoryId', ac.subName AS 'subcategoryName',
+                    COALESCE(ms.total_amount, 0) AS 'transactionsSum'
+                FROM all_combinations ac
+                         LEFT JOIN monthly_sums ms ON ac.period_name = ms.period_name AND ac.subId = ms.subcategory_id
+                ORDER BY period, categoryId, subcategoryId;";
+
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -270,8 +301,7 @@ namespace MW.TinyMoney.Api.Reports
         private class CategoriesReportQueryResult
         {
             public string Period { get; set; }
-            public bool IsIncome => !IsExpense;
-            public bool IsExpense { get; set; }
+            public bool IsIncome { get; set; }
             public int CategoryId { get; set; }
             public string CategoryName { get; set; }
             public int SubcategoryId { get; set; }
@@ -284,33 +314,10 @@ namespace MW.TinyMoney.Api.Reports
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            var sql = splitByMonth ? @"
-                    select concat(year(transaction_date), '-', lpad(month(transaction_date), 2, '0')) as 'period', is_expense as 'isExpense', 
-                           c.id as 'categoryId', c.name as 'categoryName', 
-                           s.id as 'subcategoryId', s.name as 'subcategoryName',
-                           sum(amount) as 'transactionsSum'
-                    from transaction t
-                    left join subcategory s ON t.subcategory_id = s.id
-                    left join category c ON s.parent_category_id = c.id
-                    where (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
-                        AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
-                    group by year(transaction_date), month(transaction_date), t.is_expense, subcategory_id
-                    order by categoryId, subcategoryId, period;" :
-                    @"select year(transaction_date) as 'period', is_expense as 'isExpense', 
-                           c.id as 'categoryId', c.name as 'categoryName', 
-                           s.id as 'subcategoryId', s.name as 'subcategoryName',
-                           sum(amount) as 'transactionsSum'
-                    from transaction t
-                    left join subcategory s ON t.subcategory_id = s.id
-                    left join category c ON s.parent_category_id = c.id
-                    where (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
-                        AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
-                    group by year(transaction_date), t.is_expense, subcategory_id
-                    order by categoryId, subcategoryId, period;";
-            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(sql,
+            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(CategoriesReportQuery,
             new
             {
-                dateFrom = dateFrom, dateTo = dateTo
+                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
             });
             var result = new CategoriesReportModel();
 
