@@ -10,7 +10,7 @@ import {
     type ChartConfig, ChartLegend,
 } from "@/components/ui/chart"
 import type {ReportCategory} from "@/lib/api.ts";
-import {SeriesColorPalette} from "@/features/reports/CategoryBreakdownBarChart.tsx";
+import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 const chartConfig = {
 } satisfies ChartConfig

@@ -5,14 +5,14 @@ import {Link} from "react-router-dom";
 import {endOfMonth, endOfYear, format, parse} from "date-fns";
 import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
-import type {ReportSettings} from "@/features/reports/ReportsPage.tsx";
+import type {ReportSettings} from "@/features/reports/summary-report/SummaryReportPage.tsx";
 
 interface BudgetTableProps {
     categories: ReportCategory[],
     reportSettings: ReportSettings
 }
 
-export function CategoriesReportTable({categories, reportSettings}: BudgetTableProps) {
+export function CategoriesTable({categories, reportSettings}: BudgetTableProps) {
     const [expandedCategory, setExpandedCategory] = useState<number | undefined>(undefined);
     
     return (

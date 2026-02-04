@@ -4,13 +4,13 @@ import {useQuery} from "@tanstack/react-query";
 import {getCategoriesReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {differenceInCalendarMonths, endOfYear, format, parse, startOfYear} from "date-fns";
-import {CategoriesReportTable} from "@/features/reports/CategoriesReportTable.tsx";
-import {SummaryReportTable} from "@/features/reports/SummaryReportTable.tsx";
-import {SummaryLineChart} from "@/features/reports/SummaryLineChart.tsx";
+import {CategoriesTable} from "@/features/reports/summary-report/CategoriesTable.tsx";
+import {SummaryReportTable} from "@/features/reports/summary-report/SummaryReportTable.tsx";
+import {SummaryLineChart} from "@/features/reports/summary-report/SummaryLineChart.tsx";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
-import {CategoryBreakdownPieChart} from "@/features/reports/CategoryBreakdownPieChart.tsx";
-import {CategoryBreakdownBarChart} from "@/features/reports/CategoryBreakdownBarChart.tsx";
+import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
+import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -18,7 +18,7 @@ export interface ReportSettings {
     splitByMonth: boolean
 }
 
-export function ReportsPage() {
+export function SummaryReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -59,7 +59,7 @@ export function ReportsPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Raport roczny</h1>
+                <h1 className="text-2xl font-bold">Raport - podsumowanie</h1>
             </div>
 
             <div className="flex flex-row gap-3 mb-6">
@@ -82,7 +82,6 @@ export function ReportsPage() {
             {reportQuery.data &&
                 <>
                     <div className="mb-6">
-                        <h2 className="text-xl font-bold mb-3">Podsumowanie</h2>
                         <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
                         <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
                     </div>
@@ -93,7 +92,7 @@ export function ReportsPage() {
                             <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                             <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                         </div>
-                        <CategoriesReportTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
+                        <CategoriesTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
                     </div>
                     
                     <div className="mb-6">
@@ -102,7 +101,7 @@ export function ReportsPage() {
                             <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
                             <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />                        
                         </div>
-                        <CategoriesReportTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
+                        <CategoriesTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
                     </div>
                 </>
             }

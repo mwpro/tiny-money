@@ -11,7 +11,7 @@ import {
     ChartLegend, 
 } from "@/components/ui/chart"
 import {useState} from "react";
-import {SeriesColorPalette} from "@/features/reports/CategoryBreakdownBarChart.tsx";
+import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 interface SummaryLineChartProps {
     reportPeriods: ReportPeriod[],
