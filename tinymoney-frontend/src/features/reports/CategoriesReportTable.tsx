@@ -5,7 +5,6 @@ import {Link} from "react-router-dom";
 import {endOfMonth, endOfYear, format, parse} from "date-fns";
 import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
-import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import type {ReportSettings} from "@/features/reports/ReportsPage.tsx";
 
 interface BudgetTableProps {
@@ -54,25 +53,11 @@ export function CategoriesReportTable({categories, reportSettings}: BudgetTableP
                                         </TableCell>
                                         {subcategory.periods.map(period => (
                                             <TableCell key={period.periodLabel} className="text-right">
-                                                <Tooltip>
-                                                    <TooltipTrigger className={"underline"} style={
-                                                        {
-                                                            "textDecorationStyle": "dashed",
-                                                            // "textDecorationColor": 100 ? "var(--chart-2)": "var(--color-destructive)"
-                                                            "textDecorationColor": "var(--chart-2)"
-                                                        }
-                                                    }>
-                                                        <Link
-                                                            to={`${transactionsListPath}&dateFrom=${format(parse(period.periodLabel, reportSettings.splitByMonth ? "yyyy-MM" : "yyyy", new Date()), "yyyy-MM-dd")}&dateTo=${format(reportSettings.splitByMonth ? endOfMonth(parse(period.periodLabel, "yyyy-MM", new Date())) : endOfYear(parse(period.periodLabel, "yyyy", new Date())), "yyyy-MM-dd")}`}
-                                                            target={"_blank"}>
-                                                            <Curr input={period.transactionsSum}/>
-                                                        </Link>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side={"bottom"} className={"font-mono"}>
-                                                        <p>+<Curr input={12}/> (+12%) r/r</p>
-                                                        <p>2024: <Curr input={125}/></p>
-                                                    </TooltipContent>
-                                                </Tooltip>
+                                                <Link
+                                                    to={`${transactionsListPath}&dateFrom=${format(parse(period.periodLabel, reportSettings.splitByMonth ? "yyyy-MM" : "yyyy", new Date()), "yyyy-MM-dd")}&dateTo=${format(reportSettings.splitByMonth ? endOfMonth(parse(period.periodLabel, "yyyy-MM", new Date())) : endOfYear(parse(period.periodLabel, "yyyy", new Date())), "yyyy-MM-dd")}`}
+                                                    target={"_blank"}>
+                                                    <Curr input={period.transactionsSum}/>
+                                                </Link>
                                             </TableCell>))}
                                         <TableCell><Curr input={subcategory.transactionsSum}/></TableCell>
                                         <TableCell><Curr input={subcategory.transactionsAvg}/></TableCell>

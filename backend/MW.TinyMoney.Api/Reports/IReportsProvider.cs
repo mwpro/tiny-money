@@ -319,8 +319,17 @@ namespace MW.TinyMoney.Api.Reports
             {
                 dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
             });
-            var result = new CategoriesReportModel();
 
+            var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(@"SELECT
+                DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS 'period',
+                SUM(amount) AS `budget`
+            FROM budget b
+            WHERE (@dateFrom IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') >= @dateFrom)
+                  AND (@dateTo IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') <= @dateTo)
+            GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')",
+                new { dateFrom = dateFrom, dateTo = dateTo });
+
+            var result = new CategoriesReportModel();
             result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))
                 .Select(category =>
                 {
@@ -368,19 +377,20 @@ namespace MW.TinyMoney.Api.Reports
                 {
                     var expensesSum = p.Where(x => !x.IsIncome).Sum(x => x.TransactionsSum);
                     var incomesSum = p.Where(x => x.IsIncome).Sum(x => x.TransactionsSum);
-
+                    var budget = splitByMonth ? (budgets.FirstOrDefault(b => b.Period == p.Key).Budget) : -1;
+                    var budgetDifference = budget > 0 ? budget - expensesSum : 0;
+                    
                     return new ReportPeriod()
                     {
                         PeriodLabel = p.Key,
                         ExpensesSum = expensesSum,
                         IncomesSum = incomesSum,
                         Balance = incomesSum - expensesSum,
-                        Budget = -1,
+                        Budget = budget,
+                        BudgetDifference = budgetDifference
                     };
                 });
 
-            result.BudgetAvg = -1; // todo budgets
-            result.BudgetSum = -1;
             result.IncomesAvg = result.Periods.Average(p => p.IncomesSum);
             result.IncomesSum = result.Periods.Sum(p => p.IncomesSum);
             result.ExpensesAvg = result.Periods.Average(p => p.ExpensesSum);

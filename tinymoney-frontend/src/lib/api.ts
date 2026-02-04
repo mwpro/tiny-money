@@ -90,9 +90,7 @@ export interface SubcategoryBudget {
 export interface CategoriesReport {
     categories: ReportCategory[]
     periods: ReportPeriod[],
-    
-    budgetAvg: number,
-    budgetSum: number,
+
     incomesAvg: number,
     incomesSum: number,
     expensesAvg: number,
@@ -105,6 +103,7 @@ export interface ReportPeriod {
     periodLabel: string,
     
     budget: number,
+    budgetDifference: number,
     incomesSum: number,
     expensesSum: number,
     balance: number

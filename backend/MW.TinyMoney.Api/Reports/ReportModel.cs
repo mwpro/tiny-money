@@ -15,16 +15,11 @@ public class ReportDataSet<TValue>
     public IEnumerable<TValue> Data { get; set; }
 }
 
-// todo R/R
-// todo handle periods with no transactions
-// todo period month or year
 public class CategoriesReportModel
 {
     public IEnumerable<ReportPeriod> Periods { get; set; }
     public IEnumerable<ReportCategory> Categories { get; set; }
     
-    public decimal BudgetAvg { get; set; }
-    public decimal BudgetSum { get; set; }
     public decimal IncomesAvg { get; set; }
     public decimal IncomesSum { get; set; }
     public decimal ExpensesAvg { get; set; }
@@ -38,6 +33,7 @@ public class ReportPeriod
     public string PeriodLabel { get; set; }
     
     public decimal Budget { get; set; }
+    public decimal BudgetDifference { get; set; }
     public decimal IncomesSum { get; set; }
     public decimal ExpensesSum { get; set; }
     public decimal Balance { get; set; }

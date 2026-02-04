@@ -1,6 +1,7 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Curr} from "@/components/Curr.tsx";
 import type {CategoriesReport} from "@/lib/api.ts";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface BudgetTableProps {
     reportData: CategoriesReport,
@@ -30,11 +31,18 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                     </TableRow>
                     {splitByMonth && <TableRow>
                         <TableCell>Budżet</TableCell>
-                        {/*todo nie pokazywać per rok*/}
                         {reportData.periods.map(period => (
-                            <TableCell key={period.periodLabel} className="text-right"><Curr input={period.budget} colored/></TableCell>))}
-                        <TableCell><Curr input={reportData.budgetSum}/></TableCell>
-                        <TableCell><Curr input={reportData.budgetAvg}/></TableCell>
+                            <TableCell key={period.periodLabel} className="text-right">
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Curr input={period.budget} colored isPositive={period.budgetDifference >= 0}/>
+                                    </TooltipTrigger>
+                                    <TooltipContent side={"bottom"} className={"font-mono"}>
+                                        <p>Różnica: <Curr input={period.budgetDifference} colored /></p>
+                                    </TooltipContent>
+                                </Tooltip></TableCell>))}
+                        <TableCell></TableCell>
+                        <TableCell></TableCell>
                     </TableRow>}
                     <TableRow>
                         <TableCell>Wydatki</TableCell>
