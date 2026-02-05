@@ -200,8 +200,8 @@ namespace MW.TinyMoney.Api.Reports
                 DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS 'period',
                 SUM(amount) AS `budget`
             FROM budget b
-            WHERE (@dateFrom IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') >= @dateFrom)
-                  AND (@dateTo IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') <= @dateTo)
+            WHERE (@fromYear IS NULL OR year > @fromYear OR (year = @fromYear AND month >= @fromMonth))
+                AND (@toYear IS NULL OR year < @toYear OR (year = @toYear AND month <= @toMonth))
             GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')";
 
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
