@@ -87,7 +87,7 @@ export interface SubcategoryBudget {
     notes: string | undefined
 }
 
-export interface CategoriesReport {
+export interface SummaryReport {
     categories: ReportCategory[]
     periods: ReportPeriod[],
 
@@ -351,9 +351,9 @@ export const saveBudget = async (month: MonthSelection, subcategoryId: number, a
     }
 }
 
-export const getCategoriesReport = async (auth: Auth0ContextInterface, 
-                                          dateFrom: Date | undefined, dateTo: Date | undefined, 
-                                          splitByMonth: boolean): Promise<CategoriesReport> => {
+export const getSummaryReport = async (auth: Auth0ContextInterface,
+                                       dateFrom: Date | undefined, dateTo: Date | undefined,
+                                       splitByMonth: boolean): Promise<SummaryReport> => {
     const token = await auth.getAccessTokenSilently();
     const queryParams = new URLSearchParams();
     dateFrom && queryParams.append('dateFrom', format(dateFrom, "yyyy-MM-dd"));

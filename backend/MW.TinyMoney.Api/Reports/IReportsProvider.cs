@@ -35,7 +35,7 @@ namespace MW.TinyMoney.Api.Reports
         IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(
             IEnumerable<DateTime> reportParametersMonths);
 
-        Task<CategoriesReportModel> PrepareCategoriesReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
+        Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
     }
 
     public class ReportQueryResult<TValue>
@@ -165,7 +165,7 @@ namespace MW.TinyMoney.Api.Reports
                   GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense) byMonth
             GROUP BY series;";
 
-        private const string CategoriesReportQuery = @"WITH periods AS (
+        private const string SummaryReportQuery = @"WITH periods AS (
                     SELECT DISTINCT DATE_FORMAT(transaction_date, @periodPattern) AS period_name
                     FROM transaction
                     WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
@@ -195,6 +195,14 @@ namespace MW.TinyMoney.Api.Reports
                 FROM all_combinations ac
                          LEFT JOIN monthly_sums ms ON ac.period_name = ms.period_name AND ac.subId = ms.subcategory_id
                 ORDER BY period, categoryId, subcategoryId;";
+
+        private const string GetBudgetsQuery = @"SELECT
+                DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS 'period',
+                SUM(amount) AS `budget`
+            FROM budget b
+            WHERE (@dateFrom IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') >= @dateFrom)
+                  AND (@dateTo IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') <= @dateTo)
+            GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')";
 
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
         {
@@ -298,7 +306,7 @@ namespace MW.TinyMoney.Api.Reports
             }
         }
 
-        private class CategoriesReportQueryResult
+        private class SummaryReportQueryResult
         {
             public string Period { get; set; }
             public bool IsIncome { get; set; }
@@ -309,27 +317,21 @@ namespace MW.TinyMoney.Api.Reports
             public decimal TransactionsSum { get; set; }
         }
 
-        public async Task<CategoriesReportModel> PrepareCategoriesReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth)
+        public async Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            var queryResults = await connection.QueryAsync<CategoriesReportQueryResult>(CategoriesReportQuery,
+            var queryResults = await connection.QueryAsync<SummaryReportQueryResult>(SummaryReportQuery,
             new
             {
                 dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
             });
 
-            var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(@"SELECT
-                DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS 'period',
-                SUM(amount) AS `budget`
-            FROM budget b
-            WHERE (@dateFrom IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') >= @dateFrom)
-                  AND (@dateTo IS NULL OR STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m') <= @dateTo)
-            GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')",
+            var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,
                 new { dateFrom = dateFrom, dateTo = dateTo });
 
-            var result = new CategoriesReportModel();
+            var result = new SummaryReportModel();
             result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))
                 .Select(category =>
                 {

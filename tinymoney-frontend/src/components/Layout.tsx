@@ -4,7 +4,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {endOfMonth, format, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {DropdownMenu, DropdownMenuGroup, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem} from "./ui/dropdown-menu";
-import {ChevronDownIcon, VolumeOffIcon} from "lucide-react";
+import {ChevronDownIcon} from "lucide-react";
 
 export function Layout() {
     const location = useLocation()

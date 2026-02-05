@@ -1,7 +1,7 @@
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getCategoriesReport} from "@/lib/api.ts";
+import {getSummaryReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     differenceInCalendarMonths,
@@ -60,8 +60,8 @@ export function SummaryReportPage() {
     }, [reportSettings]);
 
     const reportQuery = useQuery({
-        queryKey: ['categoriesReport', reportSettings],
-        queryFn: () => getCategoriesReport(auth, reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
+        queryKey: ['summaryReport', reportSettings],
+        queryFn: () => getSummaryReport(auth, reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
     })
 
     return (

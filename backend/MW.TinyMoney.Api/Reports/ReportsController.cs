@@ -150,11 +150,11 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(result);
         }
 
-        [HttpGet, Route("categories-report")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(CategoriesReportModel))]
-        public async Task<IActionResult> GetCategoriesReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [FromQuery] bool splitByMonth)
+        [HttpGet, Route("summary-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SummaryReportModel))]
+        public async Task<IActionResult> GetSummaryReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [FromQuery] bool splitByMonth)
         {
-            var reportData = await _reportsProvider.PrepareCategoriesReport(dateFrom, dateTo, splitByMonth);
+            var reportData = await _reportsProvider.PrepareSummaryReport(dateFrom, dateTo, splitByMonth);
             
             return Ok(reportData);
         }

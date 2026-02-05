@@ -15,7 +15,7 @@ public class ReportDataSet<TValue>
     public IEnumerable<TValue> Data { get; set; }
 }
 
-public class CategoriesReportModel
+public class SummaryReportModel
 {
     public IEnumerable<ReportPeriod> Periods { get; set; }
     public IEnumerable<ReportCategory> Categories { get; set; }
