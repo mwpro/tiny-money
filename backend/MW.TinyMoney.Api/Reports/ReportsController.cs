@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Transaction;
@@ -147,6 +148,15 @@ namespace MW.TinyMoney.Api.Reports
             var result = BuildReportModel(reportData);
 
             return Ok(result);
+        }
+
+        [HttpGet, Route("summary-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SummaryReportModel))]
+        public async Task<IActionResult> GetSummaryReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [FromQuery] bool splitByMonth)
+        {
+            var reportData = await _reportsProvider.PrepareSummaryReport(dateFrom, dateTo, splitByMonth);
+            
+            return Ok(reportData);
         }
 
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)

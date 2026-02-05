@@ -13,13 +13,16 @@ import {
     startOfMonth,
     endOfYear,
     startOfYear,
-    isSameDay, startOfDay
+    isSameDay, startOfDay,
+    parse
 } from 'date-fns';
 
 interface DatePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
-    onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void
+    onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void,
+    presets: DateRangePreset[],
+    monthYearMode: boolean
 }
 
 interface DateRangePreset {
@@ -27,7 +30,7 @@ interface DateRangePreset {
     preset: (now: Date) => { dateFrom: Date | undefined, dateTo: Date | undefined }
 }
 
-const presets: DateRangePreset[] = [
+export const transactionsListPresets: DateRangePreset[] = [
     {
         name: "Bieżący miesiąc", preset: (now) => {
             return ({
@@ -78,11 +81,54 @@ const presets: DateRangePreset[] = [
     },
 ];
 
+export const reportPresets: DateRangePreset[] = [
+    {
+        name: "Ostatnie 12 miesięcy", preset: (now) => {
+            return ({
+                dateFrom: startOfMonth(subMonths(new Date(), 12)),
+                dateTo: endOfMonth(now)
+            });
+        }
+    },
+    {
+        name: "Bieżący rok", preset: (now) => {
+            return ({
+                dateFrom: startOfYear(now),
+                dateTo: endOfYear(now)
+            });
+        }
+    },
+    {
+        name: "Bieżący i poprzedni rok", preset: (now) => {
+            return ({
+                dateFrom: startOfYear(subYears(now, 1)),
+                dateTo: endOfYear(now)
+            });
+        }
+    },
+    {
+        name: "Poprzedni rok", preset: (now) => {
+            return ({
+                dateFrom: startOfYear(subYears(now, 1)),
+                dateTo: endOfYear(subYears(now, 1))
+            });
+        }
+    },
+    {
+        name: "Cały czas", preset: (now) => {
+            return ({
+                dateFrom: parse("2019-01", "yyyy-MM", new Date()),
+                dateTo: endOfMonth(now)
+            });
+        }
+    },
+];
+
 function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | undefined) : [dateFrom: Date | undefined, dateTo: Date | undefined] {
     return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
 }
 
-export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
+export function DatePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DatePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
@@ -138,6 +184,7 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
             setUsedPresetInternal(undefined);
         }
     };
+    
     return (
         <div>
             <Popover open={open} onOpenChange={setOpen}>
@@ -178,10 +225,16 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
                                 mode="single"
                                 selected={dateFromInternal}
                                 month={monthFrom}
-                                onMonthChange={setMonthFrom}
+                                onMonthChange={month => {
+                                    setMonthFrom(month);
+                                    monthYearMode && selectCustomDateFrom(startOfMonth(month));
+                                }}
                                 captionLayout="dropdown"
                                 showOutsideDays={false}
                                 onSelect={selectCustomDateFrom}
+                                components={monthYearMode ? {
+                                    MonthGrid: () => (<div/>),
+                                } : undefined}
                             />
                             <Calendar
                                 className="p-0"
@@ -192,8 +245,14 @@ export function DatePicker({dateFrom, dateTo, onChange}: DatePickerProps) {
                                 showOutsideDays={false}
                                 disabled={dateFromInternal && {before: dateFromInternal}}
                                 month={monthTo}
-                                onMonthChange={setMonthTo}
+                                onMonthChange={month => {
+                                    setMonthTo(month);
+                                    monthYearMode && selectCustomDateTo(endOfMonth(month));
+                                }}
                                 onSelect={selectCustomDateTo}
+                                components={monthYearMode ? {
+                                    MonthGrid: () => (<div/>),
+                                } : undefined}
                             />
 
                         </div>
