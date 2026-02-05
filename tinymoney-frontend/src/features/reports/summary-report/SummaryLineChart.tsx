@@ -20,7 +20,7 @@ interface SummaryLineChartProps {
 
 export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChartProps) {
     const [activeSeries, setActiveSeries] = useState(Object.keys(reportPeriods[0]));
-    console.log(activeSeries);
+    
     return (
         <Card className={"mb-3"}>
             <CardContent>

@@ -13,7 +13,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
-import {DatePicker} from "@/components/DatePicker.tsx";
+import {DatePicker, transactionsListPresets} from "@/components/DatePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
     Select,
@@ -141,7 +141,7 @@ export function TransactionsPage() {
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
-                }}/>
+                }} presets={transactionsListPresets} />
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
                         onValueChange={val => setQueryParams(prevState => ({
                             ...prevState,

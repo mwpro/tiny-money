@@ -3,14 +3,22 @@ import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getCategoriesReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
-import {differenceInCalendarMonths, endOfYear, format, parse, startOfYear} from "date-fns";
+import {
+    differenceInCalendarMonths,
+    endOfMonth,
+    format,
+    parse,
+    startOfMonth,
+    subMonths
+} from "date-fns";
 import {CategoriesTable} from "@/features/reports/summary-report/CategoriesTable.tsx";
 import {SummaryReportTable} from "@/features/reports/summary-report/SummaryReportTable.tsx";
 import {SummaryLineChart} from "@/features/reports/summary-report/SummaryLineChart.tsx";
-import {DatePicker} from "@/components/DatePicker.tsx";
+import {DatePicker, reportPresets} from "@/components/DatePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
 import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
+import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -37,8 +45,8 @@ export function SummaryReportPage() {
     };
 
     const reportSettings = useMemo<ReportSettings>(() => {
-        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfYear(new Date());
-        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfYear(new Date());
+        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(subMonths(new Date(), 12));
+        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date());
         const splitByMonth = searchParams.get("splitByMonth") ? (searchParams.get("splitByMonth") === "true") : (differenceInCalendarMonths(dateTo, dateFrom) <= 24);
         return {
             dateFrom, dateTo, splitByMonth
@@ -47,7 +55,7 @@ export function SummaryReportPage() {
 
     useEffect(() => {
         if (!searchParams.size) {
-            handlePeriodChange(startOfYear(new Date()), endOfYear(new Date()))
+            handlePeriodChange(startOfMonth(subMonths(new Date(), 12)), endOfMonth(new Date()))
         }
     }, [reportSettings]);
 
@@ -65,7 +73,7 @@ export function SummaryReportPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo} 
-                            onChange={handlePeriodChange}/>
+                            onChange={handlePeriodChange} presets={reportPresets} />
                 <ToggleGroup variant="outline" className={"bg-background"}
                              type="single" defaultValue="month"
                              value={reportSettings.splitByMonth ? "month" : "year"}
@@ -79,7 +87,11 @@ export function SummaryReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data &&
+            {reportQuery.data && reportQuery.data.periods.length == 0 &&
+                <Alert className="mb-6" variant="default">
+                    <AlertTitle>Nie znaleziono transakcji w wybranym przedziale czasowym.</AlertTitle>
+                </Alert>}
+            {reportQuery.data && reportQuery.data.periods.length > 0 &&
                 <>
                     <div className="mb-6">
                         <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />

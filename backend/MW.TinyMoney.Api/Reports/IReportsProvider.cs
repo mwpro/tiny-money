@@ -391,12 +391,15 @@ namespace MW.TinyMoney.Api.Reports
                     };
                 });
 
-            result.IncomesAvg = result.Periods.Average(p => p.IncomesSum);
-            result.IncomesSum = result.Periods.Sum(p => p.IncomesSum);
-            result.ExpensesAvg = result.Periods.Average(p => p.ExpensesSum);
-            result.ExpensesSum = result.Periods.Sum(p => p.ExpensesSum);
-            result.BalanceAvg = result.Periods.Average(p => p.Balance);
-            result.BalanceSum = result.Periods.Sum(p => p.Balance);
+            if (result.Periods.Any())
+            {
+                result.IncomesAvg = result.Periods.Average(p => p.IncomesSum);
+                result.IncomesSum = result.Periods.Sum(p => p.IncomesSum);
+                result.ExpensesAvg = result.Periods.Average(p => p.ExpensesSum);
+                result.ExpensesSum = result.Periods.Sum(p => p.ExpensesSum);
+                result.BalanceAvg = result.Periods.Average(p => p.Balance);
+                result.BalanceSum = result.Periods.Sum(p => p.Balance);
+            }
 
             return result;
         }
