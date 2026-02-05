@@ -141,7 +141,7 @@ export function TransactionsPage() {
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
-                }} presets={transactionsListPresets} />
+                }} presets={transactionsListPresets} monthYearMode={false} />
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
                         onValueChange={val => setQueryParams(prevState => ({
                             ...prevState,

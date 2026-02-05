@@ -21,7 +21,8 @@ interface DatePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
     onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void,
-    presets: DateRangePreset[]
+    presets: DateRangePreset[],
+    monthYearMode: boolean
 }
 
 interface DateRangePreset {
@@ -127,7 +128,7 @@ function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | u
     return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
 }
 
-export function DatePicker({dateFrom, dateTo, onChange, presets}: DatePickerProps) {
+export function DatePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DatePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
@@ -183,6 +184,7 @@ export function DatePicker({dateFrom, dateTo, onChange, presets}: DatePickerProp
             setUsedPresetInternal(undefined);
         }
     };
+    
     return (
         <div>
             <Popover open={open} onOpenChange={setOpen}>
@@ -223,10 +225,16 @@ export function DatePicker({dateFrom, dateTo, onChange, presets}: DatePickerProp
                                 mode="single"
                                 selected={dateFromInternal}
                                 month={monthFrom}
-                                onMonthChange={setMonthFrom}
+                                onMonthChange={month => {
+                                    setMonthFrom(month);
+                                    monthYearMode && selectCustomDateFrom(startOfMonth(month));
+                                }}
                                 captionLayout="dropdown"
                                 showOutsideDays={false}
                                 onSelect={selectCustomDateFrom}
+                                components={monthYearMode ? {
+                                    MonthGrid: () => (<div/>),
+                                } : undefined}
                             />
                             <Calendar
                                 className="p-0"
@@ -237,8 +245,14 @@ export function DatePicker({dateFrom, dateTo, onChange, presets}: DatePickerProp
                                 showOutsideDays={false}
                                 disabled={dateFromInternal && {before: dateFromInternal}}
                                 month={monthTo}
-                                onMonthChange={setMonthTo}
+                                onMonthChange={month => {
+                                    setMonthTo(month);
+                                    monthYearMode && selectCustomDateTo(endOfMonth(month));
+                                }}
                                 onSelect={selectCustomDateTo}
+                                components={monthYearMode ? {
+                                    MonthGrid: () => (<div/>),
+                                } : undefined}
                             />
 
                         </div>

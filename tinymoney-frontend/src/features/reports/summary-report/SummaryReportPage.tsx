@@ -73,7 +73,7 @@ export function SummaryReportPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DatePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo} 
-                            onChange={handlePeriodChange} presets={reportPresets} />
+                            onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
                 <ToggleGroup variant="outline" className={"bg-background"}
                              type="single" defaultValue="month"
                              value={reportSettings.splitByMonth ? "month" : "year"}
