@@ -329,7 +329,10 @@ namespace MW.TinyMoney.Api.Reports
             });
 
             var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,
-                new { dateFrom = dateFrom, dateTo = dateTo });
+                new {
+                    fromYear = dateFrom?.Year, fromMonth = dateFrom?.Month, 
+                    toYear = dateTo?.Year, toMonth = dateTo?.Month
+                });
 
             var result = new SummaryReportModel();
             result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))

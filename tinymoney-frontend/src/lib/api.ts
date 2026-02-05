@@ -360,7 +360,7 @@ export const getSummaryReport = async (auth: Auth0ContextInterface,
     dateTo && queryParams.append('dateTo', format(dateTo, "yyyy-MM-dd"));
     queryParams.append('splitByMonth', splitByMonth ? "true" : "false");
 
-    const res = await fetch(`${API_URL}/reports/categories-report?${queryParams}`, {
+    const res = await fetch(`${API_URL}/reports/summary-report?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
