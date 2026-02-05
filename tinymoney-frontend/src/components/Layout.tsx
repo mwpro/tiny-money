@@ -2,6 +2,9 @@ import {Outlet, Link, useLocation} from "react-router-dom"
 import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
 import {endOfMonth, format, startOfMonth} from "date-fns";
+import {ButtonGroup} from "@/components/ui/button-group.tsx";
+import {DropdownMenu, DropdownMenuGroup, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem} from "./ui/dropdown-menu";
+import {ChevronDownIcon, VolumeOffIcon} from "lucide-react";
 
 export function Layout() {
     const location = useLocation()
@@ -38,16 +41,30 @@ export function Layout() {
                                     Import
                                 </Button>
                             </Link>
-                            <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">
-                                <Button variant="ghost">
-                                    Raporty (stare)
-                                </Button>
-                            </Link>
-                            <Link to="/reports">
-                                <Button variant={isActive("/reports") ? "secondary" : "ghost"}>
-                                    Raporty
-                                </Button>
-                            </Link>
+                            <ButtonGroup>
+                                <Button variant={isActive("/reports") ? "secondary" : "ghost"}>Raporty</Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant={isActive("/reports") ? "secondary" : "ghost"} className="!pl-2">
+                                            <ChevronDownIcon />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-44">
+                                        <DropdownMenuGroup>
+                                            <Link to="/reports/summary">
+                                                <DropdownMenuItem>
+                                                    Podsumowanie
+                                                </DropdownMenuItem>
+                                            </Link>
+                                            <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">
+                                                <DropdownMenuItem>
+                                                    Stare raporty
+                                                </DropdownMenuItem>
+                                            </Link>
+                                        </DropdownMenuGroup>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </ButtonGroup>
                         </nav>
                     </div>
 

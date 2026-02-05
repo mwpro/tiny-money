@@ -58,7 +58,7 @@ function App() {
 
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="transactions" element={<TransactionsPage />} />
-                    <Route path="reports" element={<SummaryReportPage />} />
+                    <Route path="reports/summary" element={<SummaryReportPage />} />
                     <Route path="budgets" element={<BudgetsPage />} />
 
                 </Route>
