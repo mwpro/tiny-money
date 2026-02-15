@@ -14,7 +14,6 @@ import {
 } from "@/lib/api"
 
 import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
@@ -35,6 +34,7 @@ import {
 } from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
 import {Minus, Plus} from "lucide-react";
+import {DatePicker} from "@/components/DatePicker.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -142,7 +142,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     const onSubmit = (data: TransactionFormValues) => {
         mutation.mutate(data)
     }
-
     return (
         <Dialog open={isOpen} onOpenChange={(v) => {
             setIsOpen(v);
@@ -163,7 +162,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                     <div className="grid gap-2">
                         <Label>Data</Label>
-                        <Input type="date" {...register("transactionDate")} />
+                        <Controller control={control} name={"transactionDate"} render={({field}) => (
+                            <DatePicker value={field.value} ref={field.ref} onChange={(d) => field.onChange(d)} placeholder="Data transakcji" />
+                        )} />
+
+                        {/*<Input type="date" {...register("transactionDate")} />*/}
                     </div>
 
                     <div className="grid gap-2">
