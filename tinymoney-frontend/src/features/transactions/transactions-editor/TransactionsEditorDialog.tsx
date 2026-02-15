@@ -255,7 +255,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                     name="isExpense"
                                     render={({field}) => (<InputGroupButton
                                             onClick={() => field.onChange(!field.value)}
-                                            
+                                            tabIndex={-1}
                                         >
                                             {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
                                         </InputGroupButton>
@@ -263,7 +263,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                 />
                                 
                             </InputGroupAddon>
-                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} />
+                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} onKeyDown={e => {
+                                if (e.key === "-" || e.key === "+") {
+                                    e.preventDefault();
+                                    setValue("isExpense", (e.key === "-"), {
+                                        shouldValidate: true,
+                                        shouldDirty: true
+                                    })
+                                }
+                            }}  />
                             <InputGroupAddon align="inline-end">
                                 <InputGroupText>zł</InputGroupText>
                             </InputGroupAddon>
