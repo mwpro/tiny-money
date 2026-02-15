@@ -29,7 +29,9 @@ import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-import {AlertCircleIcon} from "lucide-react";
+import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
+import {Button} from "@/components/ui/button.tsx";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -142,22 +144,29 @@ export function TransactionsPage() {
                 <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
                 }} presets={transactionsListPresets} monthYearMode={false} />
-                <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
-                        onValueChange={val => setQueryParams(prevState => ({
-                            ...prevState,
-                            isExpenseFilter: val === "__NONE__" ? undefined : val === 'true'
-                        }))}>
-                    <SelectTrigger className={`w-[150px] bg-background ${queryParams.isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ queryParams.isExpenseFilter != undefined ? (queryParams.isExpenseFilter ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value={"__NONE__"}>Wszystkie</SelectItem>
-                            <SelectItem value={true.toString()}>Wydatki</SelectItem>
-                            <SelectItem value={false.toString()}>Przychody</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={"outline"} onClick={() => {
+                            setQueryParams(prevState => ({...prevState,
+                                isExpenseFilter:
+                                    prevState.isExpenseFilter === undefined ? true
+                                        : (prevState.isExpenseFilter ? false : undefined)
+
+                            }))
+                        }} >
+                            {queryParams.isExpenseFilter == undefined && (<Diff />)}
+                            {queryParams.isExpenseFilter == false && (<Plus className={"text-green-600"} />)}
+                            {queryParams.isExpenseFilter == true && (<Minus className={"text-red-600"} />)}
+                        </Button>                        
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                        <p>
+                            {queryParams.isExpenseFilter == undefined && ("Przychody i wydatki")}
+                            {queryParams.isExpenseFilter == false && ("Przychody")}
+                            {queryParams.isExpenseFilter == true && ("Wydatki")}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
                 <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={queryParams.amountFromFilter?.toString() ?? ""} onChange={e => {
                     const amount = Number(e.target.value);
                     if (amount > 10_000_000 || amount < 0)
