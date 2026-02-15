@@ -70,6 +70,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
+    const subcategoriesQuery = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => getCategories(auth),
+        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
+        ...dictionariesConfig
+    })
+
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => getTags(auth),
@@ -216,8 +223,12 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                         }
                                     }
                                 }} value={(field.value > 0) ? field.value.toString() : ""}>
-                                    <SelectTrigger className="w-full"><SelectValue
-                                        placeholder="Wybierz kategorię"/></SelectTrigger>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Wybierz kategorię">
+                                            { subcategoriesQuery.data && field.value ? subcategoriesQuery.data.get(field.value) : "Kategoria" }
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    
                                     <SelectContent>
                                         {categoriesQuery.data && categoriesQuery.data.map(category => (
                                             <SelectGroup key={category.id}>
