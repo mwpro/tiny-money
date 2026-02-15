@@ -51,7 +51,9 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         const newValue = e.target.value
         setQuery(newValue)
         setSelectedIndex(-1)
-        if (!newValue) {
+        if (newValue) {
+            setIsFocused(true);
+        } else {
             handleSuggestionChosen(undefined);
         }
     }
@@ -67,13 +69,14 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         } else if (e.key === 'ArrowUp') {
             e.preventDefault()
             setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
-        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            e.preventDefault()
+        } else if ((e.key === 'Enter' || e.key === "Tab") && selectedIndex >= 0) {
+            e.key === "Enter" && e.preventDefault();
             if (selectedIndex < suggestions.length){
                 handleSuggestionChosen(suggestions[selectedIndex]);
             } else {
                 handleSuggestionChosen({name: query});
             }
+            handleBlur();
         } else if (e.key === 'Escape') {
             e.preventDefault()
             setSuggestions([])
@@ -123,6 +126,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
                     variant="ghost"
                     className="absolute right-0 top-0 h-full"
                     aria-label="Search"
+                    tabIndex={-1}
                 >
                     <Search className="h-4 w-4" />
                 </Button>
