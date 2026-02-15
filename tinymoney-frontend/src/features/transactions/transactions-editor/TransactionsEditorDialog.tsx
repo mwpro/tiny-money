@@ -83,10 +83,10 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
-    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset, setFocus} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: transactionToEdit?.amount || undefined,
+            amount: transactionToEdit?.amount || null,
             description: "",
             isExpense: true,
             transactionDate: format(new Date(), "yyyy-MM-dd"),
@@ -130,6 +130,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                 reset();
                 setIsOpen(false);
             } else {
+                setFocus("transactionDate")
                 reset({...defaultValues, transactionDate: getValues("transactionDate")})
             }
         },
