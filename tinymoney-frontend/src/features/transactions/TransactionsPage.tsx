@@ -13,7 +13,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
-import {DatePicker, transactionsListPresets} from "@/components/DatePicker.tsx";
+import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
     Select,
@@ -139,7 +139,7 @@ export function TransactionsPage() {
 
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
-                <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
+                <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
                 }} presets={transactionsListPresets} monthYearMode={false} />
                 <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}

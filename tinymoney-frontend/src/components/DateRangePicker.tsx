@@ -17,7 +17,7 @@ import {
     parse
 } from 'date-fns';
 
-interface DatePickerProps {
+interface DateRangePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
     onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void,
@@ -128,7 +128,7 @@ function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | u
     return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
 }
 
-export function DatePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DatePickerProps) {
+export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DateRangePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
