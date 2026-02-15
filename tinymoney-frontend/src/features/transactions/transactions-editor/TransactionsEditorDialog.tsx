@@ -79,7 +79,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: transactionToEdit?.amount || 0,
+            amount: transactionToEdit?.amount || undefined,
             description: "",
             isExpense: true,
             transactionDate: format(new Date(), "yyyy-MM-dd"),
