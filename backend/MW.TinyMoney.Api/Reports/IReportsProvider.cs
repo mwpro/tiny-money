@@ -36,6 +36,7 @@ namespace MW.TinyMoney.Api.Reports
             IEnumerable<DateTime> reportParametersMonths);
 
         Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
+        Task<TopListReportModel> PrepareTopListReport(DateTime? dateFrom, DateTime? dateTo, int numberOfTransactions);
     }
 
     public class ReportQueryResult<TValue>
@@ -136,6 +137,69 @@ namespace MW.TinyMoney.Api.Reports
             ORDER BY SUM(amount) DESC
             LIMIT 50";
 
+        private const string TopListQuery =
+            @"SELECT /* Expenses */
+                t.id AS `id`,
+                v.id AS `vendorId`,
+                v.name AS `vendorName`,
+                t.amount,
+                t.transaction_date AS 'transactionDate'
+            FROM transaction t
+                JOIN vendor v ON t.vendor_id = v.id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+            ORDER BY amount DESC
+            LIMIT @numberOfTopEntries;
+            SELECT /* Incomes */
+                t.id AS `id`,
+                v.id AS `vendorId`,
+                v.name AS `vendorName`,
+                t.amount,
+                t.transaction_date AS 'transactionDate'
+            FROM transaction t
+                JOIN vendor v ON t.vendor_id = v.id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
+            ORDER BY amount DESC
+            LIMIT @numberOfTopEntries;
+            SELECT /* Expense vendors */
+                v.id AS `id`,
+                v.name AS `description`,
+                SUM(t.amount) AS `amount`,
+                COUNT(t.id) AS 'numberOfTransactions'
+            FROM transaction t
+                JOIN vendor v ON t.vendor_id = v.id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+            GROUP BY v.id
+            ORDER BY SUM(amount) DESC
+            LIMIT @numberOfTopEntries;
+            SELECT /* Income vendors */
+                v.id AS `id`,
+                v.name AS `description`,
+                SUM(t.amount) AS `amount`,
+                COUNT(t.id) AS 'numberOfTransactions'
+            FROM transaction t
+                JOIN vendor v ON t.vendor_id = v.id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
+            GROUP BY v.id
+            ORDER BY SUM(amount) DESC
+            LIMIT @numberOfTopEntries;
+            SELECT /* Top tags */
+                tt.tag_id AS `id`,
+                tag.name AS `description`,
+                SUM(t.amount) AS `amount`,
+                COUNT(t.id) AS 'numberOfTransactions'
+            FROM transaction t
+                JOIN transaction_tag tt ON tt.transaction_id = t.id
+                JOIN tag tag ON tag.id = tt.tag_id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+            GROUP BY tt.tag_id
+            ORDER BY SUM(amount) DESC
+            LIMIT @numberOfTopEntries;";
+        
         private const string BudgetBurndownQuery =
             @"SELECT SUM(amount) AS 'budget'
                 FROM budget b
@@ -409,6 +473,31 @@ namespace MW.TinyMoney.Api.Reports
             return result;
         }
 
+        public async Task<TopListReportModel> PrepareTopListReport(DateTime? dateFrom, DateTime? dateTo, int numberOfTopEntries)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            var queryResults = await connection.QueryMultipleAsync(TopListQuery,
+                new
+                {
+                    dateFrom = dateFrom, dateTo = dateTo, numberOfTopEntries = numberOfTopEntries
+                });
+            var topExpenses = await queryResults.ReadAsync<TopTransactionModel>();
+            var topIncomes = await queryResults.ReadAsync<TopTransactionModel>();
+            var topExpenseVendors = await queryResults.ReadAsync<TopEntryModel>();
+            var topIncomeVendors = await queryResults.ReadAsync<TopEntryModel>();
+            var tags = await queryResults.ReadAsync<TopEntryModel>();
+
+            return new TopListReportModel()
+            {
+                Expenses = topExpenses,
+                Incomes = topIncomes,
+                ExpenseVendors = topExpenseVendors,
+                IncomeVendors = topIncomeVendors,
+                Tags = tags
+            };
+        }
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(DateTime reportParametersMonth)
         {
