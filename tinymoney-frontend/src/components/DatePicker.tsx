@@ -52,7 +52,7 @@ export function DatePicker({value, placeholder, onChange, ref}: DatePickerProps)
                 placeholder={placeholder}
                 ref={ref}
                 onChange={(e) => {
-                    const date = new Date(e.target.value)
+                    const date = parse(e.target.value, "yyyy-MM-dd", new Date())
                     onChange(e.target.value)
                     if (isValidDate(date)) {
                         setDate(date)

@@ -127,12 +127,10 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
                     size="icon"
                     variant="ghost"
                     className={cn("absolute right-0 top-0 h-full", (deletable && value) ? "text-gray-500" : "")}
-                    aria-label="Search"
                     tabIndex={-1}
                     onClick={() => deletable && value && handleSuggestionChosen(undefined) }
                 >
-                    {(!deletable || !value) && <Search className="h-4 w-4" />}
-                    {(deletable && value) && <Delete className="h-4 w-4" />}
+                    {(deletable && value) ? <Delete className="h-4 w-4" /> : <Search className="h-4 w-4" />}
                 </Button>
             </div>
             {isLoading && isFocused && (

@@ -165,8 +165,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                         <Controller control={control} name={"transactionDate"} render={({field}) => (
                             <DatePicker value={field.value} ref={field.ref} onChange={(d) => field.onChange(d)} placeholder="Data transakcji" />
                         )} />
-
-                        {/*<Input type="date" {...register("transactionDate")} />*/}
                     </div>
 
                     <div className="grid gap-2">
