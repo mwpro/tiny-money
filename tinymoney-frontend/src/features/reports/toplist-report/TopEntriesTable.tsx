@@ -1,17 +1,16 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Curr} from "@/components/Curr.tsx";
-import type {TopTransaction} from "@/lib/api.ts";
+import type {TopEntry} from "@/lib/api.ts";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";
-import {format} from "date-fns";
 
 interface BudgetTableProps {
-    transactions: TopTransaction[],
+    entries: TopEntry[],
     incomes: boolean
 }
 
-export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) {
+export function TopEntriesTable({entries, incomes}: BudgetTableProps) {
     const transactionsListPath = `/transactions?`;//dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
 
     return (
@@ -20,14 +19,13 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                 <TableHeader>
                     <TableRow>
                         <TableHead></TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Sprzedawca</TableHead>
-                        <TableHead className="text-right">Kwota</TableHead>
+                        <TableHead>Nazwa</TableHead>
+                        <TableHead className="text-right">Suma</TableHead>
                         <TableHead></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {transactions.length == 0 &&
+                    {entries.length == 0 &&
                         <TableRow>
                             <TableCell colSpan={5} className={"text-center"}>
                                 <Alert className="mb-6" variant="default">
@@ -35,13 +33,12 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                                 </Alert>
                             </TableCell>
                         </TableRow> }
-                    {transactions.map((t, id) => <TableRow key={t.id}>
+                    {entries.map((t, id) => <TableRow key={t.id}>
                         <TableCell>{++id}.</TableCell>
-                        <TableCell>{new Date(t.transactionDate).toLocaleDateString('pl-PL')}</TableCell>
-                        <TableCell>{t.vendorName}</TableCell>
+                        <TableCell>{t.description} ({t.numberOfTransactions})</TableCell>
                         <TableCell className="text-right"><Curr input={t.amount} colored isPositive={incomes}/></TableCell>
                         <TableCell>
-                            <Link to={`${transactionsListPath}dateFrom=${format(t.transactionDate, "yyyy-MM-dd")}&dateTo=${format(t.transactionDate, "yyyy-MM-dd")}&vendorId=${t.vendorId}&isExpense=${!incomes}`} target={"_blank"}>
+                            <Link to={`${transactionsListPath}&isExpense=${!incomes}`} target={"_blank"}>
                                 <ListIcon className="inline pr-1" size={19} />
                             </Link>
                         </TableCell>

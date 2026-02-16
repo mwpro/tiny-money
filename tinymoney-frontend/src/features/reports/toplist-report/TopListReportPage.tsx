@@ -4,7 +4,6 @@ import {useQuery} from "@tanstack/react-query";
 import {getTopListReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
-    differenceInCalendarMonths,
     endOfMonth,
     format,
     parse,
@@ -12,13 +11,12 @@ import {
     subMonths
 } from "date-fns";
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
-import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {TopTransactionsTable} from "@/features/reports/toplist-report/TopTransactionsTable.tsx";
+import {TopEntriesTable} from "@/features/reports/toplist-report/TopEntriesTable.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
-    dateTo: Date | undefined,
-    splitByMonth: boolean
+    dateTo: Date | undefined
 }
 
 export function TopListReportPage() {
@@ -29,22 +27,14 @@ export function TopListReportPage() {
         if (!dateFrom || !dateTo) {
             return;
         }
-        const splitByMonth = differenceInCalendarMonths(dateTo, dateFrom) <= 24;
-        setSearchParams({ dateFrom: format(dateFrom, "yyyy-MM-dd"), dateTo: format(dateTo, "yyyy-MM-dd"), splitByMonth: splitByMonth ? "true" : "false"});
+        setSearchParams({ dateFrom: format(dateFrom, "yyyy-MM-dd"), dateTo: format(dateTo, "yyyy-MM-dd")});
     };
-    const handleSplitByMonthChange = (splitByMonth: boolean) => {
-        setSearchParams((params) => {
-            params.set("splitByMonth", splitByMonth ? "true" : "false");
-            return params;
-        });
-    };
-
+    
     const reportSettings = useMemo<ReportSettings>(() => {
         const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(subMonths(new Date(), 12));
         const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date());
-        const splitByMonth = searchParams.get("splitByMonth") ? (searchParams.get("splitByMonth") === "true") : (differenceInCalendarMonths(dateTo, dateFrom) <= 24);
         return {
-            dateFrom, dateTo, splitByMonth
+            dateFrom, dateTo
         };
     }, [searchParams]);
 
@@ -69,13 +59,6 @@ export function TopListReportPage() {
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
                                  onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
-                <ToggleGroup variant="outline" className={"bg-background"}
-                             type="single" defaultValue="month"
-                             value={reportSettings.splitByMonth ? "month" : "year"}
-                             onValueChange={str => handleSplitByMonthChange(str === "month")}>
-                    <ToggleGroupItem value="month">Miesiąc</ToggleGroupItem>
-                    <ToggleGroupItem value="year">Rok</ToggleGroupItem>
-                </ToggleGroup>
             </div>
 
             {(reportQuery.isLoading) &&
@@ -85,10 +68,31 @@ export function TopListReportPage() {
             {reportQuery.data &&
                 <>
                     <div className="mb-6">
-                        <h2 className="text-xl font-bold mb-3">Przychody</h2>
                         <div className={"flex flex-row gap-4 mb-3"}>
-                            <TopTransactionsTable transactions={reportQuery.data.expenses} incomes={false} />
-                            <TopTransactionsTable transactions={reportQuery.data.incomes} incomes />
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-3">Wydatki</h2>
+                                <TopTransactionsTable transactions={reportQuery.data.expenses} incomes={false} />                                
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-3">Przychody</h2>
+                                <TopTransactionsTable transactions={reportQuery.data.incomes} incomes />                        
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mb-6">
+                        <div className={"flex flex-row gap-4 mb-3"}>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-3">Sprzedawcy</h2>
+                                <TopEntriesTable entries={reportQuery.data.expenseVendors} incomes={false} />                                
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-3">Źródła przychodów</h2>
+                                <TopEntriesTable entries={reportQuery.data.incomeVendors} incomes />                        
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold mb-3">Tagi</h2>
+                                <TopEntriesTable entries={reportQuery.data.tags} incomes={false} />                        
+                            </div>
                         </div>
                     </div>
                 </>
