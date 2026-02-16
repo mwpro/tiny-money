@@ -13,6 +13,7 @@ import {
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {TopTransactionsTable} from "@/features/reports/toplist-report/TopTransactionsTable.tsx";
 import {TopEntriesTable} from "@/features/reports/toplist-report/TopEntriesTable.tsx";
+import {dateFormat} from "@/lib/utils.ts";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -27,12 +28,12 @@ export function TopListReportPage() {
         if (!dateFrom || !dateTo) {
             return;
         }
-        setSearchParams({ dateFrom: format(dateFrom, "yyyy-MM-dd"), dateTo: format(dateTo, "yyyy-MM-dd")});
+        setSearchParams({ dateFrom: format(dateFrom, dateFormat), dateTo: format(dateTo, dateFormat)});
     };
     
     const reportSettings = useMemo<ReportSettings>(() => {
-        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(subMonths(new Date(), 12));
-        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date());
+        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, dateFormat, new Date()) : startOfMonth(subMonths(new Date(), 12));
+        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, dateFormat, new Date()) : endOfMonth(new Date());
         return {
             dateFrom, dateTo
         };

@@ -4,7 +4,7 @@ import type {TopTransaction} from "@/lib/api.ts";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";
-import {getTransactionsUrl} from "@/lib/utils.ts";
+import {dateFormat, getTransactionsUrl} from "@/lib/utils.ts";
 import {format} from "date-fns";
 
 interface BudgetTableProps {
@@ -36,7 +36,7 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                         </TableRow> }
                     {transactions.map((t, id) => <TableRow key={t.id}>
                         <TableCell>{++id}.</TableCell>
-                        <TableCell>{format(new Date(t.transactionDate), "yyyy-MM-dd")}</TableCell>
+                        <TableCell>{format(new Date(t.transactionDate), dateFormat)}</TableCell>
                         <TableCell>{t.vendorName}</TableCell>
                         <TableCell className="text-right"><Curr input={t.amount} colored isPositive={incomes}/></TableCell>
                         <TableCell>

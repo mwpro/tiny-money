@@ -1,6 +1,7 @@
 import {type Auth0ContextInterface} from "@auth0/auth0-react";
 import {format} from "date-fns";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
+import {dateFormat} from "@/lib/utils.ts";
 
 export type Transaction = {
     id: number;
@@ -170,10 +171,10 @@ export const getTransactions = async (auth: Auth0ContextInterface, params: Trans
     const {dateFrom, dateTo, isExpenseFilter, subcategoryIdFilter, vendorIdFilter, amountToFilter, amountFromFilter, tagIdFilter} = params;
     const queryParams = new URLSearchParams();
     if (dateFrom) {
-        queryParams.append('dateFrom', format(dateFrom, 'yyyy-MM-dd'))        
+        queryParams.append('dateFrom', format(dateFrom, dateFormat))        
     }
     if (dateTo) {
-        queryParams.append('dateTo', format(dateTo, 'yyyy-MM-dd'));
+        queryParams.append('dateTo', format(dateTo, dateFormat));
     }
     if (isExpenseFilter != undefined) {
         queryParams.append('isExpense', isExpenseFilter.toString());
@@ -379,8 +380,8 @@ export const getSummaryReport = async (auth: Auth0ContextInterface,
                                        splitByMonth: boolean): Promise<SummaryReport> => {
     const token = await auth.getAccessTokenSilently();
     const queryParams = new URLSearchParams();
-    dateFrom && queryParams.append('dateFrom', format(dateFrom, "yyyy-MM-dd"));
-    dateTo && queryParams.append('dateTo', format(dateTo, "yyyy-MM-dd"));
+    dateFrom && queryParams.append('dateFrom', format(dateFrom, dateFormat));
+    dateTo && queryParams.append('dateTo', format(dateTo, dateFormat));
     queryParams.append('splitByMonth', splitByMonth ? "true" : "false");
 
     const res = await fetch(`${API_URL}/reports/summary-report?${queryParams}`, {
@@ -396,8 +397,8 @@ export const getTopListReport = async (auth: Auth0ContextInterface,
                                        dateFrom: Date | undefined, dateTo: Date | undefined): Promise<TopListReport> => {
     const token = await auth.getAccessTokenSilently();
     const queryParams = new URLSearchParams();
-    dateFrom && queryParams.append('dateFrom', format(dateFrom, "yyyy-MM-dd"));
-    dateTo && queryParams.append('dateTo', format(dateTo, "yyyy-MM-dd"));
+    dateFrom && queryParams.append('dateFrom', format(dateFrom, dateFormat));
+    dateTo && queryParams.append('dateTo', format(dateTo, dateFormat));
     queryParams.append('numberOfTopEntries', "15");
 
     const res = await fetch(`${API_URL}/reports/top-list-report?${queryParams}`, {

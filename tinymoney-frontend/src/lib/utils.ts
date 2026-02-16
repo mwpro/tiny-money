@@ -24,7 +24,7 @@ export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string =
       .reduce((acc, [key, value]) => {
           console.log(value);
         if (value instanceof Date) {
-          acc[key] = format(value, "yyyy-MM-dd");
+          acc[key] = format(value, dateFormat);
         } else {
           acc[key] = String(value);
         }
@@ -35,3 +35,5 @@ export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string =
 
   return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 };
+
+export const dateFormat = "yyyy-MM-dd";
