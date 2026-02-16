@@ -143,7 +143,7 @@ namespace MW.TinyMoney.Api.Reports
                 v.id AS `vendorId`,
                 v.name AS `vendorName`,
                 t.amount,
-                t.transaction_date AS 'transactionDate'
+                t.transaction_date AS `transactionDate`
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
@@ -155,7 +155,7 @@ namespace MW.TinyMoney.Api.Reports
                 v.id AS `vendorId`,
                 v.name AS `vendorName`,
                 t.amount,
-                t.transaction_date AS 'transactionDate'
+                t.transaction_date AS `transactionDate`
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
@@ -166,7 +166,7 @@ namespace MW.TinyMoney.Api.Reports
                 v.id AS `id`,
                 v.name AS `description`,
                 SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS 'numberOfTransactions'
+                COUNT(t.id) AS `numberOfTransactions`
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
@@ -178,7 +178,7 @@ namespace MW.TinyMoney.Api.Reports
                 v.id AS `id`,
                 v.name AS `description`,
                 SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS 'numberOfTransactions'
+                COUNT(t.id) AS `numberOfTransactions`
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
@@ -190,7 +190,7 @@ namespace MW.TinyMoney.Api.Reports
                 tt.tag_id AS `id`,
                 tag.name AS `description`,
                 SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS 'numberOfTransactions'
+                COUNT(t.id) AS `numberOfTransactions`
             FROM transaction t
                 JOIN transaction_tag tt ON tt.transaction_id = t.id
                 JOIN tag tag ON tag.id = tt.tag_id

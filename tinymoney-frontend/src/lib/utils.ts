@@ -22,7 +22,6 @@ export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string =
   const queryParts = Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null)
       .reduce((acc, [key, value]) => {
-          console.log(value);
         if (value instanceof Date) {
           acc[key] = format(value, dateFormat);
         } else {
