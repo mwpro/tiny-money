@@ -1,5 +1,5 @@
 import type {ReportPeriod} from "@/lib/api.ts";
-import {CartesianGrid, Line, LineChart, XAxis} from "recharts"
+import {CartesianGrid, Line, LineChart, XAxis, YAxis} from "recharts"
 import {
     Card,
     CardContent
@@ -20,7 +20,7 @@ interface SummaryLineChartProps {
 
 export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChartProps) {
     const [activeSeries, setActiveSeries] = useState(Object.keys(reportPeriods[0]));
-    
+
     return (
         <Card className={"mb-3"}>
             <CardContent>
@@ -39,7 +39,13 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
+                            interval={"preserveStartEnd"}
                         />
+                        <YAxis domain={([dataMin, dataMax]) => {
+                            const min = Math.min(dataMin, 0);
+                            const max = Math.ceil(dataMax / 1000) * 1000 + 1000;
+                            return [min, max];
+                        }} hide />
                         <ChartTooltip cursor={false} content={<ChartTooltipContent/>}/>
                         <ChartLegend  onClick={(d, _, e) => {
                             const seriesKey = d.dataKey;
