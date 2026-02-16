@@ -1,19 +1,21 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search } from 'lucide-react'
+import { Search, Delete } from 'lucide-react'
+import {cn} from "@/lib/utils.ts";
 
 interface AutoCompleteProps {
-    value?: string
+    value?: string,
     onChange?: (value: { id?: number; name: string } | undefined) => void,
     fetchSuggestions: (value: string) => Promise<{ id?: number; name: string }[]>,
     clearQueryAfterSelection: boolean,
     allowCustomValues: boolean,
-    placeholder?: string | undefined;
-    className?: string | undefined
+    placeholder?: string | undefined,
+    className?: string | undefined,
+    deletable?: boolean | undefined
 }
 
-export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder, className }: AutoCompleteProps) {
+export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder, className, deletable }: AutoCompleteProps) {
     const [query, setQuery] = useState(value)
     const [foundLiteralMatch, setFoundLiteralMatch] = useState(false)
     const [suggestions, setSuggestions] = useState<{ id?: number; name: string }[]>([])
@@ -124,11 +126,13 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
                 <Button
                     size="icon"
                     variant="ghost"
-                    className="absolute right-0 top-0 h-full"
+                    className={cn("absolute right-0 top-0 h-full", (deletable && value) ? "text-gray-500" : "")}
                     aria-label="Search"
                     tabIndex={-1}
+                    onClick={() => deletable && value && handleSuggestionChosen(undefined) }
                 >
-                    <Search className="h-4 w-4" />
+                    {(!deletable || !value) && <Search className="h-4 w-4" />}
+                    {(deletable && value) && <Delete className="h-4 w-4" />}
                 </Button>
             </div>
             {isLoading && isFocused && (

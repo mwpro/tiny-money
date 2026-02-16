@@ -194,7 +194,7 @@ export function TransactionsPage() {
                                       setVendorFilter(undefined);
                                       setQueryParams(prevState => ({...prevState, vendorIdFilter: undefined}));
                                   }
-                              }} allowCustomValues={false} placeholder="Sprzedawca"/>
+                              }} allowCustomValues={false} placeholder="Sprzedawca" deletable />
                 <Select onValueChange={(value) => setQueryParams(prevState => ({
                     ...prevState,
                     subcategoryIdFilter: !value || value === "__NONE__" ? undefined : Number(value)
@@ -216,7 +216,7 @@ export function TransactionsPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Autocomplete className="bg-background"
+                <Autocomplete className="bg-background grow"
                               fetchSuggestions={async input => (tagsQuery.data || []).filter(o =>
                                   o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={tagFilter?.name} clearQueryAfterSelection={false}
@@ -229,7 +229,7 @@ export function TransactionsPage() {
                                       setTagFilter(undefined);
                                       setQueryParams(prevState => ({...prevState, tagIdFilter: undefined}));
                                   }
-                              }} allowCustomValues={false} placeholder="Tag"/>
+                              }} allowCustomValues={false} placeholder="Tag" deletable />
             </div>
 
             {(!transactionsQuery.isEnabled && <Alert  className="mb-6" variant="destructive">
