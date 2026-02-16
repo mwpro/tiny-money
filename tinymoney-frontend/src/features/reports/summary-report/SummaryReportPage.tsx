@@ -14,7 +14,7 @@ import {
 import {CategoriesTable} from "@/features/reports/summary-report/CategoriesTable.tsx";
 import {SummaryReportTable} from "@/features/reports/summary-report/SummaryReportTable.tsx";
 import {SummaryLineChart} from "@/features/reports/summary-report/SummaryLineChart.tsx";
-import {DatePicker, reportPresets} from "@/components/DatePicker.tsx";
+import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
 import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
@@ -72,8 +72,8 @@ export function SummaryReportPage() {
 
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
-                <DatePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo} 
-                            onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
+                <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
+                                 onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
                 <ToggleGroup variant="outline" className={"bg-background"}
                              type="single" defaultValue="month"
                              value={reportSettings.splitByMonth ? "month" : "year"}

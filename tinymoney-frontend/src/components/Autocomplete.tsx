@@ -1,19 +1,21 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search } from 'lucide-react'
+import { Search, Delete } from 'lucide-react'
+import {cn} from "@/lib/utils.ts";
 
 interface AutoCompleteProps {
-    value?: string
+    value?: string,
     onChange?: (value: { id?: number; name: string } | undefined) => void,
     fetchSuggestions: (value: string) => Promise<{ id?: number; name: string }[]>,
     clearQueryAfterSelection: boolean,
     allowCustomValues: boolean,
-    placeholder?: string | undefined;
-    className?: string | undefined
+    placeholder?: string | undefined,
+    className?: string | undefined,
+    deletable?: boolean | undefined
 }
 
-export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder, className }: AutoCompleteProps) {
+export default function Autocomplete({ value = '', onChange, fetchSuggestions, clearQueryAfterSelection, allowCustomValues, placeholder, className, deletable }: AutoCompleteProps) {
     const [query, setQuery] = useState(value)
     const [foundLiteralMatch, setFoundLiteralMatch] = useState(false)
     const [suggestions, setSuggestions] = useState<{ id?: number; name: string }[]>([])
@@ -51,7 +53,9 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         const newValue = e.target.value
         setQuery(newValue)
         setSelectedIndex(-1)
-        if (!newValue) {
+        if (newValue) {
+            setIsFocused(true);
+        } else {
             handleSuggestionChosen(undefined);
         }
     }
@@ -67,13 +71,14 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         } else if (e.key === 'ArrowUp') {
             e.preventDefault()
             setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
-        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-            e.preventDefault()
+        } else if ((e.key === 'Enter' || e.key === "Tab") && selectedIndex >= 0) {
+            e.key === "Enter" && e.preventDefault();
             if (selectedIndex < suggestions.length){
                 handleSuggestionChosen(suggestions[selectedIndex]);
             } else {
                 handleSuggestionChosen({name: query});
             }
+            handleBlur();
         } else if (e.key === 'Escape') {
             e.preventDefault()
             setSuggestions([])
@@ -121,10 +126,11 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
                 <Button
                     size="icon"
                     variant="ghost"
-                    className="absolute right-0 top-0 h-full"
-                    aria-label="Search"
+                    className={cn("absolute right-0 top-0 h-full", (deletable && value) ? "text-gray-500" : "")}
+                    tabIndex={-1}
+                    onClick={() => deletable && value && handleSuggestionChosen(undefined) }
                 >
-                    <Search className="h-4 w-4" />
+                    {(deletable && value) ? <Delete className="h-4 w-4" /> : <Search className="h-4 w-4" />}
                 </Button>
             </div>
             {isLoading && isFocused && (

@@ -1,6 +1,6 @@
 import {saveBudget, type SubcategoryBudget} from "@/lib/api.ts";
 import {useEffect, useState} from "react";
-import {useMutation} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
 import {useAuth0} from "@auth0/auth0-react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
@@ -14,6 +14,7 @@ interface BudgetNotesInputProps {
 
 export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) {
     const auth = useAuth0();
+    const queryClient = useQueryClient()
     const [budgetNotes, setBudgetNotes] = useState(() => budget.notes);
 
     useEffect(() => {
@@ -23,7 +24,7 @@ export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) 
     const saveBudgetMutation = useMutation({
         mutationFn: (notes: string | undefined) => saveBudget(budgetPeriod, budget.subcategoryId, budget.amount, notes, auth),
         onSuccess: () => {
-            // no need to invalidate queres as saving notes does not impact amounts
+            queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet zapisany");
         },
         onError: (error) => {

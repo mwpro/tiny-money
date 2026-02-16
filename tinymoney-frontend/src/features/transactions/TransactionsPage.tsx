@@ -13,7 +13,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
-import {DatePicker, transactionsListPresets} from "@/components/DatePicker.tsx";
+import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
     Select,
@@ -29,7 +29,9 @@ import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-import {AlertCircleIcon} from "lucide-react";
+import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
+import {Button} from "@/components/ui/button.tsx";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -139,25 +141,32 @@ export function TransactionsPage() {
 
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
-                <DatePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
+                <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
                 }} presets={transactionsListPresets} monthYearMode={false} />
-                <Select value={queryParams.isExpenseFilter?.toString() ?? "__NONE__"}
-                        onValueChange={val => setQueryParams(prevState => ({
-                            ...prevState,
-                            isExpenseFilter: val === "__NONE__" ? undefined : val === 'true'
-                        }))}>
-                    <SelectTrigger className={`w-[150px] bg-background ${queryParams.isExpenseFilter == undefined ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ queryParams.isExpenseFilter != undefined ? (queryParams.isExpenseFilter ? "Wydatki" : "Przychody") : "Rodzaj transakcji" }</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectGroup>
-                            <SelectItem value={"__NONE__"}>Wszystkie</SelectItem>
-                            <SelectItem value={true.toString()}>Wydatki</SelectItem>
-                            <SelectItem value={false.toString()}>Przychody</SelectItem>
-                        </SelectGroup>
-                    </SelectContent>
-                </Select>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant={"outline"} onClick={() => {
+                            setQueryParams(prevState => ({...prevState,
+                                isExpenseFilter:
+                                    prevState.isExpenseFilter === undefined ? true
+                                        : (prevState.isExpenseFilter ? false : undefined)
+
+                            }))
+                        }} >
+                            {queryParams.isExpenseFilter == undefined && (<Diff />)}
+                            {queryParams.isExpenseFilter == false && (<Plus className={"text-green-600"} />)}
+                            {queryParams.isExpenseFilter == true && (<Minus className={"text-red-600"} />)}
+                        </Button>                        
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                        <p>
+                            {queryParams.isExpenseFilter == undefined && ("Przychody i wydatki")}
+                            {queryParams.isExpenseFilter == false && ("Przychody")}
+                            {queryParams.isExpenseFilter == true && ("Wydatki")}
+                        </p>
+                    </TooltipContent>
+                </Tooltip>
                 <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={queryParams.amountFromFilter?.toString() ?? ""} onChange={e => {
                     const amount = Number(e.target.value);
                     if (amount > 10_000_000 || amount < 0)
@@ -185,7 +194,7 @@ export function TransactionsPage() {
                                       setVendorFilter(undefined);
                                       setQueryParams(prevState => ({...prevState, vendorIdFilter: undefined}));
                                   }
-                              }} allowCustomValues={false} placeholder="Sprzedawca"/>
+                              }} allowCustomValues={false} placeholder="Sprzedawca" deletable />
                 <Select onValueChange={(value) => setQueryParams(prevState => ({
                     ...prevState,
                     subcategoryIdFilter: !value || value === "__NONE__" ? undefined : Number(value)
@@ -207,7 +216,7 @@ export function TransactionsPage() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Autocomplete className="bg-background"
+                <Autocomplete className="bg-background grow"
                               fetchSuggestions={async input => (tagsQuery.data || []).filter(o =>
                                   o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={tagFilter?.name} clearQueryAfterSelection={false}
@@ -220,7 +229,7 @@ export function TransactionsPage() {
                                       setTagFilter(undefined);
                                       setQueryParams(prevState => ({...prevState, tagIdFilter: undefined}));
                                   }
-                              }} allowCustomValues={false} placeholder="Tag"/>
+                              }} allowCustomValues={false} placeholder="Tag" deletable />
             </div>
 
             {(!transactionsQuery.isEnabled && <Alert  className="mb-6" variant="destructive">

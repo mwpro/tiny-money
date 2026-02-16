@@ -33,7 +33,7 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                 <TableBody>
                     {budget.monthlyBudget.categoryBudgets.map((categoryBudget) => (
                         <Fragment key={categoryBudget.categoryId}>
-                            <TableRow className={`font-bold ${!categoryBudget.amount && !categoryBudget.amountLeft ? "text-gray-400" : ""}`}>
+                            <TableRow className={`font-bold ${!categoryBudget.amount && !categoryBudget.amountLeft ? "text-gray-400" : ""} bg-gray-100`}>
                                 <TableCell>{categoryBudget.categoryName}</TableCell>
                                 <TableCell className="text-right">
                                     <Curr input={categoryBudget.amount} />
@@ -41,10 +41,10 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                                 <TableCell className="text-right">
                                     <Curr input={categoryBudget.usedAmount} />
                                 </TableCell>
-                                <TableCell
-                                    className="text-right">
+                                <TableCell className="text-right">
                                     <Curr input={categoryBudget.amountLeft} colored={categoryBudget.amount !== 0 || categoryBudget.amountLeft !== 0} />
                                 </TableCell>
+                                <TableCell />
                             </TableRow>
                             {categoryBudget.subcategoryBudgets.map(subcategoryBudget => {
                                 return (

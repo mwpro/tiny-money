@@ -14,7 +14,6 @@ import {
 } from "@/lib/api"
 
 import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
@@ -35,6 +34,7 @@ import {
 } from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
 import {Minus, Plus} from "lucide-react";
+import {DatePicker} from "@/components/DatePicker.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -70,16 +70,23 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         ...dictionariesConfig
     })
 
+    const subcategoriesQuery = useQuery({
+        queryKey: ['categories'],
+        queryFn: () => getCategories(auth),
+        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
+        ...dictionariesConfig
+    })
+
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => getTags(auth),
         ...dictionariesConfig
     })
 
-    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset} = useForm({
+    const {register, control, handleSubmit, setValue, formState: {errors, defaultValues}, getValues, reset, setFocus} = useForm({
         resolver: zodResolver(transactionSchema),
         defaultValues: {
-            amount: transactionToEdit?.amount || 0,
+            amount: transactionToEdit?.amount || null,
             description: "",
             isExpense: true,
             transactionDate: format(new Date(), "yyyy-MM-dd"),
@@ -123,6 +130,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                 reset();
                 setIsOpen(false);
             } else {
+                setFocus("transactionDate")
                 reset({...defaultValues, transactionDate: getValues("transactionDate")})
             }
         },
@@ -134,7 +142,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
     const onSubmit = (data: TransactionFormValues) => {
         mutation.mutate(data)
     }
-
     return (
         <Dialog open={isOpen} onOpenChange={(v) => {
             setIsOpen(v);
@@ -155,7 +162,9 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                     <div className="grid gap-2">
                         <Label>Data</Label>
-                        <Input type="date" {...register("transactionDate")} />
+                        <Controller control={control} name={"transactionDate"} render={({field}) => (
+                            <DatePicker value={field.value} ref={field.ref} onChange={(d) => field.onChange(d)} placeholder="Data transakcji" />
+                        )} />
                     </div>
 
                     <div className="grid gap-2">
@@ -216,8 +225,12 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                         }
                                     }
                                 }} value={(field.value > 0) ? field.value.toString() : ""}>
-                                    <SelectTrigger className="w-full"><SelectValue
-                                        placeholder="Wybierz kategorię"/></SelectTrigger>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Wybierz kategorię">
+                                            { subcategoriesQuery.data && field.value ? subcategoriesQuery.data.get(field.value) : "Kategoria" }
+                                        </SelectValue>
+                                    </SelectTrigger>
+                                    
                                     <SelectContent>
                                         {categoriesQuery.data && categoriesQuery.data.map(category => (
                                             <SelectGroup key={category.id}>
@@ -244,7 +257,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                     name="isExpense"
                                     render={({field}) => (<InputGroupButton
                                             onClick={() => field.onChange(!field.value)}
-                                            
+                                            tabIndex={-1}
                                         >
                                             {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
                                         </InputGroupButton>
@@ -252,7 +265,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                 />
                                 
                             </InputGroupAddon>
-                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} />
+                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} onKeyDown={e => {
+                                if (e.key === "-" || e.key === "+") {
+                                    e.preventDefault();
+                                    setValue("isExpense", (e.key === "-"), {
+                                        shouldValidate: true,
+                                        shouldDirty: true
+                                    })
+                                }
+                            }}  />
                             <InputGroupAddon align="inline-end">
                                 <InputGroupText>zł</InputGroupText>
                             </InputGroupAddon>
