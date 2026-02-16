@@ -19,6 +19,7 @@ import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
 import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
+import {dateFormat} from "@/lib/utils.ts";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -35,7 +36,7 @@ export function SummaryReportPage() {
             return;
         }
         const splitByMonth = differenceInCalendarMonths(dateTo, dateFrom) <= 24;
-        setSearchParams({ dateFrom: format(dateFrom, "yyyy-MM-dd"), dateTo: format(dateTo, "yyyy-MM-dd"), splitByMonth: splitByMonth ? "true" : "false"});
+        setSearchParams({ dateFrom: format(dateFrom, dateFormat), dateTo: format(dateTo, dateFormat), splitByMonth: splitByMonth ? "true" : "false"});
     };
     const handleSplitByMonthChange = (splitByMonth: boolean) => {
         setSearchParams((params) => { 
@@ -45,8 +46,8 @@ export function SummaryReportPage() {
     };
 
     const reportSettings = useMemo<ReportSettings>(() => {
-        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : startOfMonth(subMonths(new Date(), 12));
-        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : endOfMonth(new Date());
+        const dateFrom = searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, dateFormat, new Date()) : startOfMonth(subMonths(new Date(), 12));
+        const dateTo = searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, dateFormat, new Date()) : endOfMonth(new Date());
         const splitByMonth = searchParams.get("splitByMonth") ? (searchParams.get("splitByMonth") === "true") : (differenceInCalendarMonths(dateTo, dateFrom) <= 24);
         return {
             dateFrom, dateTo, splitByMonth

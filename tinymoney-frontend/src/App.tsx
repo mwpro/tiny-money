@@ -9,6 +9,7 @@ import {Spinner} from "@/components/ui/spinner.tsx";
 import {AlertCircleIcon} from "lucide-react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {SummaryReportPage} from "@/features/reports/summary-report/SummaryReportPage.tsx";
+import {TopListReportPage} from "@/features/reports/toplist-report/TopListReportPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -59,6 +60,7 @@ function App() {
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports/summary" element={<SummaryReportPage />} />
+                    <Route path="reports/top-list" element={<TopListReportPage />} />
                     <Route path="budgets" element={<BudgetsPage />} />
 
                 </Route>

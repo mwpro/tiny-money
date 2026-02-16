@@ -159,6 +159,15 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(reportData);
         }
 
+        [HttpGet, Route("top-list-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TopListReportModel))]
+        public async Task<IActionResult> GetToplistReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [Required, Range(1, 200)] int numberOfTopEntries)
+        {
+            var reportData = await _reportsProvider.PrepareTopListReport(dateFrom, dateTo, numberOfTopEntries);
+            
+            return Ok(reportData);
+        }
+
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)
         {
             var labels = reportData.Select(x => x.XLabel).Distinct();

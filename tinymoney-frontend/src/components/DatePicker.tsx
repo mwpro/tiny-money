@@ -14,13 +14,14 @@ import {
 import {CalendarIcon} from "lucide-react"
 import {format, parse} from "date-fns";
 import type {RefCallBack} from "react-hook-form";
+import {dateFormat} from "@/lib/utils.ts";
 
 function formatDate(date: Date | undefined) {
     if (!date) {
         return ""
     }
 
-    return format(date, "yyyy-MM-dd")
+    return format(date, dateFormat)
 }
 
 function isValidDate(date: Date | undefined) {
@@ -40,7 +41,7 @@ interface DatePickerProps {
 export function DatePicker({value, placeholder, onChange, ref}: DatePickerProps) {
     const [open, setOpen] = React.useState(false)
     const [date, setDate] = React.useState<Date | undefined>(
-        parse(value, "yyyy-MM-dd", new Date())
+        parse(value, dateFormat, new Date())
     )
     const [month, setMonth] = React.useState<Date | undefined>(date)
 
@@ -52,7 +53,7 @@ export function DatePicker({value, placeholder, onChange, ref}: DatePickerProps)
                 placeholder={placeholder}
                 ref={ref}
                 onChange={(e) => {
-                    const date = parse(e.target.value, "yyyy-MM-dd", new Date())
+                    const date = parse(e.target.value, dateFormat, new Date())
                     onChange(e.target.value)
                     if (isValidDate(date)) {
                         setDate(date)

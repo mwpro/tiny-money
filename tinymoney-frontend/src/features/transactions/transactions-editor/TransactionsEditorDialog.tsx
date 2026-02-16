@@ -35,6 +35,7 @@ import {
 import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
 import {Minus, Plus} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
+import {dateFormat} from "@/lib/utils.ts";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -89,7 +90,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             amount: transactionToEdit?.amount || null,
             description: "",
             isExpense: true,
-            transactionDate: format(new Date(), "yyyy-MM-dd"),
+            transactionDate: format(new Date(), dateFormat),
             subcategoryId: 0,
             vendor: {id: undefined, name: ""},
             tags: []
@@ -102,7 +103,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             setValue("amount", transactionToEdit.amount)
             setValue("description", transactionToEdit.description ?? "")
             setValue("isExpense", transactionToEdit.isExpense);
-            setValue("transactionDate", format(transactionToEdit.transactionDate, "yyyy-MM-dd"));
+            setValue("transactionDate", format(transactionToEdit.transactionDate, dateFormat));
             setValue("subcategoryId", transactionToEdit.subcategoryId);
             const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
             if (selectedVendor) {

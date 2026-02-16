@@ -1,18 +1,18 @@
 import {Outlet, Link, useLocation} from "react-router-dom"
 import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
-import {endOfMonth, format, startOfMonth} from "date-fns";
+import {endOfMonth, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {DropdownMenu, DropdownMenuGroup, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem} from "./ui/dropdown-menu";
 import {ChevronDownIcon} from "lucide-react";
+import {getTransactionsUrl} from "@/lib/utils.ts";
 
 export function Layout() {
     const location = useLocation()
     const {logout, user} = useAuth0();
 
     const isActive = (path: string) => location.pathname === path;
-    const defaultTransactionsUrl = `/transactions?dateFrom=${format(startOfMonth(new Date()), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(new Date()), "yyyy-MM-dd")}`
-
+    
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <header className="border-b bg-white">
@@ -26,7 +26,7 @@ export function Layout() {
                                     Dashboard
                                 </Button>
                             </Link>
-                            <Link to={defaultTransactionsUrl}>
+                            <Link to={getTransactionsUrl({dateFrom: startOfMonth(new Date()), dateTo: endOfMonth(new Date())})}>
                                 <Button variant={isActive("/transactions") ? "secondary" : "ghost"}>
                                     Transakcje
                                 </Button>
@@ -54,6 +54,11 @@ export function Layout() {
                                             <Link to="/reports/summary">
                                                 <DropdownMenuItem>
                                                     Podsumowanie
+                                                </DropdownMenuItem>
+                                            </Link>
+                                            <Link to="/reports/top-list">
+                                                <DropdownMenuItem>
+                                                    Top lista
                                                 </DropdownMenuItem>
                                             </Link>
                                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">

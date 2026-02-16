@@ -32,11 +32,12 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
+import {dateFormat} from "@/lib/utils.ts";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
-        dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, "yyyy-MM-dd", new Date()) : undefined,
-        dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, "yyyy-MM-dd", new Date()) : undefined,
+        dateFrom: searchParams.get("dateFrom") ? parse(searchParams.get("dateFrom") as string, dateFormat, new Date()) : undefined,
+        dateTo: searchParams.get("dateTo") ? parse(searchParams.get("dateTo") as string, dateFormat, new Date()) : undefined,
         isExpenseFilter: searchParams.get("isExpense") != undefined ? searchParams.get("isExpense") == "true" : undefined,
         amountFromFilter: searchParams.get("amountFrom") ? Number(searchParams.get("amountFrom")) : undefined,
         amountToFilter: searchParams.get("amountTo") ? Number(searchParams.get("amountTo")) : undefined,
@@ -76,8 +77,8 @@ export function TransactionsPage() {
     useEffect(() => {
             const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter} = debouncedQueryParams;
             setSearchParams((params) => {
-                dateFrom ? params.set("dateFrom", format(dateFrom, "yyyy-MM-dd")) : params.delete("dateFrom");
-                dateTo ? params.set("dateTo", format(dateTo, "yyyy-MM-dd")) : params.delete("dateTo");
+                dateFrom ? params.set("dateFrom", format(dateFrom, dateFormat)) : params.delete("dateFrom");
+                dateTo ? params.set("dateTo", format(dateTo, dateFormat)) : params.delete("dateTo");
                 isExpenseFilter != undefined ? params.set("isExpense", isExpenseFilter.toString()) : params.delete("isExpense");
                 amountFromFilter ? params.set("amountFrom", amountFromFilter.toString()) : params.delete("amountFrom");
                 amountToFilter ? params.set("amountTo", amountToFilter.toString()) : params.delete("amountTo");

@@ -16,6 +16,7 @@ import {
     isSameDay, startOfDay,
     parse
 } from 'date-fns';
+import {dateFormat} from "@/lib/utils.ts";
 
 interface DateRangePickerProps {
     dateFrom: Date | undefined,
@@ -195,7 +196,7 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
                         className="justify-between font-normal"
                     >
                         {usedPreset ? usedPreset.name : "Własny zakres"}
-                        {dateFrom && dateTo && ` - ${format(dateFrom, 'yyyy-MM-dd')} - ${format(dateTo, 'yyyy-MM-dd')}`}
+                        {dateFrom && dateTo && ` - ${format(dateFrom, dateFormat)} - ${format(dateTo, dateFormat)}`}
                         <ChevronDownIcon/>
                     </Button>
                 </PopoverTrigger>

@@ -11,6 +11,8 @@ import {
 import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/lib/api.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
+import {format} from "date-fns";
+import {dateFormat} from "@/lib/utils.ts";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -62,7 +64,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                 {transactions.transactions.map((t) => (
                     <TableRow key={t.id}>
                         <TableCell>
-                            {new Date(t.transactionDate).toLocaleDateString('pl-PL')}
+                            {format(new Date(t.transactionDate), dateFormat)}
                         </TableCell>
                         <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
                         <TableCell>{getVendorName(t.vendorId)}</TableCell>

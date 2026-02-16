@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Reports;
@@ -52,7 +53,6 @@ public class ReportCategory
     public IEnumerable<ReportSubcategory> Subcategories { get; set; }
 }
 
-
 public class ReportPeriodCategory
 {
     public string PeriodLabel { get; set; }
@@ -76,4 +76,30 @@ public class ReportPeriodSubcategory
     public string PeriodLabel { get; set; }
     
     public decimal TransactionsSum { get; set; }
+}
+
+public class TopListReportModel
+{
+    public IEnumerable<TopTransactionModel> Expenses { get; set; }
+    public IEnumerable<TopTransactionModel> Incomes { get; set; }
+    public IEnumerable<TopEntryModel> ExpenseVendors { get; set; }
+    public IEnumerable<TopEntryModel> IncomeVendors { get; set; }
+    public IEnumerable<TopEntryModel> Tags { get; set; }
+}
+
+public class TopTransactionModel
+{
+    public int Id { get; set; }
+    public int VendorId { get; set; }
+    public string VendorName { get; set; }
+    public DateTime TransactionDate { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public class TopEntryModel
+{
+    public int Id { get; set; }
+    public string Description { get; set; }
+    public decimal Amount { get; set; }
+    public int NumberOfTransactions { get; set; }
 }
