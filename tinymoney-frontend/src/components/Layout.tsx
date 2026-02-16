@@ -5,14 +5,14 @@ import {endOfMonth, format, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {DropdownMenu, DropdownMenuGroup, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem} from "./ui/dropdown-menu";
 import {ChevronDownIcon} from "lucide-react";
+import {getTransactionsUrl} from "@/lib/utils.ts";
 
 export function Layout() {
     const location = useLocation()
     const {logout, user} = useAuth0();
 
     const isActive = (path: string) => location.pathname === path;
-    const defaultTransactionsUrl = `/transactions?dateFrom=${format(startOfMonth(new Date()), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(new Date()), "yyyy-MM-dd")}`
-
+    
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col">
             <header className="border-b bg-white">
@@ -26,7 +26,7 @@ export function Layout() {
                                     Dashboard
                                 </Button>
                             </Link>
-                            <Link to={defaultTransactionsUrl}>
+                            <Link to={getTransactionsUrl({dateFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"), dateTo: format(endOfMonth(new Date()), "yyyy-MM-dd")})}>
                                 <Button variant={isActive("/transactions") ? "secondary" : "ghost"}>
                                     Transakcje
                                 </Button>

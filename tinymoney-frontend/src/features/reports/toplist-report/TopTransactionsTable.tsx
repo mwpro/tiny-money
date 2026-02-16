@@ -5,6 +5,7 @@ import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";
 import {format} from "date-fns";
+import {getTransactionsUrl} from "@/lib/utils.ts";
 
 interface BudgetTableProps {
     transactions: TopTransaction[],
@@ -12,8 +13,6 @@ interface BudgetTableProps {
 }
 
 export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) {
-    const transactionsListPath = `/transactions?`;//dateFrom=${format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}&dateTo=${format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")}`
-
     return (
         <div className="border rounded-md flex-1">
             <Table>
@@ -41,7 +40,7 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                         <TableCell>{t.vendorName}</TableCell>
                         <TableCell className="text-right"><Curr input={t.amount} colored isPositive={incomes}/></TableCell>
                         <TableCell>
-                            <Link to={`${transactionsListPath}dateFrom=${format(t.transactionDate, "yyyy-MM-dd")}&dateTo=${format(t.transactionDate, "yyyy-MM-dd")}&vendorId=${t.vendorId}&isExpense=${!incomes}`} target={"_blank"}>
+                            <Link to={getTransactionsUrl({ dateFrom: format(t.transactionDate, "yyyy-MM-dd"), dateTo: format(t.transactionDate, "yyyy-MM-dd"), vendorId: t.vendorId, isExpense: !incomes })} target={"_blank"}>
                                 <ListIcon className="inline pr-1" size={19} />
                             </Link>
                         </TableCell>

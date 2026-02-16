@@ -83,15 +83,15 @@ export function TopListReportPage() {
                         <div className={"flex flex-row gap-4 mb-3"}>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold mb-3">Sprzedawcy</h2>
-                                <TopEntriesTable entries={reportQuery.data.expenseVendors} incomes={false} />                                
+                                <TopEntriesTable entries={reportQuery.data.expenseVendors} incomes={false} reportSettings={reportSettings} transactionsUrlConfigurer={t => ({vendorId: t.id})} />                                
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold mb-3">Źródła przychodów</h2>
-                                <TopEntriesTable entries={reportQuery.data.incomeVendors} incomes />                        
+                                <TopEntriesTable entries={reportQuery.data.incomeVendors} incomes reportSettings={reportSettings} transactionsUrlConfigurer={t => ({vendorId: t.id})} />                        
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold mb-3">Tagi</h2>
-                                <TopEntriesTable entries={reportQuery.data.tags} incomes={false} />                        
+                                <TopEntriesTable entries={reportQuery.data.tags} incomes={false} reportSettings={reportSettings} transactionsUrlConfigurer={t => ({tagId: t.id})} />                        
                             </div>
                         </div>
                     </div>
