@@ -56,6 +56,11 @@ export function Layout() {
                                                     Podsumowanie
                                                 </DropdownMenuItem>
                                             </Link>
+                                            <Link to="/reports/top-list">
+                                                <DropdownMenuItem>
+                                                    Top lista
+                                                </DropdownMenuItem>
+                                            </Link>
                                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">
                                                 <DropdownMenuItem>
                                                     Stare raporty
