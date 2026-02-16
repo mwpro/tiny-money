@@ -1,7 +1,7 @@
 import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getSummaryReport} from "@/lib/api.ts";
+import {getTopListReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     differenceInCalendarMonths,
@@ -11,14 +11,9 @@ import {
     startOfMonth,
     subMonths
 } from "date-fns";
-import {CategoriesTable} from "@/features/reports/summary-report/CategoriesTable.tsx";
-import {SummaryReportTable} from "@/features/reports/summary-report/SummaryReportTable.tsx";
-import {SummaryLineChart} from "@/features/reports/summary-report/SummaryLineChart.tsx";
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
-import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
-import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
-import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
+import {TopTransactionsTable} from "@/features/reports/toplist-report/TopTransactionsTable.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -61,7 +56,7 @@ export function TopListReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => getSummaryReport(auth, reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
+        queryFn: () => getTopListReport(auth, reportSettings.dateFrom, reportSettings.dateTo)
     })
 
     return (
@@ -87,33 +82,14 @@ export function TopListReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data && reportQuery.data.periods.length == 0 &&
-                <Alert className="mb-6" variant="default">
-                    <AlertTitle>Nie znaleziono transakcji w wybranym przedziale czasowym.</AlertTitle>
-                </Alert>}
-            {reportQuery.data && reportQuery.data.periods.length > 0 &&
+            {reportQuery.data &&
                 <>
-                    <div className="mb-6">
-                        <SummaryLineChart reportPeriods={reportQuery.data.periods} splitByMonth={reportSettings.splitByMonth} />
-                        <SummaryReportTable reportData={reportQuery.data} splitByMonth={reportSettings.splitByMonth} />
-                    </div>
-
                     <div className="mb-6">
                         <h2 className="text-xl font-bold mb-3">Przychody</h2>
                         <div className={"flex flex-row gap-4 mb-3"}>
-                            <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
-                            <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
+                            <TopTransactionsTable transactions={reportQuery.data.expenses} incomes={false} />
+                            <TopTransactionsTable transactions={reportQuery.data.incomes} incomes />
                         </div>
-                        <CategoriesTable categories={reportQuery.data.categories.filter(c => c.isIncome)} reportSettings={reportSettings} />
-                    </div>
-
-                    <div className="mb-6">
-                        <h2 className="text-xl font-bold mb-3">Wydatki</h2>
-                        <div className={"flex flex-row gap-4 mb-3"}>
-                            <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
-                            <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
-                        </div>
-                        <CategoriesTable categories={reportQuery.data.categories.filter(c => !c.isIncome)} reportSettings={reportSettings} />
                     </div>
                 </>
             }

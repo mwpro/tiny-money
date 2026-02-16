@@ -140,6 +140,29 @@ export interface ReportPeriodSubcategory {
     transactionsSum: number
 }
 
+export interface TopListReport {
+    expenses: TopTransaction[],
+    incomes: TopTransaction[],
+    expenseVendors: TopEntry[],
+    incomeVendors: TopEntry[],
+    tags: TopEntry[]
+}
+
+export interface TopTransaction {
+    id: number,
+    vendorId: number,
+    vendorName: string,
+    transactionDate: Date,
+    amount: number
+}
+
+export interface TopEntry {
+    id: number,
+    description: string,
+    amount: number,
+    numberOfTransactions: number
+}
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<TransactionsResponse> => {
@@ -361,6 +384,23 @@ export const getSummaryReport = async (auth: Auth0ContextInterface,
     queryParams.append('splitByMonth', splitByMonth ? "true" : "false");
 
     const res = await fetch(`${API_URL}/reports/summary-report?${queryParams}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania raportu');
+    return res.json();
+};
+
+export const getTopListReport = async (auth: Auth0ContextInterface,
+                                       dateFrom: Date | undefined, dateTo: Date | undefined): Promise<TopListReport> => {
+    const token = await auth.getAccessTokenSilently();
+    const queryParams = new URLSearchParams();
+    dateFrom && queryParams.append('dateFrom', format(dateFrom, "yyyy-MM-dd"));
+    dateTo && queryParams.append('dateTo', format(dateTo, "yyyy-MM-dd"));
+    queryParams.append('numberOfTopEntries', "15");
+
+    const res = await fetch(`${API_URL}/reports/top-list-report?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }
