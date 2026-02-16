@@ -6,7 +6,6 @@ import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";
 import type {ReportSettings} from "@/features/reports/toplist-report/TopListReportPage.tsx";
 import {getTransactionsUrl, type TransactionsUrlParams} from "@/lib/utils.ts";
-import {format} from "date-fns";
 
 interface BudgetTableProps {
     entries: TopEntry[],
@@ -42,7 +41,7 @@ export function TopEntriesTable({entries, incomes, reportSettings, transactionsU
                         <TableCell className="text-right"><Curr input={t.amount} colored
                                                                 isPositive={incomes}/></TableCell>
                         <TableCell>
-                            <Link to={getTransactionsUrl({ ...transactionsUrlConfigurer(t), dateFrom: reportSettings.dateFrom && format(reportSettings.dateFrom, "yyyy-MM-dd"), dateTo: reportSettings.dateTo && format(reportSettings.dateTo, "yyyy-MM-dd"), isExpense: !incomes })} target={"_blank"}>
+                            <Link to={getTransactionsUrl({ ...transactionsUrlConfigurer(t), dateFrom: reportSettings.dateFrom && reportSettings.dateFrom, dateTo: reportSettings.dateTo && reportSettings.dateTo, isExpense: !incomes })} target={"_blank"}>
                                 <ListIcon className="inline pr-1" size={19}/>
                             </Link>
                         </TableCell>

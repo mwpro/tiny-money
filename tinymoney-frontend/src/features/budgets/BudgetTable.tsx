@@ -5,7 +5,7 @@ import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {BudgetNotesInput} from "@/features/budgets/BudgetNotesInput.tsx";
 import {Link} from "react-router-dom";
-import {endOfMonth, format, startOfMonth} from "date-fns";
+import {endOfMonth, startOfMonth} from "date-fns";
 import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
 import {getTransactionsUrl} from "@/lib/utils.ts";
@@ -52,7 +52,7 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                                     <TableRow key={`${categoryBudget.categoryId}-${subcategoryBudget.subcategoryId}`}
                                               className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-gray-400" : ""}>
                                         <TableCell>
-                                            <Link to={getTransactionsUrl({subcategoryId: subcategoryBudget.subcategoryId, dateFrom: format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd"), dateTo: format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")})} target={"_blank"}>
+                                            <Link to={getTransactionsUrl({subcategoryId: subcategoryBudget.subcategoryId, dateFrom: startOfMonth(budgetPeriodReferenceDate), dateTo: endOfMonth(budgetPeriodReferenceDate)})} target={"_blank"}>
                                                 <ListIcon className="inline pr-1" size={19} />
                                             </Link>
                                             {subcategoryBudget.subcategoryName}

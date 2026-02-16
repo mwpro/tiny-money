@@ -152,7 +152,7 @@ export interface TopTransaction {
     id: number,
     vendorId: number,
     vendorName: string,
-    transactionDate: Date,
+    transactionDate: string,
     amount: number
 }
 

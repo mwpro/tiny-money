@@ -1,7 +1,7 @@
 import {Outlet, Link, useLocation} from "react-router-dom"
 import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
-import {endOfMonth, format, startOfMonth} from "date-fns";
+import {endOfMonth, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {DropdownMenu, DropdownMenuGroup, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem} from "./ui/dropdown-menu";
 import {ChevronDownIcon} from "lucide-react";
@@ -26,7 +26,7 @@ export function Layout() {
                                     Dashboard
                                 </Button>
                             </Link>
-                            <Link to={getTransactionsUrl({dateFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"), dateTo: format(endOfMonth(new Date()), "yyyy-MM-dd")})}>
+                            <Link to={getTransactionsUrl({dateFrom: startOfMonth(new Date()), dateTo: endOfMonth(new Date())})}>
                                 <Button variant={isActive("/transactions") ? "secondary" : "ghost"}>
                                     Transakcje
                                 </Button>

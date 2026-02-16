@@ -2,7 +2,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import type {ReportCategory} from "@/lib/api.ts";
 import {Fragment, useState} from "react";
 import {Link} from "react-router-dom";
-import {endOfMonth, endOfYear, format, parse} from "date-fns";
+import {endOfMonth, endOfYear, parse} from "date-fns";
 import {ListIcon} from "lucide-react";
 import {Curr} from "@/components/Curr.tsx";
 import type {ReportSettings} from "@/features/reports/summary-report/SummaryReportPage.tsx";
@@ -45,7 +45,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                     <TableRow key={`${category.categoryId}-${subcategory.subcategoryId}`}>
                                         <TableCell>
                                             <Link
-                                                to={getTransactionsUrl({subcategoryId: subcategory.subcategoryId, dateFrom: format(reportSettings.dateFrom!, "yyyy-MM-dd"), dateTo: format(reportSettings.dateTo!, "yyyy-MM-dd")})}
+                                                to={getTransactionsUrl({subcategoryId: subcategory.subcategoryId, dateFrom: reportSettings.dateFrom!, dateTo: reportSettings.dateTo!})}
                                                 target={"_blank"}>
                                                 <ListIcon className="inline pr-1" size={19}/>
                                             </Link>
@@ -54,7 +54,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                         {subcategory.periods.map(period => (
                                             <TableCell key={period.periodLabel} className="text-right">
                                                 <Link
-                                                    to={getTransactionsUrl({subcategoryId: subcategory.subcategoryId, dateFrom: format(parse(period.periodLabel, reportSettings.splitByMonth ? "yyyy-MM" : "yyyy", new Date()), "yyyy-MM-dd"), dateTo: format(reportSettings.splitByMonth ? endOfMonth(parse(period.periodLabel, "yyyy-MM", new Date())) : endOfYear(parse(period.periodLabel, "yyyy", new Date())), "yyyy-MM-dd")})}
+                                                    to={getTransactionsUrl({subcategoryId: subcategory.subcategoryId, dateFrom: parse(period.periodLabel, reportSettings.splitByMonth ? "yyyy-MM" : "yyyy", new Date()), dateTo: reportSettings.splitByMonth ? endOfMonth(parse(period.periodLabel, "yyyy-MM", new Date())) : endOfYear(parse(period.periodLabel, "yyyy", new Date()))})}
                                                     target={"_blank"}>
                                                     <Curr input={period.transactionsSum}/>
                                                 </Link>

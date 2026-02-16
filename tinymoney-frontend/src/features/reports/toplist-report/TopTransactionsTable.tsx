@@ -4,8 +4,8 @@ import type {TopTransaction} from "@/lib/api.ts";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";
-import {format} from "date-fns";
 import {getTransactionsUrl} from "@/lib/utils.ts";
+import {format} from "date-fns";
 
 interface BudgetTableProps {
     transactions: TopTransaction[],
@@ -36,11 +36,11 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                         </TableRow> }
                     {transactions.map((t, id) => <TableRow key={t.id}>
                         <TableCell>{++id}.</TableCell>
-                        <TableCell>{new Date(t.transactionDate).toLocaleDateString('pl-PL')}</TableCell>
+                        <TableCell>{format(new Date(t.transactionDate), "yyyy-MM-dd")}</TableCell>
                         <TableCell>{t.vendorName}</TableCell>
                         <TableCell className="text-right"><Curr input={t.amount} colored isPositive={incomes}/></TableCell>
                         <TableCell>
-                            <Link to={getTransactionsUrl({ dateFrom: format(t.transactionDate, "yyyy-MM-dd"), dateTo: format(t.transactionDate, "yyyy-MM-dd"), vendorId: t.vendorId, isExpense: !incomes })} target={"_blank"}>
+                            <Link to={getTransactionsUrl({ dateFrom: new Date(t.transactionDate), dateTo: new Date(t.transactionDate), vendorId: t.vendorId, isExpense: !incomes })} target={"_blank"}>
                                 <ListIcon className="inline pr-1" size={19} />
                             </Link>
                         </TableCell>

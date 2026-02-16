@@ -5,7 +5,7 @@ import {useQuery} from "@tanstack/react-query";
 import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {Link, useSearchParams} from "react-router-dom";
-import {endOfMonth, format, parse, startOfMonth} from "date-fns";
+import {endOfMonth, parse, startOfMonth} from "date-fns";
 import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
 import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Curr} from "@/components/Curr.tsx";
@@ -59,7 +59,7 @@ export function BudgetsPage() {
                     <CopyBudgetDialog currentMonth={budgetPeriod} />
                     <ButtonGroupSeparator />
                     <Button asChild>
-                        <Link to={getTransactionsUrl({dateFrom: format(startOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd"), dateTo: format(endOfMonth(budgetPeriodReferenceDate), "yyyy-MM-dd")})} target={"_blank"}>
+                        <Link to={getTransactionsUrl({dateFrom: startOfMonth(budgetPeriodReferenceDate), dateTo: endOfMonth(budgetPeriodReferenceDate)})} target={"_blank"}>
                             Zobacz transakcje
                         </Link>
                     </Button>                    
