@@ -522,7 +522,7 @@ namespace MW.TinyMoney.Api.Reports
             }).Prepend(new SankeyNode()
             {
                 Index = rootNodeIndex,
-                Name = "ROOT"
+                Name = "Budżet"
             }).ToList();
             var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category" && (!hasSingleIncomeCategory || t.IsExpense))
                 .Select(t => new SankeyLink()
@@ -538,11 +538,18 @@ namespace MW.TinyMoney.Api.Reports
                     Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : hasSingleIncomeCategory ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
                     Value = t.Value
                 });
+            var vendorLinks = queryResults.Where(t => t.AggregationLevel == "vendor")
+                .Select(t => new SankeyLink()
+                {
+                    Source = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index,
+                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index,
+                    Value = t.Value
+                });
 
             return new SankeyReportModel()
             {
-                Nodes = nodes.Where(n => n.NodeType == "category" || n.NodeType == "subcategory" || n.Name == "ROOT"), // todo remove that where
-                Links = categoryLinks.Concat(subcategoryLinks)
+                Nodes = nodes,
+                Links = categoryLinks.Concat(subcategoryLinks).Concat(vendorLinks)
             };
         }
 
@@ -573,6 +580,19 @@ namespace MW.TinyMoney.Api.Reports
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
             GROUP BY t.is_expense, s.id, s.name, s.parent_category_id
+            UNION ALL
+            SELECT /* vendor level */
+                'vendor' AS `aggregationLevel`,
+                v.id AS 'id',
+                t.subcategory_id AS 'parentId',
+                t.is_expense as `isExpense`, 
+                v.name as `label`,
+                SUM(t.amount) AS `value`
+            FROM transaction t
+                JOIN vendor v ON v.id = t.vendor_id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND 1=0
+            GROUP BY t.is_expense, t.subcategory_id, v.id, v.name
             ";
 
         public class TransactionsSum
