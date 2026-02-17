@@ -505,37 +505,45 @@ namespace MW.TinyMoney.Api.Reports
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            var queryResults = await connection.QueryAsync<TransactionsSum>(SankeyQuery,
+            var queryResults = (await connection.QueryAsync<TransactionsSum>(SankeyQuery,
                 new
                 {
                     dateFrom = dateFrom, dateTo = dateTo
+                })).ToList();
+            const int rootNodeId = 0;
+            
+            var nodes = queryResults.Select((q, i) => new SankeyNode()
+            {
+                Id = i + 1,
+                Name = q.Label,
+                NodeType = q.AggregationLevel,
+                NodeId = q.Id
+            }).Prepend(new SankeyNode()
+            {
+                Id = rootNodeId,
+                Name = "ROOT"
+            }).ToList();
+            var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category")
+                .Select(t => new SankeyLink()
+                {
+                    Source = t.IsExpense ? rootNodeId : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Id,
+                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Id : rootNodeId,
+                    Value = t.Value
                 });
-            var centralNodeId = queryResults.Count();
             
             return new SankeyReportModel()
             {
-                Nodes = queryResults.Select((q, i) => new SankeyNode()
-                {
-                    Id = i,
-                    Name = q.Label
-                }).Append(new SankeyNode()
-                {
-                    Id = centralNodeId,
-                    Name = "-"
-                }),
-                Links = queryResults.Select((q, i) => new SankeyLink()
-                {
-                    Source = q.IsExpense ? centralNodeId : i,
-                    Target = q.IsExpense ? i : centralNodeId,
-                    Value = q.Value
-                })
+                Nodes = nodes.Where(n => n.NodeType == "category" || n.Name == "ROOT"),
+                Links = categoryLinks
             };
         }
 
         private const string SankeyQuery = @"
-            SELECT /* Top tags */
+            SELECT /* category level */
+                'category' AS `aggregationLevel`,
+                c.id AS 'id',
+                null AS 'parentId',
                 t.is_expense as `isExpense`, 
-                c.id,
                 c.name as `label`,
                 SUM(t.amount) AS `value`
             FROM transaction t
@@ -544,10 +552,26 @@ namespace MW.TinyMoney.Api.Reports
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
             GROUP BY t.is_expense, c.id, c.name
+            UNION ALL
+            SELECT /* subcategory level */
+                'subcategory' AS `aggregationLevel`,
+                s.id AS 'id',
+                s.parent_category_id AS 'parentId',
+                t.is_expense as `isExpense`, 
+                s.name as `label`,
+                SUM(t.amount) AS `value`
+            FROM transaction t
+                JOIN subcategory s ON s.id = t.subcategory_id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+            GROUP BY t.is_expense, s.id, s.name, s.parent_category_id
             ";
 
         public class TransactionsSum
         {
+            public string AggregationLevel { get; set; }
+            public int Id { get; set; }
+            public int? ParentId { get; set; }
             public bool IsExpense { get; set; }
             public string Label { get; set; }
             public decimal Value { get; set; }

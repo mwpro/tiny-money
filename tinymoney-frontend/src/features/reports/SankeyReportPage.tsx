@@ -13,6 +13,7 @@ import {
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import {ResponsiveContainer, Sankey, Tooltip} from "recharts";
+import {formatCurrencyAsString} from "@/components/Curr.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -65,7 +66,7 @@ export function SankeyReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data &&
+            {reportQuery.data?.links &&
                 <>
                     <ResponsiveContainer
                         height={400}
@@ -79,7 +80,7 @@ export function SankeyReportPage() {
                             sort
                             // onClick={e => console.log(e)}
                         >
-                            <Tooltip />
+                            <Tooltip formatter={(v) => (typeof v === "number") ? formatCurrencyAsString(v) : v } />
                         </Sankey>
                     </ResponsiveContainer>
                 </>

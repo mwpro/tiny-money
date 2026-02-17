@@ -27,7 +27,7 @@ export function TopEntriesTable({entries, incomes, reportSettings, transactionsU
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {entries.length == 0 &&
+                    {entries?.length == 0 &&
                         <TableRow>
                             <TableCell colSpan={5} className={"text-center"}>
                                 <Alert className="mb-6" variant="default">
@@ -35,7 +35,7 @@ export function TopEntriesTable({entries, incomes, reportSettings, transactionsU
                                 </Alert>
                             </TableCell>
                         </TableRow>}
-                    {entries.map((t, id) => <TableRow key={t.id}>
+                    {entries?.map((t, id) => <TableRow key={t.id}>
                         <TableCell>{++id}.</TableCell>
                         <TableCell>{t.description} ({t.numberOfTransactions})</TableCell>
                         <TableCell className="text-right"><Curr input={t.amount} colored
