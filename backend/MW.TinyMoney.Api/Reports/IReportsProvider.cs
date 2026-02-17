@@ -511,7 +511,8 @@ namespace MW.TinyMoney.Api.Reports
                     dateFrom = dateFrom, dateTo = dateTo
                 })).ToList();
             const int rootNodeIndex = 0;
-            
+            var hasSingleIncomeCategory = queryResults.Count(q => q.AggregationLevel == "category" && q.IsExpense == false) == 1;
+
             var nodes = queryResults.Select((q, i) => new SankeyNode()
             {
                 Index = i + 1,
@@ -523,7 +524,7 @@ namespace MW.TinyMoney.Api.Reports
                 Index = rootNodeIndex,
                 Name = "ROOT"
             }).ToList();
-            var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category")
+            var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category" && (!hasSingleIncomeCategory || t.IsExpense))
                 .Select(t => new SankeyLink()
                 {
                     Source = t.IsExpense ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
@@ -534,7 +535,7 @@ namespace MW.TinyMoney.Api.Reports
                 .Select(t => new SankeyLink()
                 {
                     Source = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
-                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
+                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : hasSingleIncomeCategory ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
                     Value = t.Value
                 });
 

@@ -69,7 +69,7 @@ export function SankeyReportPage() {
             {reportQuery.data?.links &&
                 <>
                     <ResponsiveContainer
-                        height={400}
+                        height={800}
                         width="100%"
                     >
                         <Sankey
