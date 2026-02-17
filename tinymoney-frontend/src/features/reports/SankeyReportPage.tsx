@@ -66,7 +66,7 @@ export function SankeyReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data?.links &&
+            {reportQuery.data?.root.links &&
                 <>
                     <ResponsiveContainer
                         height={800}
@@ -74,11 +74,14 @@ export function SankeyReportPage() {
                     >
                         <Sankey
                             data={{
-                                links: reportQuery.data.links,
-                                nodes: reportQuery.data.nodes
+                                links: reportQuery.data.root.links,
+                                nodes: reportQuery.data.root.nodes
                             }}
                             sort
-                            // onClick={e => console.log(e)}
+                            onClick={e => {
+                                console.log(e);
+                                // whatever we clicked node or link, display subchart or go to upper level
+                            }}
                         >
                             <Tooltip formatter={(v) => (typeof v === "number") ? formatCurrencyAsString(v) : v } />
                         </Sankey>

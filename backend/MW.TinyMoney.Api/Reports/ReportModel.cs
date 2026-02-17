@@ -106,6 +106,11 @@ public class TopEntryModel
 
 public class SankeyReportModel
 {
+    public SankeyChart Root { get; set; }
+}
+
+public class SankeyChart
+{
     public IEnumerable<SankeyNode> Nodes { get; set; }
     public IEnumerable<SankeyLink> Links { get; set; }
 }
@@ -116,6 +121,9 @@ public class SankeyNode
     public string Name { get; set; }
     public string NodeType { get; set; }
     public int NodeId { get; set; }
+    
+    // subchart
+    public SankeyChart SubChart { get; set; }
 }
 
 public class SankeyLink

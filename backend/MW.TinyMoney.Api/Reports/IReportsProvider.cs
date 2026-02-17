@@ -548,8 +548,11 @@ namespace MW.TinyMoney.Api.Reports
 
             return new SankeyReportModel()
             {
-                Nodes = nodes,
-                Links = categoryLinks.Concat(subcategoryLinks).Concat(vendorLinks)
+                Root = new SankeyChart()
+                {
+                    Nodes = nodes,
+                    Links = categoryLinks.Concat(subcategoryLinks).Concat(vendorLinks)
+                }
             };
         }
 
@@ -578,7 +581,7 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t
                 JOIN subcategory s ON s.id = t.subcategory_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0 -- tmp
             GROUP BY t.is_expense, s.id, s.name, s.parent_category_id
             UNION ALL
             SELECT /* vendor level */
@@ -591,7 +594,7 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t
                 JOIN vendor v ON v.id = t.vendor_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND 1=0
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND 1=0 -- tmp
             GROUP BY t.is_expense, t.subcategory_id, v.id, v.name
             ";
 

@@ -142,6 +142,11 @@ export interface ReportPeriodSubcategory {
 }
 
 export interface SankeyReport {
+    root: SankeyChart
+}
+
+export interface SankeyChart {
+
     nodes: SankeyNodeData[],
     links: SankeyLinkData[]
 }
