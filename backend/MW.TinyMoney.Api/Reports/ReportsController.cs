@@ -168,6 +168,15 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(reportData);
         }
 
+        [HttpGet, Route("sankey-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SankeyReportModel))]
+        public async Task<IActionResult> GetSankeyReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo)
+        {
+            var reportData = await _reportsProvider.PrepareSankeyReport(dateFrom, dateTo);
+            
+            return Ok(reportData);
+        }
+
         private static ReportModel<decimal> BuildReportModel(IEnumerable<ReportQueryResult<decimal>> reportData)
         {
             var labels = reportData.Select(x => x.XLabel).Distinct();

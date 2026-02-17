@@ -37,6 +37,7 @@ namespace MW.TinyMoney.Api.Reports
 
         Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
         Task<TopListReportModel> PrepareTopListReport(DateTime? dateFrom, DateTime? dateTo, int numberOfTransactions);
+        Task<SankeyReportModel> PrepareSankeyReport(DateTime? dateFrom, DateTime? dateTo);
     }
 
     public class ReportQueryResult<TValue>
@@ -497,6 +498,59 @@ namespace MW.TinyMoney.Api.Reports
                 IncomeVendors = topIncomeVendors,
                 Tags = tags
             };
+        }
+
+        public async Task<SankeyReportModel> PrepareSankeyReport(DateTime? dateFrom, DateTime? dateTo)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            var queryResults = await connection.QueryAsync<TransactionsSum>(SankeyQuery,
+                new
+                {
+                    dateFrom = dateFrom, dateTo = dateTo
+                });
+            var centralNodeId = queryResults.Count();
+            
+            return new SankeyReportModel()
+            {
+                Nodes = queryResults.Select((q, i) => new SankeyNode()
+                {
+                    Id = i,
+                    Name = q.Label
+                }).Append(new SankeyNode()
+                {
+                    Id = centralNodeId,
+                    Name = "-"
+                }),
+                Links = queryResults.Select((q, i) => new SankeyLink()
+                {
+                    Source = q.IsExpense ? centralNodeId : i,
+                    Target = q.IsExpense ? i : centralNodeId,
+                    Value = q.Value
+                })
+            };
+        }
+
+        private const string SankeyQuery = @"
+            SELECT /* Top tags */
+                t.is_expense as `isExpense`, 
+                c.id,
+                c.name as `label`,
+                SUM(t.amount) AS `value`
+            FROM transaction t
+                JOIN subcategory s ON s.id = t.subcategory_id
+                JOIN category c ON c.id = s.parent_category_id
+            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+            GROUP BY t.is_expense, c.id, c.name
+            ";
+
+        public class TransactionsSum
+        {
+            public bool IsExpense { get; set; }
+            public string Label { get; set; }
+            public decimal Value { get; set; }
         }
 
         public IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(DateTime reportParametersMonth)

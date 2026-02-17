@@ -141,6 +141,22 @@ export interface ReportPeriodSubcategory {
     transactionsSum: number
 }
 
+export interface SankeyReport {
+    nodes: SankeyNodeData[],
+    links: SankeyLinkData[]
+}
+
+export interface SankeyNodeData {
+    id: number,
+    label: number
+}
+
+export interface SankeyLinkData {
+    source: number,
+    target: number,
+    value: number
+}
+
 export interface TopListReport {
     expenses: TopTransaction[],
     incomes: TopTransaction[],
@@ -402,6 +418,21 @@ export const getTopListReport = async (auth: Auth0ContextInterface,
     queryParams.append('numberOfTopEntries', "15");
 
     const res = await fetch(`${API_URL}/reports/top-list-report?${queryParams}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania raportu');
+    return res.json();
+};
+export const getSankeyReport = async (auth: Auth0ContextInterface,
+                                       dateFrom: Date | undefined, dateTo: Date | undefined): Promise<SankeyReport> => {
+    const token = await auth.getAccessTokenSilently();
+    const queryParams = new URLSearchParams();
+    dateFrom && queryParams.append('dateFrom', format(dateFrom, dateFormat));
+    dateTo && queryParams.append('dateTo', format(dateTo, dateFormat));
+
+    const res = await fetch(`${API_URL}/reports/sankey-report?${queryParams}`, {
         headers: {
             Authorization: `Bearer ${token}`
         }

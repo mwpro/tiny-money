@@ -103,3 +103,22 @@ public class TopEntryModel
     public decimal Amount { get; set; }
     public int NumberOfTransactions { get; set; }
 }
+
+public class SankeyReportModel
+{
+    public IEnumerable<SankeyNode> Nodes { get; set; }
+    public IEnumerable<SankeyLink> Links { get; set; }
+}
+
+public class SankeyNode
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+
+public class SankeyLink
+{
+    public int Source { get; set; }
+    public int Target { get; set; }
+    public decimal Value { get; set; }
+}

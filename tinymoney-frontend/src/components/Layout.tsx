@@ -61,6 +61,11 @@ export function Layout() {
                                                     Top lista
                                                 </DropdownMenuItem>
                                             </Link>
+                                            <Link to="/reports/sankey">
+                                                <DropdownMenuItem>
+                                                    Sankey
+                                                </DropdownMenuItem>
+                                            </Link>
                                             <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports" target="_blank">
                                                 <DropdownMenuItem>
                                                     Stare raporty
