@@ -510,31 +510,38 @@ namespace MW.TinyMoney.Api.Reports
                 {
                     dateFrom = dateFrom, dateTo = dateTo
                 })).ToList();
-            const int rootNodeId = 0;
+            const int rootNodeIndex = 0;
             
             var nodes = queryResults.Select((q, i) => new SankeyNode()
             {
-                Id = i + 1,
+                Index = i + 1,
                 Name = q.Label,
                 NodeType = q.AggregationLevel,
                 NodeId = q.Id
             }).Prepend(new SankeyNode()
             {
-                Id = rootNodeId,
+                Index = rootNodeIndex,
                 Name = "ROOT"
             }).ToList();
             var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category")
                 .Select(t => new SankeyLink()
                 {
-                    Source = t.IsExpense ? rootNodeId : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Id,
-                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Id : rootNodeId,
+                    Source = t.IsExpense ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
+                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
                     Value = t.Value
                 });
-            
+            var subcategoryLinks = queryResults.Where(t => t.AggregationLevel == "subcategory")
+                .Select(t => new SankeyLink()
+                {
+                    Source = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
+                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
+                    Value = t.Value
+                });
+
             return new SankeyReportModel()
             {
-                Nodes = nodes.Where(n => n.NodeType == "category" || n.Name == "ROOT"),
-                Links = categoryLinks
+                Nodes = nodes.Where(n => n.NodeType == "category" || n.NodeType == "subcategory" || n.Name == "ROOT"), // todo remove that where
+                Links = categoryLinks.Concat(subcategoryLinks)
             };
         }
 
