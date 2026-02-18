@@ -523,27 +523,7 @@ namespace MW.TinyMoney.Api.Reports
                 Name = q.Label,
                 NodeType = q.AggregationLevel,
                 NodeId = q.Id,
-                SubChart = new SankeyChart()
-                {
-                    Nodes = subcategoryResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s,
-                        j) => new SankeyNode()
-                    {
-                        Index = j + 1,
-                        Name = s.Label,
-                        NodeType = s.AggregationLevel,
-                        NodeId = s.Id,
-                    }).Prepend(new SankeyNode()
-                    {
-                        Index = rootNodeIndex,
-                        Name = q.Label
-                    }).ToList(),
-                    Links = subcategoryResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s, j) => new SankeyLink()
-                    {
-                        Source = s.IsExpense ? rootNodeIndex : j + 1,
-                        Target = s.IsExpense ? j + 1 : rootNodeIndex,
-                        Value = s.Value
-                    }).ToList()
-                }
+                SubChart = PrepareSubcategorySankeySubChart(subcategoryResults, vendorResults, q, rootNodeIndex)
             }).ToList();
             if (hasSingleIncomeCategory)
             {
@@ -554,27 +534,7 @@ namespace MW.TinyMoney.Api.Reports
                     Name = q.Label,
                     NodeType = q.AggregationLevel,
                     NodeId = q.Id,
-                    SubChart = new SankeyChart()
-                    {
-                        Nodes = vendorResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s,
-                            j) => new SankeyNode()
-                        {
-                            Index = j + 1,
-                            Name = s.Label,
-                            NodeType = s.AggregationLevel,
-                            NodeId = s.Id,
-                        }).Prepend(new SankeyNode()
-                        {
-                            Index = rootNodeIndex,
-                            Name = q.Label
-                        }).ToList(),
-                        Links = vendorResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s, j) => new SankeyLink()
-                        {
-                            Source = s.IsExpense ? rootNodeIndex : j + 1,
-                            Target = s.IsExpense ? j + 1 : rootNodeIndex,
-                            Value = s.Value
-                        }).ToList()
-                    }
+                    SubChart = PrepareVendorSankeySubChart(vendorResults, q, rootNodeIndex)
                 }));
             }    
             rootNodes.Insert(0, new SankeyNode()
@@ -638,6 +598,57 @@ namespace MW.TinyMoney.Api.Reports
             };
         }
 
+        private static SankeyChart PrepareVendorSankeySubChart(List<TransactionsSum> vendorResults, TransactionsSum parent, int rootNodeIndex)
+        {
+            return new SankeyChart()
+            {
+                Nodes = vendorResults.Where(s => s.IsExpense == parent.IsExpense && s.ParentId == parent.Id).Select((s,
+                    j) => new SankeyNode()
+                {
+                    Index = j + 1,
+                    Name = s.Label,
+                    NodeType = s.AggregationLevel,
+                    NodeId = s.Id,
+                }).Prepend(new SankeyNode()
+                {
+                    Index = rootNodeIndex,
+                    Name = parent.Label
+                }).ToList(),
+                Links = vendorResults.Where(s => s.IsExpense == parent.IsExpense && s.ParentId == parent.Id).Select((s, j) => new SankeyLink()
+                {
+                    Source = s.IsExpense ? rootNodeIndex : j + 1,
+                    Target = s.IsExpense ? j + 1 : rootNodeIndex,
+                    Value = s.Value
+                }).ToList()
+            };
+        }
+
+        private static SankeyChart PrepareSubcategorySankeySubChart(List<TransactionsSum> subcategoryResults, List<TransactionsSum> vendorResults, TransactionsSum parent, int rootNodeIndex)
+        {
+            return new SankeyChart()
+            {
+                Nodes = subcategoryResults.Where(s => s.IsExpense == parent.IsExpense && s.ParentId == parent.Id).Select((s,
+                    j) => new SankeyNode()
+                {
+                    Index = j + 1,
+                    Name = s.Label,
+                    NodeType = s.AggregationLevel,
+                    NodeId = s.Id,
+                    SubChart = PrepareVendorSankeySubChart(vendorResults, s, rootNodeIndex)
+                }).Prepend(new SankeyNode()
+                {
+                    Index = rootNodeIndex,
+                    Name = parent.Label
+                }).ToList(),
+                Links = subcategoryResults.Where(s => s.IsExpense == parent.IsExpense && s.ParentId == parent.Id).Select((s, j) => new SankeyLink()
+                {
+                    Source = s.IsExpense ? rootNodeIndex : j + 1,
+                    Target = s.IsExpense ? j + 1 : rootNodeIndex,
+                    Value = s.Value
+                }).ToList()
+            };
+        }
+
         private const string SankeyQuery = @"
             SELECT /* category level */
                 'category' AS `aggregationLevel`,
@@ -675,7 +686,8 @@ namespace MW.TinyMoney.Api.Reports
                 JOIN vendor v ON v.id = t.vendor_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
-            GROUP BY t.is_expense, t.subcategory_id, v.id, v.name;
+            GROUP BY t.is_expense, t.subcategory_id, v.id, v.name
+            ORDER BY SUM(t.amount) DESC;
             ";
 
         public class TransactionsSum
