@@ -505,53 +505,135 @@ namespace MW.TinyMoney.Api.Reports
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            var queryResults = (await connection.QueryAsync<TransactionsSum>(SankeyQuery,
+            var queryResults = (await connection.QueryMultipleAsync(SankeyQuery,
                 new
                 {
                     dateFrom = dateFrom, dateTo = dateTo
-                })).ToList();
-            const int rootNodeIndex = 0;
-            var hasSingleIncomeCategory = queryResults.Count(q => q.AggregationLevel == "category" && q.IsExpense == false) == 1;
+                }));
+            var categoryResults = (await queryResults.ReadAsync<TransactionsSum>()).ToList();
+            var subcategoryResults = (await queryResults.ReadAsync<TransactionsSum>()).ToList();
+            var vendorResults = (await queryResults.ReadAsync<TransactionsSum>()).ToList();
 
-            var nodes = queryResults.Select((q, i) => new SankeyNode()
+            const int rootNodeIndex = 0;
+            var hasSingleIncomeCategory = categoryResults.Count(q => q.AggregationLevel == "category" && q.IsExpense == false) == 1;
+
+            var rootNodes = categoryResults.Where(c => c.IsExpense || !hasSingleIncomeCategory).Select((q, i) => new SankeyNode()
             {
                 Index = i + 1,
                 Name = q.Label,
                 NodeType = q.AggregationLevel,
-                NodeId = q.Id
-            }).Prepend(new SankeyNode()
+                NodeId = q.Id,
+                SubChart = new SankeyChart()
+                {
+                    Nodes = subcategoryResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s,
+                        j) => new SankeyNode()
+                    {
+                        Index = j + 1,
+                        Name = s.Label,
+                        NodeType = s.AggregationLevel,
+                        NodeId = s.Id,
+                    }).Prepend(new SankeyNode()
+                    {
+                        Index = rootNodeIndex,
+                        Name = q.Label
+                    }).ToList(),
+                    Links = subcategoryResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s, j) => new SankeyLink()
+                    {
+                        Source = s.IsExpense ? rootNodeIndex : j + 1,
+                        Target = s.IsExpense ? j + 1 : rootNodeIndex,
+                        Value = s.Value
+                    }).ToList()
+                }
+            }).ToList();
+            if (hasSingleIncomeCategory)
+            {
+                var incomeCategoriesCount = rootNodes.Count + 1;
+                rootNodes.AddRange(subcategoryResults.Where(c => !c.IsExpense).Select((q, i) => new SankeyNode()
+                {
+                    Index = incomeCategoriesCount + i,
+                    Name = q.Label,
+                    NodeType = q.AggregationLevel,
+                    NodeId = q.Id,
+                    SubChart = new SankeyChart()
+                    {
+                        Nodes = vendorResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s,
+                            j) => new SankeyNode()
+                        {
+                            Index = j + 1,
+                            Name = s.Label,
+                            NodeType = s.AggregationLevel,
+                            NodeId = s.Id,
+                        }).Prepend(new SankeyNode()
+                        {
+                            Index = rootNodeIndex,
+                            Name = q.Label
+                        }).ToList(),
+                        Links = vendorResults.Where(s => s.IsExpense == q.IsExpense && s.ParentId == q.Id).Select((s, j) => new SankeyLink()
+                        {
+                            Source = s.IsExpense ? rootNodeIndex : j + 1,
+                            Target = s.IsExpense ? j + 1 : rootNodeIndex,
+                            Value = s.Value
+                        }).ToList()
+                    }
+                }));
+            }    
+            rootNodes.Insert(0, new SankeyNode()
             {
                 Index = rootNodeIndex,
                 Name = "Budżet"
-            }).ToList();
-            var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category" && (!hasSingleIncomeCategory || t.IsExpense))
+            });
+            var rootLinks = categoryResults.Where(t => t.IsExpense || !hasSingleIncomeCategory)
                 .Select(t => new SankeyLink()
                 {
-                    Source = t.IsExpense ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
-                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
+                    Source = t.IsExpense ? rootNodeIndex : rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
+                    Target = t.IsExpense ? rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
                     Value = t.Value
-                });
-            var subcategoryLinks = queryResults.Where(t => t.AggregationLevel == "subcategory")
-                .Select(t => new SankeyLink()
-                {
-                    Source = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
-                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : hasSingleIncomeCategory ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
-                    Value = t.Value
-                });
-            var vendorLinks = queryResults.Where(t => t.AggregationLevel == "vendor")
-                .Select(t => new SankeyLink()
-                {
-                    Source = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index,
-                    Target = t.IsExpense ? nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index,
-                    Value = t.Value
-                });
+                }).ToList();
+            if (hasSingleIncomeCategory)
+            {
+                rootLinks.AddRange(subcategoryResults.Where(t => !t.IsExpense)
+                    .Select(t => new SankeyLink()
+                    {
+                        Source = rootNodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
+                        Target = rootNodeIndex,
+                        Value = t.Value
+                    }));
+            }
+            // var subcategoryLinks = queryResults.Where(t => t.AggregationLevel == "subcategory")
+            //     .Select(t => new SankeyLink()
+            //     {
+            //         Source = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
+            //         Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : hasSingleIncomeCategory ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
+            //         Value = t.Value
+            //     });
+            // var categoryLinks = queryResults.Where(t => t.AggregationLevel == "category" && (!hasSingleIncomeCategory || t.IsExpense))
+            //     .Select(t => new SankeyLink()
+            //     {
+            //         Source = t.IsExpense ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
+            //         Target = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
+            //         Value = t.Value
+            //     });
+            // var subcategoryLinks = queryResults.Where(t => t.AggregationLevel == "subcategory")
+            //     .Select(t => new SankeyLink()
+            //     {
+            //         Source = t.IsExpense ? nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
+            //         Target = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index : hasSingleIncomeCategory ? rootNodeIndex : nodes.First(n => n.NodeType == "category" && n.NodeId == t.ParentId).Index,
+            //         Value = t.Value
+            //     });
+            // var vendorLinks = queryResults.Where(t => t.AggregationLevel == "vendor")
+            //     .Select(t => new SankeyLink()
+            //     {
+            //         Source = t.IsExpense ? nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index : nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index,
+            //         Target = t.IsExpense ? nodes.First(n => n.NodeType == "vendor" && n.NodeId == t.Id).Index : nodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.ParentId).Index,
+            //         Value = t.Value
+            //     });
 
             return new SankeyReportModel()
             {
                 Root = new SankeyChart()
                 {
-                    Nodes = nodes,
-                    Links = categoryLinks.Concat(subcategoryLinks).Concat(vendorLinks)
+                    Nodes = rootNodes,
+                    Links = rootLinks
                 }
             };
         }
@@ -569,8 +651,7 @@ namespace MW.TinyMoney.Api.Reports
                 JOIN category c ON c.id = s.parent_category_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
-            GROUP BY t.is_expense, c.id, c.name
-            UNION ALL
+            GROUP BY t.is_expense, c.id, c.name;
             SELECT /* subcategory level */
                 'subcategory' AS `aggregationLevel`,
                 s.id AS 'id',
@@ -581,9 +662,8 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t
                 JOIN subcategory s ON s.id = t.subcategory_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0 -- tmp
-            GROUP BY t.is_expense, s.id, s.name, s.parent_category_id
-            UNION ALL
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+            GROUP BY t.is_expense, s.id, s.name, s.parent_category_id;
             SELECT /* vendor level */
                 'vendor' AS `aggregationLevel`,
                 v.id AS 'id',
@@ -594,8 +674,8 @@ namespace MW.TinyMoney.Api.Reports
             FROM transaction t
                 JOIN vendor v ON v.id = t.vendor_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND 1=0 -- tmp
-            GROUP BY t.is_expense, t.subcategory_id, v.id, v.name
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+            GROUP BY t.is_expense, t.subcategory_id, v.id, v.name;
             ";
 
         public class TransactionsSum
