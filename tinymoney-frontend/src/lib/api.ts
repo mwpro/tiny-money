@@ -154,6 +154,7 @@ export interface SankeyChart {
 export interface SankeyNodeData {
     id: number,
     label: number
+    subChart: SankeyChart
 }
 
 export interface SankeyLinkData {

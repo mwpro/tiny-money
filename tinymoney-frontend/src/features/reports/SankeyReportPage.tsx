@@ -1,7 +1,7 @@
 import {useAuth0} from "@auth0/auth0-react";
-import {useEffect, useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getSankeyReport} from "@/lib/api.ts";
+import {getSankeyReport, type SankeyChart} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     endOfMonth,
@@ -23,6 +23,7 @@ export interface ReportSettings {
 export function SankeyReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [sankeyChartData, setSankeyChartData] = useState<SankeyChart>();
 
     const handlePeriodChange = (dateFrom: Date | undefined, dateTo: Date | undefined) => {
         if (!dateFrom || !dateTo) {
@@ -47,8 +48,13 @@ export function SankeyReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => getSankeyReport(auth, reportSettings.dateFrom, reportSettings.dateTo)
+        queryFn: () => getSankeyReport(auth, reportSettings.dateFrom, reportSettings.dateTo),
     })
+    useEffect(() => {
+        if (reportQuery.data) {
+            setSankeyChartData(reportQuery.data.root);
+        }
+    }, [reportQuery.data]);
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -66,20 +72,22 @@ export function SankeyReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data?.root.links &&
+            {reportQuery.data?.root.links && sankeyChartData &&
                 <>
                     <ResponsiveContainer
                         height={800}
                         width="100%"
                     >
                         <Sankey
-                            data={{
-                                links: reportQuery.data.root.links,
-                                nodes: reportQuery.data.root.nodes
-                            }}
+                            data={sankeyChartData}
                             sort
                             onClick={e => {
                                 console.log(e);
+                                // @ts-ignore
+                                if (e.payload?.subChart) {
+                                    // @ts-ignore
+                                    setSankeyChartData(e.payload.subChart);
+                                }
                                 // whatever we clicked node or link, display subchart or go to upper level
                             }}
                         >
