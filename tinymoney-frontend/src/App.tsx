@@ -10,6 +10,7 @@ import {AlertCircleIcon} from "lucide-react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {SummaryReportPage} from "@/features/reports/summary-report/SummaryReportPage.tsx";
 import {TopListReportPage} from "@/features/reports/toplist-report/TopListReportPage.tsx";
+import {SankeyReportPage} from "@/features/reports/SankeyReportPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -61,6 +62,7 @@ function App() {
                     <Route path="transactions" element={<TransactionsPage />} />
                     <Route path="reports/summary" element={<SummaryReportPage />} />
                     <Route path="reports/top-list" element={<TopListReportPage />} />
+                    <Route path="reports/sankey" element={<SankeyReportPage />} />
                     <Route path="budgets" element={<BudgetsPage />} />
 
                 </Route>

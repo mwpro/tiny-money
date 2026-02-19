@@ -2,7 +2,6 @@
 using Dapper;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports
@@ -34,9 +33,6 @@ namespace MW.TinyMoney.Api.Reports
 
         IEnumerable<ReportQueryResult<decimal>> PrepareTotalsReport(
             IEnumerable<DateTime> reportParametersMonths);
-
-        Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth);
-        Task<TopListReportModel> PrepareTopListReport(DateTime? dateFrom, DateTime? dateTo, int numberOfTransactions);
     }
 
     public class ReportQueryResult<TValue>
@@ -136,69 +132,6 @@ namespace MW.TinyMoney.Api.Reports
             GROUP BY tt.tag_id
             ORDER BY SUM(amount) DESC
             LIMIT 50";
-
-        private const string TopListQuery =
-            @"SELECT /* Expenses */
-                t.id AS `id`,
-                v.id AS `vendorId`,
-                v.name AS `vendorName`,
-                t.amount,
-                t.transaction_date AS `transactionDate`
-            FROM transaction t
-                JOIN vendor v ON t.vendor_id = v.id
-            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
-            ORDER BY amount DESC
-            LIMIT @numberOfTopEntries;
-            SELECT /* Incomes */
-                t.id AS `id`,
-                v.id AS `vendorId`,
-                v.name AS `vendorName`,
-                t.amount,
-                t.transaction_date AS `transactionDate`
-            FROM transaction t
-                JOIN vendor v ON t.vendor_id = v.id
-            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
-            ORDER BY amount DESC
-            LIMIT @numberOfTopEntries;
-            SELECT /* Expense vendors */
-                v.id AS `id`,
-                v.name AS `description`,
-                SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS `numberOfTransactions`
-            FROM transaction t
-                JOIN vendor v ON t.vendor_id = v.id
-            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
-            GROUP BY v.id
-            ORDER BY SUM(amount) DESC
-            LIMIT @numberOfTopEntries;
-            SELECT /* Income vendors */
-                v.id AS `id`,
-                v.name AS `description`,
-                SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS `numberOfTransactions`
-            FROM transaction t
-                JOIN vendor v ON t.vendor_id = v.id
-            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
-            GROUP BY v.id
-            ORDER BY SUM(amount) DESC
-            LIMIT @numberOfTopEntries;
-            SELECT /* Top tags */
-                tt.tag_id AS `id`,
-                tag.name AS `description`,
-                SUM(t.amount) AS `amount`,
-                COUNT(t.id) AS `numberOfTransactions`
-            FROM transaction t
-                JOIN transaction_tag tt ON tt.transaction_id = t.id
-                JOIN tag tag ON tag.id = tt.tag_id
-            WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
-            GROUP BY tt.tag_id
-            ORDER BY SUM(amount) DESC
-            LIMIT @numberOfTopEntries;";
         
         private const string BudgetBurndownQuery =
             @"SELECT SUM(amount) AS 'budget'
@@ -228,45 +161,6 @@ namespace MW.TinyMoney.Api.Reports
                   WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months
                   GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), is_expense) byMonth
             GROUP BY series;";
-
-        private const string SummaryReportQuery = @"WITH periods AS (
-                    SELECT DISTINCT DATE_FORMAT(transaction_date, @periodPattern) AS period_name
-                    FROM transaction
-                    WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo)
-                ),
-                    all_combinations AS (
-                         SELECT p.period_name, c.id AS catId, c.is_income as isIncome, c.name AS catName, s.id AS subId, s.name AS subName
-                         FROM periods p
-                                  CROSS JOIN category c
-                                  JOIN subcategory s ON s.parent_category_id = c.id
-                     ),
-                     monthly_sums AS (
-                         SELECT
-                             DATE_FORMAT(transaction_date, @periodPattern) AS period_name,
-                             subcategory_id,
-                             SUM(amount) AS total_amount
-                         FROM transaction
-                         WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                           AND (@dateTo IS NULL OR transaction_date <= @dateTo)
-                         GROUP BY period_name, subcategory_id
-                     )
-                SELECT
-                    ac.period_name AS 'period',
-                    ac.catId AS 'categoryId', ac.isIncome AS 'isIncome', ac.catName AS 'categoryName',
-                    ac.subId AS 'subcategoryId', ac.subName AS 'subcategoryName',
-                    COALESCE(ms.total_amount, 0) AS 'transactionsSum'
-                FROM all_combinations ac
-                         LEFT JOIN monthly_sums ms ON ac.period_name = ms.period_name AND ac.subId = ms.subcategory_id
-                ORDER BY period, categoryId, subcategoryId;";
-
-        private const string GetBudgetsQuery = @"SELECT
-                DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m') AS 'period',
-                SUM(amount) AS `budget`
-            FROM budget b
-            WHERE (@fromYear IS NULL OR year > @fromYear OR (year = @fromYear AND month >= @fromMonth))
-                AND (@toYear IS NULL OR year < @toYear OR (year = @toYear AND month <= @toMonth))
-            GROUP BY DATE_FORMAT(STR_TO_DATE(CONCAT(year, '-', month), '%Y-%m'), '%Y-%m')";
 
         public Dictionary<int, IEnumerable<int>> GetAvailableMonths()
         {
@@ -369,136 +263,7 @@ namespace MW.TinyMoney.Api.Reports
                 });
             }
         }
-
-        private class SummaryReportQueryResult
-        {
-            public string Period { get; set; }
-            public bool IsIncome { get; set; }
-            public int CategoryId { get; set; }
-            public string CategoryName { get; set; }
-            public int SubcategoryId { get; set; }
-            public string SubcategoryName { get; set; }
-            public decimal TransactionsSum { get; set; }
-        }
-
-        public async Task<SummaryReportModel> PrepareSummaryReport(DateTime? dateFrom, DateTime? dateTo, bool splitByMonth)
-        {
-            await using var connection = _mySqlConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
-
-            var queryResults = await connection.QueryAsync<SummaryReportQueryResult>(SummaryReportQuery,
-            new
-            {
-                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
-            });
-
-            var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,
-                new {
-                    fromYear = dateFrom?.Year, fromMonth = dateFrom?.Month, 
-                    toYear = dateTo?.Year, toMonth = dateTo?.Month
-                });
-
-            var result = new SummaryReportModel();
-            result.Categories = queryResults.GroupBy(r => (r.CategoryId, r.IsIncome))
-                .Select(category =>
-                {
-                    var categoryInfo = category.First();
-                    var periodsOnCategoryLevel = category.GroupBy(c => c.Period)
-                        .Select(p => new ReportPeriodCategory()
-                        {
-                            PeriodLabel = p.Key,
-                            TransactionsSum = p.Sum(t => t.TransactionsSum)
-                        });
-                    var subcategories = category.GroupBy(c => c.SubcategoryId)
-                        .Select(subcategory =>
-                        {
-                            var subcategoryInfo = subcategory.First();
-                            var periodsOnSubcategoryLevel = subcategory.GroupBy(c => c.Period)
-                                .Select(p => new ReportPeriodSubcategory()
-                                {
-                                    PeriodLabel = p.Key,
-                                    TransactionsSum = p.Sum(t => t.TransactionsSum)
-                                });
-                            return new ReportSubcategory()
-                            {
-                                SubcategoryId = subcategoryInfo.SubcategoryId,
-                                SubcategoryName = subcategoryInfo.SubcategoryName,
-                                TransactionsSum = periodsOnSubcategoryLevel.Sum(p => p.TransactionsSum),
-                                TransactionsAvg = periodsOnSubcategoryLevel.Average(p => p.TransactionsSum),
-                                Periods = periodsOnSubcategoryLevel
-                            };
-                        });
-
-                    return new ReportCategory()
-                    {
-                        CategoryId = categoryInfo.CategoryId,
-                        CategoryName = categoryInfo.CategoryName,
-                        IsIncome = categoryInfo.IsIncome,
-                        Periods = periodsOnCategoryLevel,
-                        Subcategories = subcategories,
-                        TransactionsSum = periodsOnCategoryLevel.Sum(p => p.TransactionsSum),
-                        TransactionsAvg = periodsOnCategoryLevel.Average(p => p.TransactionsSum)
-                    };
-                });
-
-            result.Periods = queryResults.GroupBy(r => r.Period)
-                .Select(p =>
-                {
-                    var expensesSum = p.Where(x => !x.IsIncome).Sum(x => x.TransactionsSum);
-                    var incomesSum = p.Where(x => x.IsIncome).Sum(x => x.TransactionsSum);
-                    var budget = splitByMonth ? (budgets.FirstOrDefault(b => b.Period == p.Key).Budget) : -1;
-                    var budgetDifference = budget > 0 ? budget - expensesSum : 0;
-                    
-                    return new ReportPeriod()
-                    {
-                        PeriodLabel = p.Key,
-                        ExpensesSum = expensesSum,
-                        IncomesSum = incomesSum,
-                        Balance = incomesSum - expensesSum,
-                        Budget = budget,
-                        BudgetDifference = budgetDifference
-                    };
-                });
-
-            if (result.Periods.Any())
-            {
-                result.IncomesAvg = result.Periods.Average(p => p.IncomesSum);
-                result.IncomesSum = result.Periods.Sum(p => p.IncomesSum);
-                result.ExpensesAvg = result.Periods.Average(p => p.ExpensesSum);
-                result.ExpensesSum = result.Periods.Sum(p => p.ExpensesSum);
-                result.BalanceAvg = result.Periods.Average(p => p.Balance);
-                result.BalanceSum = result.Periods.Sum(p => p.Balance);
-            }
-
-            return result;
-        }
-
-        public async Task<TopListReportModel> PrepareTopListReport(DateTime? dateFrom, DateTime? dateTo, int numberOfTopEntries)
-        {
-            await using var connection = _mySqlConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
-
-            var queryResults = await connection.QueryMultipleAsync(TopListQuery,
-                new
-                {
-                    dateFrom = dateFrom, dateTo = dateTo, numberOfTopEntries = numberOfTopEntries
-                });
-            var topExpenses = await queryResults.ReadAsync<TopTransactionModel>();
-            var topIncomes = await queryResults.ReadAsync<TopTransactionModel>();
-            var topExpenseVendors = await queryResults.ReadAsync<TopEntryModel>();
-            var topIncomeVendors = await queryResults.ReadAsync<TopEntryModel>();
-            var tags = await queryResults.ReadAsync<TopEntryModel>();
-
-            return new TopListReportModel()
-            {
-                Expenses = topExpenses,
-                Incomes = topIncomes,
-                ExpenseVendors = topExpenseVendors,
-                IncomeVendors = topIncomeVendors,
-                Tags = tags
-            };
-        }
-
+        
         public IEnumerable<ReportQueryResult<decimal>> PrepareBudgetBurndownReport(DateTime reportParametersMonth)
         {
             const string seriesName = "budgetLeft";

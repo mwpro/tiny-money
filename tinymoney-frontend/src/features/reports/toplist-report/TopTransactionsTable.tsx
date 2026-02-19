@@ -26,7 +26,7 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {transactions.length == 0 &&
+                    {transactions?.length == 0 &&
                         <TableRow>
                             <TableCell colSpan={5} className={"text-center"}>
                                 <Alert className="mb-6" variant="default">
@@ -34,7 +34,7 @@ export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) 
                                 </Alert>
                             </TableCell>
                         </TableRow> }
-                    {transactions.map((t, id) => <TableRow key={t.id}>
+                    {transactions?.map((t, id) => <TableRow key={t.id}>
                         <TableCell>{++id}.</TableCell>
                         <TableCell>{format(new Date(t.transactionDate), dateFormat)}</TableCell>
                         <TableCell>{t.vendorName}</TableCell>

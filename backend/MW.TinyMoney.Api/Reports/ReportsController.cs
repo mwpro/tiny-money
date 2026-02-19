@@ -150,20 +150,29 @@ namespace MW.TinyMoney.Api.Reports
             return Ok(result);
         }
 
-        [HttpGet, Route("summary-report")]
+        [HttpGet("summary-report")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SummaryReportModel))]
-        public async Task<IActionResult> GetSummaryReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [FromQuery] bool splitByMonth)
+        public async Task<IActionResult> GetSummaryReport([FromServices] ISummaryReport summaryReport, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [FromQuery] bool splitByMonth)
         {
-            var reportData = await _reportsProvider.PrepareSummaryReport(dateFrom, dateTo, splitByMonth);
+            var reportData = await summaryReport.Prepare(dateFrom, dateTo, splitByMonth);
             
             return Ok(reportData);
         }
 
-        [HttpGet, Route("top-list-report")]
+        [HttpGet("top-list-report")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(TopListReportModel))]
-        public async Task<IActionResult> GetToplistReport([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [Required, Range(1, 200)] int numberOfTopEntries)
+        public async Task<IActionResult> GetToplistReport([FromServices] ITopListReport topListReport, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo, [Required, Range(1, 200)] int numberOfTopEntries)
         {
-            var reportData = await _reportsProvider.PrepareTopListReport(dateFrom, dateTo, numberOfTopEntries);
+            var reportData = await topListReport.Prepare(dateFrom, dateTo, numberOfTopEntries);
+            
+            return Ok(reportData);
+        }
+
+        [HttpGet("sankey-report")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SankeyReportModel))]
+        public async Task<IActionResult> GetSankeyReport([FromServices] ISankeyReport sankeyReport, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo)
+        {
+            var reportData = await sankeyReport.Prepare(dateFrom, dateTo);
             
             return Ok(reportData);
         }
