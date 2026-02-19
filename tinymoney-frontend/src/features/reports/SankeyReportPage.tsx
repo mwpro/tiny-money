@@ -209,16 +209,12 @@ export function SankeyReportPage() {
                             data={sankeyChartData[sankeyChartData.length - 1]}
                             sort
                             link={CustomLink}
-                            onClick={e => {
-                                // @ts-ignore
+                            onClick={(e: { payload: { subChart: SankeyChart; index: number; }; }) => {
                                 if (e.payload?.subChart) {
-                                    // @ts-ignore
                                     setSankeyChartData(v => {
-                                        // @ts-ignore
                                         v.push(e.payload.subChart);
                                         return [...v];
                                     });
-                                    // @ts-ignore
                                 } else if (e.payload?.index === 0 && sankeyChartData.length > 1) {
                                     setSankeyChartData(v => {
                                         v.pop();
