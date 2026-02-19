@@ -153,7 +153,7 @@ export interface SankeyChart {
 
 export interface SankeyNodeData {
     id: number,
-    label: number
+    name: string,
     subChart: SankeyChart
 }
 

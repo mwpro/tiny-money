@@ -1,5 +1,5 @@
 import {useAuth0} from "@auth0/auth0-react";
-import {useEffect, useMemo, useState} from "react";
+import {Fragment, useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getSankeyReport, type SankeyChart} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
@@ -14,6 +14,12 @@ import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import {ResponsiveContainer, Sankey, Tooltip} from "recharts";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -23,7 +29,7 @@ export interface ReportSettings {
 export function SankeyReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [sankeyChartData, setSankeyChartData] = useState<SankeyChart>();
+    const [sankeyChartData, setSankeyChartData] = useState<SankeyChart[]>([]);
 
     const handlePeriodChange = (dateFrom: Date | undefined, dateTo: Date | undefined) => {
         if (!dateFrom || !dateTo) {
@@ -52,7 +58,7 @@ export function SankeyReportPage() {
     })
     useEffect(() => {
         if (reportQuery.data) {
-            setSankeyChartData(reportQuery.data.root);
+            setSankeyChartData([reportQuery.data.root]);
         }
     }, [reportQuery.data]);
 
@@ -74,19 +80,53 @@ export function SankeyReportPage() {
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {reportQuery.data?.root.links && sankeyChartData &&
                 <>
-                    <ResponsiveContainer
-                        height={800}
-                        width="100%"
+                    <Breadcrumb>
+                        <BreadcrumbList>
+                            {sankeyChartData.map((chart, i) =>
+                                (
+                                    <Fragment key={i}>
+                                        {i == sankeyChartData.length - 1 ?
+                                            <BreadcrumbItem  className={"text-lg"}>
+                                                <BreadcrumbPage>{chart.nodes[0].name}</BreadcrumbPage>
+                                            </BreadcrumbItem>
+                                            :
+                                            <>
+                                                <BreadcrumbItem className={"text-lg"}>
+                                                    <BreadcrumbLink onClick={() =>
+                                                        setSankeyChartData(v => {
+                                                            for (let j = i; j < sankeyChartData.length; j++) {
+                                                                v.pop();
+                                                            }
+                                                            return [...v];
+                                                        })}>{chart.nodes[0].name}</BreadcrumbLink>
+                                                </BreadcrumbItem>
+                                                <BreadcrumbSeparator/>
+                                            </>}
+                                    </Fragment>
+                                ))}
+                        </BreadcrumbList>
+                    </Breadcrumb>
+                    <ResponsiveContainer height={600}
                     >
                         <Sankey
-                            data={sankeyChartData}
+                            data={sankeyChartData[sankeyChartData.length - 1]}
                             sort
                             onClick={e => {
                                 console.log(e);
                                 // @ts-ignore
                                 if (e.payload?.subChart) {
                                     // @ts-ignore
-                                    setSankeyChartData(e.payload.subChart);
+                                    setSankeyChartData(v => {
+                                        // @ts-ignore
+                                        v.push(e.payload.subChart);
+                                        return [...v];
+                                    });
+                                    // @ts-ignore
+                                } else if (e.payload?.index === 0 && sankeyChartData.length > 1) {
+                                    setSankeyChartData(v => {
+                                        v.pop();
+                                        return [...v];
+                                    });
                                 }
                                 // whatever we clicked node or link, display subchart or go to upper level
                             }}
