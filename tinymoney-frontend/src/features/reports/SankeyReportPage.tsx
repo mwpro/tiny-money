@@ -12,7 +12,7 @@ import {
 } from "date-fns";
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
-import {ResponsiveContainer, Sankey, Tooltip} from "recharts";
+import {ResponsiveContainer, Sankey} from "recharts";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
 import {
     Breadcrumb,
@@ -20,11 +20,106 @@ import {
     BreadcrumbLink,
     BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb.tsx";
+import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
     dateTo: Date | undefined
 }
+
+type CustomNodePayload = {
+    name: string;
+    sourceNodes: number[];
+    sourceLinks: number[];
+    targetLinks: number[];
+    targetNodes: number[];
+    value: number;
+    depth: number;
+    x: number;
+    dx: number;
+    y: number;
+    dy: number;
+};
+type CustomLinkPayload = {
+    source: CustomNodePayload;
+    target: CustomNodePayload;
+    value: number;
+    dy: number;
+    sy: number;
+    ty: number;
+};
+const CustomLink = (props: {
+    sourceX: number;
+    targetX: number;
+    sourceY: number;
+    targetY: number;
+    sourceControlX: number;
+    targetControlX: number;
+    sourceRelativeY: number;
+    targetRelativeY: number;
+    linkWidth: number;
+    index: number;
+    payload: CustomLinkPayload;
+}) => {
+    return (
+        <g>
+            <path
+                d={`
+  M${props.sourceX},${props.sourceY}
+  C${props.sourceControlX},${props.sourceY} ${props.targetControlX},${props.targetY} ${props.targetX},${props.targetY}`}
+                fill="none"
+                stroke={SeriesColorPalette[props.payload.source.depth % SeriesColorPalette.length]}
+                strokeOpacity={0.4}
+                strokeWidth={props.linkWidth}
+                strokeLinecap="butt"
+            />
+            <foreignObject
+                x={props.sourceX}
+                y={props.targetY - props.linkWidth / 2}
+                width={
+                    Math.max(props.targetX, props.sourceX) -
+                    Math.min(props.targetX, props.sourceX)
+                }
+                height={props.linkWidth}
+                style={{
+                    overflow: 'visible',
+                }}
+            >
+                <div
+                    style={{
+                        boxSizing: 'border-box',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end', // if expense
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'visible',
+                        padding: '0.5em',
+                        gap: 8,
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 10,
+                            fontFamily: 'sans-serif',
+                            textAlign: 'center',
+                            backgroundColor: '#f1f5fe80',
+                            padding: '0.25em 0.5em',
+                            borderRadius: 4,
+                            position: 'relative',
+                            zIndex: 1,
+                        }}
+                    >
+                        {props.payload.target.name
+                            ? `${props.payload.target.name}: `
+                            : ''}
+                        {formatCurrencyAsString(props.payload.value)}
+                    </div>
+                </div>
+            </foreignObject>
+        </g>
+    );
+};
 
 export function SankeyReportPage() {
     const auth = useAuth0();
@@ -106,11 +201,11 @@ export function SankeyReportPage() {
                                 ))}
                         </BreadcrumbList>
                     </Breadcrumb>
-                    <ResponsiveContainer height={600}
-                    >
+                    <ResponsiveContainer height={800}>
                         <Sankey
                             data={sankeyChartData[sankeyChartData.length - 1]}
                             sort
+                            link={CustomLink}
                             onClick={e => {
                                 console.log(e);
                                 // @ts-ignore
@@ -128,11 +223,8 @@ export function SankeyReportPage() {
                                         return [...v];
                                     });
                                 }
-                                // whatever we clicked node or link, display subchart or go to upper level
                             }}
-                        >
-                            <Tooltip formatter={(v) => (typeof v === "number") ? formatCurrencyAsString(v) : v } />
-                        </Sankey>
+                        />
                     </ResponsiveContainer>
                 </>
             }
