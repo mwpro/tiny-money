@@ -90,6 +90,8 @@ const CustomLink = (props: {
                         boxSizing: 'border-box',
                         display: 'flex',
                         alignItems: 'center',
+                        /* 
+                        // @ts-ignore */
                         justifyContent: props.payload.isExpense ? 'flex-end' : 'flex-start',
                         width: '100%',
                         height: '100%',
@@ -110,12 +112,9 @@ const CustomLink = (props: {
                             zIndex: 1,
                         }}
                     >
-                        {props.payload.isExpense && props.payload.target.name
-                            ? `${props.payload.target.name}: `
-                            : ''}
-                        {!props.payload.isExpense && props.payload.source.name
-                            ? `${props.payload.source.name}: `
-                            : ''}
+                        {/* 
+                        // @ts-ignore */
+                        props.payload.isExpense ? `${props.payload.target.name}: ` : `${props.payload.source.name}: `}
                         {formatCurrencyAsString(props.payload.value)}
                     </div>
                 </div>
