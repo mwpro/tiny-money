@@ -131,4 +131,5 @@ public class SankeyLink
     public int Source { get; set; }
     public int Target { get; set; }
     public decimal Value { get; set; }
+    public bool IsExpense { get; set; }
 }

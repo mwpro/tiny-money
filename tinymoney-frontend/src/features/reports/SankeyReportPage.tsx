@@ -90,7 +90,7 @@ const CustomLink = (props: {
                         boxSizing: 'border-box',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'flex-end', // if expense
+                        justifyContent: props.payload.isExpense ? 'flex-end' : 'flex-start',
                         width: '100%',
                         height: '100%',
                         overflow: 'visible',
@@ -110,8 +110,11 @@ const CustomLink = (props: {
                             zIndex: 1,
                         }}
                     >
-                        {props.payload.target.name
+                        {props.payload.isExpense && props.payload.target.name
                             ? `${props.payload.target.name}: `
+                            : ''}
+                        {!props.payload.isExpense && props.payload.source.name
+                            ? `${props.payload.source.name}: `
                             : ''}
                         {formatCurrencyAsString(props.payload.value)}
                     </div>
@@ -152,7 +155,7 @@ export function SankeyReportPage() {
         queryFn: () => getSankeyReport(auth, reportSettings.dateFrom, reportSettings.dateTo),
     })
     useEffect(() => {
-        if (reportQuery.data) {
+        if (reportQuery.data?.root) {
             setSankeyChartData([reportQuery.data.root]);
         }
     }, [reportQuery.data]);
@@ -173,15 +176,15 @@ export function SankeyReportPage() {
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
-            {reportQuery.data?.root.links && sankeyChartData &&
+            {sankeyChartData.length > 0 &&
                 <>
                     <Breadcrumb>
                         <BreadcrumbList>
-                            {sankeyChartData.map((chart, i) =>
-                                (
+                            {sankeyChartData.map((chart, i) => {
+                                return (
                                     <Fragment key={i}>
                                         {i == sankeyChartData.length - 1 ?
-                                            <BreadcrumbItem  className={"text-lg"}>
+                                            <BreadcrumbItem className={"text-lg"}>
                                                 <BreadcrumbPage>{chart.nodes[0].name}</BreadcrumbPage>
                                             </BreadcrumbItem>
                                             :
@@ -198,7 +201,8 @@ export function SankeyReportPage() {
                                                 <BreadcrumbSeparator/>
                                             </>}
                                     </Fragment>
-                                ))}
+                                );
+                            })}
                         </BreadcrumbList>
                     </Breadcrumb>
                     <ResponsiveContainer height={800}>
@@ -207,7 +211,6 @@ export function SankeyReportPage() {
                             sort
                             link={CustomLink}
                             onClick={e => {
-                                console.log(e);
                                 // @ts-ignore
                                 if (e.payload?.subChart) {
                                     // @ts-ignore

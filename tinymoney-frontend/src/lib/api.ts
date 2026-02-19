@@ -160,7 +160,8 @@ export interface SankeyNodeData {
 export interface SankeyLinkData {
     source: number,
     target: number,
-    value: number
+    value: number,
+    isExpense: boolean
 }
 
 export interface TopListReport {

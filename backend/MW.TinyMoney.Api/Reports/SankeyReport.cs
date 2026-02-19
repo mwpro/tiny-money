@@ -68,7 +68,8 @@ public class SankeyReport : ISankeyReport
             {
                 Source = t.IsExpense ? rootNodeIndex : rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
                 Target = t.IsExpense ? rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
-                Value = t.Value
+                Value = t.Value,
+                IsExpense = t.IsExpense
             }).ToList();
         if (hasSingleIncomeCategory)
         {
@@ -77,7 +78,8 @@ public class SankeyReport : ISankeyReport
                 {
                     Source = rootNodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
                     Target = rootNodeIndex,
-                    Value = t.Value
+                    Value = t.Value,
+                    IsExpense = t.IsExpense
                 }));
         }
         
@@ -111,7 +113,8 @@ public class SankeyReport : ISankeyReport
             {
                 Source = s.IsExpense ? rootNodeIndex : j + 1,
                 Target = s.IsExpense ? j + 1 : rootNodeIndex,
-                Value = s.Value
+                Value = s.Value,
+                IsExpense = s.IsExpense
             }).ToList()
         };
     }
@@ -137,7 +140,8 @@ public class SankeyReport : ISankeyReport
             {
                 Source = s.IsExpense ? rootNodeIndex : j + 1,
                 Target = s.IsExpense ? j + 1 : rootNodeIndex,
-                Value = s.Value
+                Value = s.Value,
+                IsExpense = s.IsExpense
             }).ToList()
         };
     }
