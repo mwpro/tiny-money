@@ -67,6 +67,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IVendorStore, MySqlVendorStore>();
     services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
     services.AddTransient<IReportsProvider, MySqlReportsProvider>();
+    services.AddTransient<ISankeyReport, SankeyReport>();
+    services.AddTransient<ITopListReport, TopListReport>();
+    services.AddTransient<ISummaryReport, SummaryReport>();
     services.AddTransient<IBudgetStore, BudgetStore>();
     services.AddTransient<IImportTransactionsService, ImportTransactionsService>();
     services.AddTransient<IBankStatementParser, GetinPdfBankStatementParser>();
