@@ -47,6 +47,7 @@ type CustomLinkPayload = {
     dy: number;
     sy: number;
     ty: number;
+    isExpense: boolean;
 };
 const CustomLink = (props: {
     sourceX: number;
@@ -90,8 +91,6 @@ const CustomLink = (props: {
                         boxSizing: 'border-box',
                         display: 'flex',
                         alignItems: 'center',
-                        /* 
-                        // @ts-ignore */
                         justifyContent: props.payload.isExpense ? 'flex-end' : 'flex-start',
                         width: '100%',
                         height: '100%',
@@ -112,9 +111,7 @@ const CustomLink = (props: {
                             zIndex: 1,
                         }}
                     >
-                        {/* 
-                        // @ts-ignore */
-                        props.payload.isExpense ? `${props.payload.target.name}: ` : `${props.payload.source.name}: `}
+                        {props.payload.isExpense ? `${props.payload.target.name}: ` : `${props.payload.source.name}: `}
                         {formatCurrencyAsString(props.payload.value)}
                     </div>
                 </div>
@@ -150,7 +147,7 @@ export function SankeyReportPage() {
     }, [reportSettings]);
 
     const reportQuery = useQuery({
-        queryKey: ['summaryReport', reportSettings],
+        queryKey: ['sankeyReport', reportSettings],
         queryFn: () => getSankeyReport(auth, reportSettings.dateFrom, reportSettings.dateTo),
     })
     useEffect(() => {
@@ -189,13 +186,7 @@ export function SankeyReportPage() {
                                             :
                                             <>
                                                 <BreadcrumbItem className={"text-lg"}>
-                                                    <BreadcrumbLink onClick={() =>
-                                                        setSankeyChartData(v => {
-                                                            for (let j = i; j < sankeyChartData.length; j++) {
-                                                                v.pop();
-                                                            }
-                                                            return [...v];
-                                                        })}>{chart.nodes[0].name}</BreadcrumbLink>
+                                                    <BreadcrumbLink onClick={() => setSankeyChartData(v => v.slice(0, i + 1))}>{chart.nodes[0].name}</BreadcrumbLink>
                                                 </BreadcrumbItem>
                                                 <BreadcrumbSeparator/>
                                             </>}

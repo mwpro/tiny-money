@@ -119,10 +119,8 @@ public class SankeyNode
 {
     public int Index { get; set; }
     public string Name { get; set; }
-    public string NodeType { get; set; }
     public int NodeId { get; set; }
     
-    // subchart
     public SankeyChart SubChart { get; set; }
 }
 

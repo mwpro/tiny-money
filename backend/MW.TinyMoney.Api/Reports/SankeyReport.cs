@@ -36,13 +36,12 @@ public class SankeyReport : ISankeyReport
         var vendorResults = (await queryResults.ReadAsync<TransactionsSum>()).ToList();
 
         const int rootNodeIndex = 0;
-        var hasSingleIncomeCategory = categoryResults.Count(q => q.AggregationLevel == "category" && q.IsExpense == false) == 1;
+        var hasSingleIncomeCategory = categoryResults.Count(q => q.IsExpense == false) == 1;
 
         var rootNodes = categoryResults.Where(c => c.IsExpense || !hasSingleIncomeCategory).Select((q, i) => new SankeyNode()
         {
             Index = i + 1,
             Name = q.Label,
-            NodeType = q.AggregationLevel,
             NodeId = q.Id,
             SubChart = PrepareSubcategorySankeySubChart(subcategoryResults, vendorResults, q, rootNodeIndex)
         }).ToList();
@@ -53,7 +52,6 @@ public class SankeyReport : ISankeyReport
             {
                 Index = incomeCategoriesCount + i,
                 Name = q.Label,
-                NodeType = q.AggregationLevel,
                 NodeId = q.Id,
                 SubChart = PrepareVendorSankeySubChart(vendorResults, q, rootNodeIndex)
             }));
@@ -66,8 +64,8 @@ public class SankeyReport : ISankeyReport
         var rootLinks = categoryResults.Where(t => t.IsExpense || !hasSingleIncomeCategory)
             .Select(t => new SankeyLink()
             {
-                Source = t.IsExpense ? rootNodeIndex : rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index,
-                Target = t.IsExpense ? rootNodes.First(n => n.NodeType == "category" && n.NodeId == t.Id).Index : rootNodeIndex,
+                Source = t.IsExpense ? rootNodeIndex : rootNodes.First(n => n.NodeId == t.Id).Index,
+                Target = t.IsExpense ? rootNodes.First(n => n.NodeId == t.Id).Index : rootNodeIndex,
                 Value = t.Value,
                 IsExpense = t.IsExpense
             }).ToList();
@@ -76,7 +74,7 @@ public class SankeyReport : ISankeyReport
             rootLinks.AddRange(subcategoryResults.Where(t => !t.IsExpense)
                 .Select(t => new SankeyLink()
                 {
-                    Source = rootNodes.First(n => n.NodeType == "subcategory" && n.NodeId == t.Id).Index,
+                    Source = rootNodes.First(n => n.NodeId == t.Id).Index,
                     Target = rootNodeIndex,
                     Value = t.Value,
                     IsExpense = t.IsExpense
@@ -102,7 +100,6 @@ public class SankeyReport : ISankeyReport
             {
                 Index = j + 1,
                 Name = s.Label,
-                NodeType = s.AggregationLevel,
                 NodeId = s.Id,
             }).Prepend(new SankeyNode()
             {
@@ -128,7 +125,6 @@ public class SankeyReport : ISankeyReport
             {
                 Index = j + 1,
                 Name = s.Label,
-                NodeType = s.AggregationLevel,
                 NodeId = s.Id,
                 SubChart = PrepareVendorSankeySubChart(vendorResults, s, rootNodeIndex)
             }).Prepend(new SankeyNode()
@@ -148,7 +144,6 @@ public class SankeyReport : ISankeyReport
 
     private const string SankeyQuery = @"
             SELECT /* category level */
-                'category' AS `aggregationLevel`,
                 c.id AS 'id',
                 null AS 'parentId',
                 t.is_expense as `isExpense`, 
@@ -161,7 +156,6 @@ public class SankeyReport : ISankeyReport
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
             GROUP BY t.is_expense, c.id, c.name;
             SELECT /* subcategory level */
-                'subcategory' AS `aggregationLevel`,
                 s.id AS 'id',
                 s.parent_category_id AS 'parentId',
                 t.is_expense as `isExpense`, 
@@ -173,7 +167,6 @@ public class SankeyReport : ISankeyReport
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
             GROUP BY t.is_expense, s.id, s.name, s.parent_category_id;
             SELECT /* vendor level */
-                'vendor' AS `aggregationLevel`,
                 v.id AS 'id',
                 t.subcategory_id AS 'parentId',
                 t.is_expense as `isExpense`, 
@@ -189,7 +182,6 @@ public class SankeyReport : ISankeyReport
 
     private class TransactionsSum
     {
-        public string AggregationLevel { get; set; }
         public int Id { get; set; }
         public int? ParentId { get; set; }
         public bool IsExpense { get; set; }
