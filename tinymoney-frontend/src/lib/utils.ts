@@ -36,3 +36,5 @@ export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string =
 };
 
 export const dateFormat = "yyyy-MM-dd";
+export const monthYearFormat = "yyyy-MM";
+export const monthYearNameFormat = "LLLL yyyy";
