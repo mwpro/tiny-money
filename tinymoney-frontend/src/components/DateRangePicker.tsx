@@ -23,6 +23,7 @@ interface DateRangePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
     onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void,
+    onRangeDescriptionChange: (rangeDescription: string) => void,
     presets: DateRangePreset[],
     monthYearMode: boolean
 }
@@ -141,7 +142,7 @@ function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | u
     return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
 }
 
-export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DateRangePickerProps) {
+export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearMode, onRangeDescriptionChange}: DateRangePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
@@ -154,6 +155,16 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
     const [dateToInternal, setDateToInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateTo)
     const [monthFrom, setMonthFrom] = useState<Date>(new Date);
     const [monthTo, setMonthTo] = useState<Date>(new Date);
+
+    useEffect(() => {
+        if (usedPreset){
+            onRangeDescriptionChange((typeof usedPreset.name === "string" ? usedPreset.name : usedPreset.name(new Date())));
+        } else if (dateFrom && dateTo) {
+            onRangeDescriptionChange(`${format(dateFrom, monthYearMode ? monthYearFormat : dateFormat)} - ${format(dateTo, monthYearMode ? monthYearFormat : dateFormat)}`);
+        } else {
+            onRangeDescriptionChange("");
+        }
+    }, [usedPreset]);
 
     useEffect(() => {
         setDateFromInternal(dateFrom);
@@ -172,7 +183,8 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
         setUsedPresetInternal(preset);
         setUsedPreset(preset);
         setOpen(false);
-        onChange(dateFrom, dateTo);
+        onChange(dateFrom, dateTo
+        );
     };
 
     const applyCustomRange = () => {

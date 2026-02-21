@@ -35,6 +35,13 @@ export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string =
   return queryString ? `${baseUrl}?${queryString}` : baseUrl;
 };
 
+export const prepareTitleText = (text: string): string => {
+    if (!text) {
+        return "TINY-Money";
+    }
+    return `${text} - TINY-Money`;
+}
+
 export const dateFormat = "yyyy-MM-dd";
 export const monthYearFormat = "yyyy-MM";
 export const monthYearNameFormat = "LLLL yyyy";

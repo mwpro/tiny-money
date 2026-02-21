@@ -1,5 +1,5 @@
 import {useAuth0} from "@auth0/auth0-react";
-import {useEffect, useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getTopListReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
@@ -13,7 +13,7 @@ import {
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {TopTransactionsTable} from "@/features/reports/toplist-report/TopTransactionsTable.tsx";
 import {TopEntriesTable} from "@/features/reports/toplist-report/TopEntriesTable.tsx";
-import {dateFormat} from "@/lib/utils.ts";
+import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -23,6 +23,7 @@ export interface ReportSettings {
 export function TopListReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [dateRangeDescription, setDateRangeDescription] = useState<string>("")
 
     const handlePeriodChange = (dateFrom: Date | undefined, dateTo: Date | undefined) => {
         if (!dateFrom || !dateTo) {
@@ -52,6 +53,7 @@ export function TopListReportPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <title>{prepareTitleText(`Toplista - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Raport - Top lista</h1>
             </div>
@@ -59,7 +61,8 @@ export function TopListReportPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
-                                 onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
+                                 onChange={handlePeriodChange} onRangeDescriptionChange={setDateRangeDescription}
+                                 presets={reportPresets} monthYearMode={true} />
             </div>
 
             {(reportQuery.isLoading) &&

@@ -1,5 +1,5 @@
 import {useAuth0} from "@auth0/auth0-react";
-import {useEffect, useMemo} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
 import {getSummaryReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
@@ -19,7 +19,7 @@ import {ToggleGroup, ToggleGroupItem} from "@/components/ui/toggle-group.tsx";
 import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/CategoryBreakdownPieChart.tsx";
 import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
-import {dateFormat} from "@/lib/utils.ts";
+import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -30,6 +30,7 @@ export interface ReportSettings {
 export function SummaryReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
 
     const handlePeriodChange = (dateFrom: Date | undefined, dateTo: Date | undefined) => {
         if (!dateFrom || !dateTo) {
@@ -67,6 +68,7 @@ export function SummaryReportPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <title>{prepareTitleText(`Podsumowanie - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Raport - podsumowanie</h1>
             </div>
@@ -74,7 +76,8 @@ export function SummaryReportPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
-                                 onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
+                                 onChange={handlePeriodChange} onRangeDescriptionChange={setDateRangeDescription}
+                                 presets={reportPresets} monthYearMode={true} />
                 <ToggleGroup variant="outline" className={"bg-background"}
                              type="single" defaultValue="month"
                              value={reportSettings.splitByMonth ? "month" : "year"}
