@@ -71,7 +71,7 @@ namespace MW.TinyMoney.Api.Buffer
                     Name = approval.Vendor.Name,
                     DefaultSubcategoryId = approval.SubcategoryId
                 };
-                _vendorStore.SaveVendor(vendor);
+                await _vendorStore.SaveVendor(vendor);
                 approval.Vendor.Id = vendor.Id;
                 approval.Vendor.DefaultSubcategoryId = approval.SubcategoryId;
                 response.NewVendor = approval.Vendor;

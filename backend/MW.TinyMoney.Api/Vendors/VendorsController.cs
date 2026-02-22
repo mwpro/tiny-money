@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
@@ -19,14 +20,22 @@ namespace MW.TinyMoney.Api.Vendors
 
         [HttpGet, Route("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDto>))]
-        public IActionResult GetVendors()
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDetails>))]
+        public async Task<IActionResult> GetVendors([FromQuery] bool? detailed = false)
         {
-            return Ok(_vendorStore.GetVendors().Select(x => new VendorDto()
+            if (detailed.HasValue && detailed.Value)
             {
-                Id = x.Id,
-                Name = x.Name,
-                DefaultSubcategoryId = x.DefaultSubcategoryId
-            }));
+                return Ok(await _vendorStore.GetDetailedVendors());
+            }
+            else
+            {
+                return Ok((await _vendorStore.GetVendors()).Select(x => new VendorDto()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    DefaultSubcategoryId = x.DefaultSubcategoryId
+                }));
+            }
         }
     }
 }

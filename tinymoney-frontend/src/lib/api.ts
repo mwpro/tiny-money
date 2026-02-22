@@ -356,6 +356,16 @@ export const removeTag = async (tagId: number, auth: Auth0ContextInterface): Pro
 };
 
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
+export type VendorDetails = { 
+    id: number; 
+    name: string, 
+    defaultSubcategoryId: number,
+    subcategoryName: string,
+    categoryName: string,
+    isIncomeCategory: boolean,
+    numberOfTransactions: number,
+    lastTransactionDate: string | undefined
+};
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
@@ -391,6 +401,17 @@ export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania tagów');
+    return res.json();
+};
+
+export const getVendorsDetails = async (auth: Auth0ContextInterface): Promise<VendorDetails[]> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/vendors?detailed=true`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
     return res.json();
 };
 

@@ -78,6 +78,11 @@ export function Layout() {
                                     Tagi
                                 </Button>
                             </Link>
+                            <Link to="/vendors">
+                                <Button variant={isActive("/vendors") ? "secondary" : "ghost"}>
+                                    Sprzedawcy
+                                </Button>
+                            </Link>
                         </nav>
                     </div>
 

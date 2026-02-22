@@ -90,7 +90,7 @@ namespace MW.TinyMoney.Api.Transaction
                     Name = updatedTransaction.Vendor.Name,
                     DefaultSubcategoryId = updatedTransaction.SubcategoryId
                 };
-                _vendorStore.SaveVendor(vendor);
+                await _vendorStore.SaveVendor(vendor);
                 updatedTransaction.Vendor.Id = vendor.Id;
                 updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
                 response.NewVendor = updatedTransaction.Vendor;
@@ -136,7 +136,7 @@ namespace MW.TinyMoney.Api.Transaction
                     Name = addTransactionDto.Vendor.Name,
                     DefaultSubcategoryId = addTransactionDto.SubcategoryId
                 };
-                _vendorStore.SaveVendor(vendor);
+                await _vendorStore.SaveVendor(vendor);
                 addTransactionDto.Vendor.Id = vendor.Id;
                 addTransactionDto.Vendor.DefaultSubcategoryId = addTransactionDto.SubcategoryId;
                 response.NewVendor = addTransactionDto.Vendor;
