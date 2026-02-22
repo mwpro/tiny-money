@@ -86,7 +86,7 @@ export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label>Opis</Label>
+                        <Label>Nazwa tagu</Label>
                         <Input {...register("name", { required: true })} />
                         {errors.name &&
                             <span className="text-red-500 text-xs">{errors.name.message}</span>}

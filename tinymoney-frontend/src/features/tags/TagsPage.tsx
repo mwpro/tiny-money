@@ -35,7 +35,7 @@ export function TagsPage() {
                 <div className="p-10 text-red-500">Błąd ładowania danych</div>}
             {tagsQuery.data &&
                 <div className="border rounded-md">
-                    <Table>
+                    <Table className={"table-auto"}>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Tag</TableHead>
@@ -56,11 +56,12 @@ export function TagsPage() {
                                     <TableCell>
                                         {t.name}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className={"flex justify-end"}>
                                         <ButtonGroup>
-                                            <Link to={getTransactionsUrl({tagId: t.id})} target={"_blank"}>
-                                                <Button variant="outline" size="sm">Transakcje ({t.numberOfTransactions})</Button>
-                                            </Link>
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link to={getTransactionsUrl({tagId: t.id})} target={"_blank"}>
+                                                    Transakcje ({t.numberOfTransactions})</Link>
+                                            </Button>
                                             <Button variant="outline" size="sm" onClick={() => setTagToEdit(t)}>Edytuj</Button>
                                             <Button variant="outline" className={"hover:bg-destructive hover:text-white"} size="sm" onClick={() => setTagToRemove(t)}>Usuń</Button>
                                         </ButtonGroup>
