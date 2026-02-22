@@ -355,6 +355,25 @@ export const removeTag = async (tagId: number, auth: Auth0ContextInterface): Pro
     }
 };
 
+export const removeVendor = async (vendorId: number, vendorIdToMerge: number | undefined, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mergeToVendorId: vendorIdToMerge
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas usuwania sprzedawcy');
+    }
+};
+
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
 export type VendorDetails = { 
     id: number; 

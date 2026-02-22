@@ -9,16 +9,9 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public string Name { get; set; }
         public int? DefaultSubcategoryId { get; set; }
     }
-    public class VendorDetailsDto
+    public class DeleteVendorRequest
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int DefaultSubcategoryId { get; set; }
-        public string SubcategoryName { get; set; }
-        public string CategoryName { get; set; }
-        public bool IsIncomeCategory { get; set; }
-        public int NumberOfTransactions { get; set; }
-        public DateTime LastTransactionDate { get; set; }
+        public int? MergeToVendorId { get; set; }
     }
 
     public class TagDto
