@@ -10,11 +10,14 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/c
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {TagRemovalDialog} from "@/features/tags/TagRemovalDialog.tsx";
 import {TagEditorDialog} from "@/features/tags/TagEditorDialog.tsx";
+import {Label} from "@/components/ui/label.tsx";
+import {Switch} from "@/components/ui/switch.tsx";
 
 export function TagsPage() {
     const auth = useAuth0();
     const [tagToRemove, setTagToRemove] = useState<Tag | undefined>(undefined)
     const [tagToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
+    const [tagsWithoutTransactionsFilter, setTagsWithoutTransactionsFilter] = useState(false);
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
@@ -28,7 +31,14 @@ export function TagsPage() {
                 <TagEditorDialog tagToEdit={tagToEdit} onClose={() => setTagToEdit(undefined)} />
                 <TagRemovalDialog tagToRemove={tagToRemove}/>
             </div>
+            <div className="flex flex-row gap-3 mb-6">
+                <div className="flex items-center space-x-2">
+                    <Switch id="airplane-mode" size="sm" checked={tagsWithoutTransactionsFilter} onCheckedChange={setTagsWithoutTransactionsFilter} />
+                    <Label htmlFor="airplane-mode">Tagi bez transakcji</Label>
+                </div>
+            </div>
 
+            {tagsWithoutTransactionsFilter}
             {tagsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
             {tagsQuery.isError &&
@@ -51,7 +61,7 @@ export function TagsPage() {
                                         </Alert>
                                     </TableCell>
                                 </TableRow> }
-                            {tagsQuery.data.map((t) => (
+                            {tagsQuery.data.filter(t => !tagsWithoutTransactionsFilter || t.numberOfTransactions == 0).map((t) => (
                                 <TableRow key={t.id}>
                                     <TableCell>
                                         {t.name}
