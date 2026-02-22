@@ -16,6 +16,11 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public string Name { get; set; }
     }
 
+    public class NewTagDto
+    {
+        public string Name { get; set; }
+    }
+
     public class TagDetailsDto
     {
         public int Id { get; set; }

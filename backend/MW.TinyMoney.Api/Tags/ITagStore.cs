@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Tags
@@ -19,10 +20,11 @@ namespace MW.TinyMoney.Api.Tags
 
     public interface ITagStore
     {
-        void SaveTag(Tag tag);
-        IEnumerable<TagDetails> GetTags();
-        Tag GetTag(int id);
-        void DeleteTag(int id);
+        Task SaveTag(Tag tag);
+        Task<IEnumerable<TagDetails>> GetTags();
+        Task<Tag> GetTag(int id);
+        Task DeleteTag(int id);
+        Task UpdateTag(int tagId, Tag tag);
     }
 
     public class MySqlTagStore : ITagStore
@@ -38,6 +40,11 @@ namespace MW.TinyMoney.Api.Tags
               @"INSERT INTO tag (name)
                 VALUES(@name);
                 SELECT LAST_INSERT_ID();";
+
+        private const string UpdateTagQuery = 
+              @"UPDATE tag
+                set name = @name 
+                where id = @id;";
 
         private const string GetTagsQuery =
               @"SELECT id, name, COUNT(tt.transaction_id) AS numberOfTransactions
@@ -59,46 +66,48 @@ namespace MW.TinyMoney.Api.Tags
             ";
 
 
-        public void SaveTag(Tag tag)
+        public async Task SaveTag(Tag tag)
         {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-                using (var dbTransaction = connection.BeginTransaction())
-                {
-                    tag.Id = connection.QuerySingle<int>(SaveTagQuery, tag, dbTransaction);
-
-                    dbTransaction.Commit();
-                }
-            }
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            tag.Id = await connection.QuerySingleAsync<int>(SaveTagQuery, tag);
         }
 
-        public IEnumerable<TagDetails> GetTags()
+        public async Task UpdateTag(int tagId, Tag tag)
         {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-                return connection.Query<TagDetails>(GetTagsQuery);
-            }
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            await connection.ExecuteAsync(UpdateTagQuery,
+            new {
+                name = tag.Name,
+                id = tagId
+            });
         }
 
-        public Tag GetTag(int id)
+        public async Task<IEnumerable<TagDetails>> GetTags()
         {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-
-                return connection.QuerySingleOrDefault<Tag>(GetTagQuery, new {id});
-            }
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            return await connection.QueryAsync<TagDetails>(GetTagsQuery);
         }
 
-        public void DeleteTag(int id)
+        public async Task<Tag> GetTag(int id)
         {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-                connection.Execute(DeleteTagQuery, new { id });
-            }
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            return await connection.QuerySingleOrDefaultAsync<Tag>(GetTagQuery, new {id});
+        }
+
+        public async Task DeleteTag(int id)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            await connection.ExecuteAsync(DeleteTagQuery, new { id });
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +56,7 @@ namespace MW.TinyMoney.Api.Buffer
 
         [HttpPost, Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        public IActionResult AcceptBufferedTransaction([FromRoute]int id, [FromBody]BufferedTransactionApproval approval)
+        public async Task<IActionResult> AcceptBufferedTransaction([FromRoute]int id, [FromBody]BufferedTransactionApproval approval)
         {
             // TODO validation, should be a single transaction scope
             var bufferedTransaction = _bufferedTransactionStore.GetBufferedTransaction(id);
@@ -82,7 +83,7 @@ namespace MW.TinyMoney.Api.Buffer
                 {
                     Name = newTag.Name,
                 };
-                _tagStore.SaveTag(tag);
+                await _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
                 response.NewTags.Add(newTag);

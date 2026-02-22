@@ -102,7 +102,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     Name = newTag.Name,
                 };
-                _tagStore.SaveTag(tag);
+                await _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
                 response.NewTags.Add(newTag);
@@ -125,7 +125,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpPost("")]
-        public IActionResult AddTransaction([FromBody] AddTransactionDto addTransactionDto)
+        public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
         {
             // TODO validation, should be a single transaction scope
             var response = new AddTransactionResponse();
@@ -148,7 +148,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     Name = newTag.Name,
                 };
-                _tagStore.SaveTag(tag);
+                await _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
                 response.NewTags.Add(newTag);

@@ -2,6 +2,7 @@ import {type Auth0ContextInterface} from "@auth0/auth0-react";
 import {format} from "date-fns";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
+import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
 
 export type Transaction = {
     id: number;
@@ -269,6 +270,23 @@ export const addTransaction = async (newTransaction: NewTransaction, auth: Auth0
     return response.json();
 };
 
+export const addTag = async (newTag: TagInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTag),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas dodawania tagu');
+    }
+};
+
 export const editTransaction = async (transactionId: number, 
                                       newTransaction: NewTransaction, auth: Auth0ContextInterface): Promise<Transaction> => {
     const token = await  auth.getAccessTokenSilently();
@@ -287,6 +305,24 @@ export const editTransaction = async (transactionId: number,
     }
 
     return response.json();
+};
+
+export const editTag = async (tagId: number,
+                              newTag: TagInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags/${tagId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTag),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania tagu');
+    }
 };
 
 export const removeTransaction = async (transactionId: number, auth: Auth0ContextInterface): Promise<void> => {

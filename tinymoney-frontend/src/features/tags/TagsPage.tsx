@@ -1,12 +1,7 @@
 import {useQuery} from "@tanstack/react-query"
-import {
-    getTags,
-    type Tag,
-    type Transaction
-} from "@/lib/api"
+import {getTags, type Tag} from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
 import {useState} from "react";
-import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 import {Link} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -14,11 +9,12 @@ import {getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {TagRemovalDialog} from "@/features/tags/TagRemovalDialog.tsx";
+import {TagEditorDialog} from "@/features/tags/TagEditorDialog.tsx";
 
 export function TagsPage() {
     const auth = useAuth0();
     const [tagToRemove, setTagToRemove] = useState<Tag | undefined>(undefined)
-    const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
+    const [tagToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
@@ -29,7 +25,7 @@ export function TagsPage() {
             <title>{prepareTitleText("Tagi")}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Tagi</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
+                <TagEditorDialog tagToEdit={tagToEdit} onClose={() => setTagToEdit(undefined)} />
                 <TagRemovalDialog tagToRemove={tagToRemove}/>
             </div>
 
@@ -65,9 +61,7 @@ export function TagsPage() {
                                             <Link to={getTransactionsUrl({tagId: t.id})} target={"_blank"}>
                                                 <Button variant="outline" size="sm">Transakcje ({t.numberOfTransactions})</Button>
                                             </Link>
-                                            <Button variant="outline" size="sm" onClick={() => {
-                                                // return onEditClick(t);
-                                            }}>Edytuj</Button>
+                                            <Button variant="outline" size="sm" onClick={() => setTagToEdit(t)}>Edytuj</Button>
                                             <Button variant="outline" className={"hover:bg-destructive hover:text-white"} size="sm" onClick={() => setTagToRemove(t)}>Usuń</Button>
                                         </ButtonGroup>
                                     </TableCell>
