@@ -75,6 +75,11 @@ export function Layout() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </ButtonGroup>
+                            <Link to="/tags">
+                                <Button variant={isActive("/tags") ? "secondary" : "ghost"}>
+                                    Tagi
+                                </Button>
+                            </Link>
                         </nav>
                     </div>
 

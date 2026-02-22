@@ -304,10 +304,25 @@ export const removeTransaction = async (transactionId: number, auth: Auth0Contex
     }
 };
 
+export const removeTag = async (tagId: number, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags/${tagId}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas usuwania tagu');
+    }
+};
+
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
-export type Tag = { id: number; name: string };
+export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 
 export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {

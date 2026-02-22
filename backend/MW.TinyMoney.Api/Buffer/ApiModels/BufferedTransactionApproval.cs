@@ -16,6 +16,13 @@ namespace MW.TinyMoney.Api.Buffer.ApiModels
         public string Name { get; set; }
     }
 
+    public class TagDetailsDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int NumberOfTransactions { get; set; }
+    }
+
     public class BufferedTransactionApproval
     {
         public BufferedTransactionApproval()

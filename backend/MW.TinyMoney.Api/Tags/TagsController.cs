@@ -18,13 +18,14 @@ namespace MW.TinyMoney.Api.Tags
         }
 
         [HttpGet, Route("")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<TagDto>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<TagDetailsDto>))]
         public IActionResult GetTags()
         {
-            return Ok(_tagStore.GetTags().Select(x => new TagDto()
+            return Ok(_tagStore.GetTags().Select(x => new TagDetailsDto()
             {
                 Id = x.Id,
-                Name = x.Name
+                Name = x.Name,
+                NumberOfTransactions = x.NumberOfTransactions
             }));
         }
         
@@ -36,6 +37,7 @@ namespace MW.TinyMoney.Api.Tags
             var tag = _tagStore.GetTag(id);
             if (tag == null)
                 return NotFound();
+            
 
             _tagStore.DeleteTag(id);
             return Accepted();

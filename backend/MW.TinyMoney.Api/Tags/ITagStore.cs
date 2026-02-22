@@ -10,10 +10,17 @@ namespace MW.TinyMoney.Api.Tags
         public string Name { get; set; }
     }
 
+    public class TagDetails
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int NumberOfTransactions { get; set; }
+    }
+
     public interface ITagStore
     {
         void SaveTag(Tag tag);
-        IEnumerable<Tag> GetTags();
+        IEnumerable<TagDetails> GetTags();
         Tag GetTag(int id);
         void DeleteTag(int id);
     }
@@ -33,8 +40,11 @@ namespace MW.TinyMoney.Api.Tags
                 SELECT LAST_INSERT_ID();";
 
         private const string GetTagsQuery =
-              @"SELECT id, name
-                FROM tag";
+              @"SELECT id, name, COUNT(tt.transaction_id) AS numberOfTransactions
+                FROM tag
+                LEFT JOIN transaction_tag tt on tag.id = tt.tag_id
+                GROUP BY id, name
+                ORDER BY name";
 
         private const string GetTagQuery =
             @"SELECT id, name
@@ -63,12 +73,12 @@ namespace MW.TinyMoney.Api.Tags
             }
         }
 
-        public IEnumerable<Tag> GetTags()
+        public IEnumerable<TagDetails> GetTags()
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
                 connection.Open();
-                return connection.Query<Tag>(GetTagsQuery);
+                return connection.Query<TagDetails>(GetTagsQuery);
             }
         }
 
