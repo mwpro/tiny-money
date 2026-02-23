@@ -1,8 +1,8 @@
 import {useQuery} from "@tanstack/react-query"
 import {getTags, type Tag} from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
-import {useState} from "react";
-import {Link} from "react-router-dom";
+import {useMemo, useState} from "react";
+import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
@@ -12,13 +12,27 @@ import {TagRemovalDialog} from "@/features/tags/TagRemovalDialog.tsx";
 import {TagEditorDialog} from "@/features/tags/TagEditorDialog.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Switch} from "@/components/ui/switch.tsx";
+import {Input} from "@/components/ui/input.tsx";
+
+interface ListSettings {
+    withoutTransactionsFilter: boolean,
+    nameFilter: string
+}
 
 export function TagsPage() {
     const auth = useAuth0();
     const [tagToRemove, setTagToRemove] = useState<Tag | undefined>(undefined)
     const [tagToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
-    const [tagsWithoutTransactionsFilter, setTagsWithoutTransactionsFilter] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
 
+    const listSettings = useMemo<ListSettings>(() => {
+        const withoutTransactionsFilter = searchParams.get("withoutTransactions") == "true" ? true : false;
+        const nameFilter = searchParams.get("name") ?? "";
+        return {
+            withoutTransactionsFilter, nameFilter
+        };
+    }, [searchParams]);
+    
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => getTags(auth)
@@ -33,12 +47,18 @@ export function TagsPage() {
             </div>
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">
-                    <Switch id="airplane-mode" size="sm" checked={tagsWithoutTransactionsFilter} onCheckedChange={setTagsWithoutTransactionsFilter} />
+                    <Switch id="airplane-mode" size="sm" checked={listSettings.withoutTransactionsFilter} onCheckedChange={v => setSearchParams(prev => {
+                        v ? prev.set("withoutTransactions", "true") : prev.delete("withoutTransactions");
+                        return prev;
+                    })} />
                     <Label htmlFor="airplane-mode">Tagi bez transakcji</Label>
                 </div>
+                <Input placeholder="Wyszukaj..." value={listSettings.nameFilter} onChange={v => setSearchParams(prev => {
+                    (v.target.value?.length > 0) ? prev.set("name", v.target.value) : prev.delete("name");
+                    return prev;
+                })} />
             </div>
 
-            {tagsWithoutTransactionsFilter}
             {tagsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
             {tagsQuery.isError &&
@@ -61,7 +81,8 @@ export function TagsPage() {
                                         </Alert>
                                     </TableCell>
                                 </TableRow> }
-                            {tagsQuery.data.filter(t => !tagsWithoutTransactionsFilter || t.numberOfTransactions == 0).map((t) => (
+                            {tagsQuery.data.filter(t => (!listSettings.withoutTransactionsFilter || t.numberOfTransactions == 0)
+                                && (!listSettings.nameFilter || t.name.toLowerCase().includes(listSettings.nameFilter.toLowerCase()))).map((t) => (
                                 <TableRow key={t.id}>
                                     <TableCell>
                                         {t.name}

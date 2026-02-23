@@ -1,8 +1,8 @@
 import {useQuery} from "@tanstack/react-query"
 import {getVendorsDetails, type VendorDetails} from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
-import {useState} from "react";
-import {Link} from "react-router-dom";
+ import {useMemo, useState} from "react";
+import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {dateFormat, getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
@@ -13,13 +13,27 @@ import {Switch} from "@/components/ui/switch.tsx";
 import {format} from "date-fns";
 import {VendorRemovalDialog} from "@/features/vendors/VendorRemovalDialog.tsx";
 import {VendorEditorDialog} from "@/features/vendors/VendorEditorDialog.tsx";
+import {Input} from "@/components/ui/input.tsx";
+
+interface ListSettings {
+    withoutTransactionsFilter: boolean,
+    nameFilter: string
+}
 
 export function VendorsPage() {
     const auth = useAuth0();
     const [vendorToRemove, setVendorToRemove] = useState<VendorDetails | undefined>(undefined)
     const [vendorToEdit, setVendorToEdit] = useState<VendorDetails | undefined>(undefined)
-    const [vendorsWithoutTransactionsFilter, setVendorsWithoutTransactionsFilter] = useState(false);
-
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    const listSettings = useMemo<ListSettings>(() => {
+        const withoutTransactionsFilter = searchParams.get("withoutTransactions") == "true" ? true : false;
+        const nameFilter = searchParams.get("name") ?? "";
+        return {
+            withoutTransactionsFilter, nameFilter
+        };
+    }, [searchParams]);
+    
     const vendorsQuery = useQuery({
         queryKey: ['vendors-details'],
         queryFn: () => getVendorsDetails(auth)
@@ -34,12 +48,18 @@ export function VendorsPage() {
             </div>
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">
-                    <Switch id="airplane-mode" size="sm" checked={vendorsWithoutTransactionsFilter} onCheckedChange={setVendorsWithoutTransactionsFilter} />
+                    <Switch id="airplane-mode" size="sm" checked={listSettings.withoutTransactionsFilter} onCheckedChange={v => setSearchParams(prev => {
+                        v ? prev.set("withoutTransactions", "true") : prev.delete("withoutTransactions");
+                        return prev;
+                    })} />
                     <Label htmlFor="airplane-mode">Sprzedawcy bez transakcji</Label>
                 </div>
+                <Input placeholder="Wyszukaj..." value={listSettings.nameFilter} onChange={v => setSearchParams(prev => {
+                    (v.target.value?.length > 0) ? prev.set("name", v.target.value) : prev.delete("name");
+                    return prev;
+                })} />
             </div>
 
-            {vendorsWithoutTransactionsFilter}
             {vendorsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
             {vendorsQuery.isError &&
@@ -64,7 +84,8 @@ export function VendorsPage() {
                                         </Alert>
                                     </TableCell>
                                 </TableRow> }
-                            {vendorsQuery.data.filter(t => !vendorsWithoutTransactionsFilter || t.numberOfTransactions == 0).map((t) => (
+                            {vendorsQuery.data.filter(t => (!listSettings.withoutTransactionsFilter || t.numberOfTransactions == 0) 
+                                && (!listSettings.nameFilter || t.name.toLowerCase().includes(listSettings.nameFilter.toLowerCase()))).map((t) => (
                                 <TableRow key={t.id}>
                                     <TableCell>
                                         {t.name}
