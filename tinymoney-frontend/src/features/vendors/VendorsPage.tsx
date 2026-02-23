@@ -1,5 +1,5 @@
 import {useQuery} from "@tanstack/react-query"
-import {getVendorsDetails, type Tag, type VendorDetails} from "@/lib/api"
+import {getVendorsDetails, type VendorDetails} from "@/lib/api"
 import {useAuth0} from "@auth0/auth0-react";
 import {useState} from "react";
 import {Link} from "react-router-dom";
@@ -8,16 +8,16 @@ import {Button} from "@/components/ui/button.tsx";
 import {dateFormat, getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
-import {TagEditorDialog} from "@/features/tags/TagEditorDialog.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Switch} from "@/components/ui/switch.tsx";
 import {format} from "date-fns";
 import {VendorRemovalDialog} from "@/features/vendors/VendorRemovalDialog.tsx";
+import {VendorEditorDialog} from "@/features/vendors/VendorEditorDialog.tsx";
 
 export function VendorsPage() {
     const auth = useAuth0();
     const [vendorToRemove, setVendorToRemove] = useState<VendorDetails | undefined>(undefined)
-    const [vendorToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
+    const [vendorToEdit, setVendorToEdit] = useState<VendorDetails | undefined>(undefined)
     const [vendorsWithoutTransactionsFilter, setVendorsWithoutTransactionsFilter] = useState(false);
 
     const vendorsQuery = useQuery({
@@ -29,7 +29,7 @@ export function VendorsPage() {
             <title>{prepareTitleText("Sprzedawcy")}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Sprzedawcy</h1>
-                <TagEditorDialog tagToEdit={vendorToEdit} onClose={() => setTagToEdit(undefined)} />
+                <VendorEditorDialog vendorToEdit={vendorToEdit} onClose={() => setVendorToEdit(undefined)} />
                 {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data}/> }
             </div>
             <div className="flex flex-row gap-3 mb-6">
@@ -77,7 +77,7 @@ export function VendorsPage() {
                                                 <Link to={getTransactionsUrl({vendorId: t.id})} target={"_blank"}>
                                                     Transakcje ({t.numberOfTransactions})</Link>
                                             </Button>
-                                            <Button variant="outline" size="sm" onClick={() => setTagToEdit(t)}>Edytuj</Button>
+                                            <Button variant="outline" size="sm" onClick={() => setVendorToEdit(t)}>Edytuj</Button>
                                             <Button variant="outline" className={"hover:bg-destructive hover:text-white"} size="sm" onClick={() => setVendorToRemove(t)}>Usuń</Button>
                                         </ButtonGroup>
                                     </TableCell>

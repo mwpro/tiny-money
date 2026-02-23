@@ -31,6 +31,7 @@ namespace MW.TinyMoney.Api.Vendors
         Task<IEnumerable<Vendor>> GetVendors();
         Task<IEnumerable<VendorDetails>> GetDetailedVendors();
         Task<VendorDetails> GetVendorDetails(int vendorId);
+        Task UpdateVendor(int vendorId, Vendor vendor);
         Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId);
     }
 
@@ -81,14 +82,19 @@ namespace MW.TinyMoney.Api.Vendors
             WHERE v.id = @vendorId
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
             ORDER BY v.name";
-        
+
+        private const string UpdateVendorQuery = 
+            @"UPDATE vendor
+                set name = @name, default_subcategory_id = @defaultSubcategoryId 
+                where id = @id;";
+
         private const string MoveTransactionsBetweenVendors =
             @"UPDATE transaction
               SET vendor_id = @toVendorId
               WHERE vendor_id = @fromVendorId";
-        
-        private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
 
+        private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
+        
         public async Task SaveVendor(Vendor vendor)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
@@ -119,6 +125,19 @@ namespace MW.TinyMoney.Api.Vendors
             await connection.OpenAsync();
             
             return await connection.QuerySingleOrDefaultAsync<VendorDetails>(GetVendorDetailsQuery, new {vendorId = vendorId});
+        }
+
+        public async Task UpdateVendor(int vendorId, Vendor vendor)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            
+            await connection.ExecuteAsync(UpdateVendorQuery,
+                new {
+                    id = vendorId,
+                    name = vendor.Name,
+                    defaultSubcategoryId = vendor.DefaultSubcategoryId,
+                });
         }
 
         public async Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId)

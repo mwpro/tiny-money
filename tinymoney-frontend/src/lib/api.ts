@@ -3,6 +3,7 @@ import {format} from "date-fns";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
+import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 
 export type Transaction = {
     id: number;
@@ -287,6 +288,23 @@ export const addTag = async (newTag: TagInputs, auth: Auth0ContextInterface): Pr
     }
 };
 
+export const addVendor = async (newVendor: VendorInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newVendor),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas dodawania sprzedawcy');
+    }
+};
+
 export const editTransaction = async (transactionId: number, 
                                       newTransaction: NewTransaction, auth: Auth0ContextInterface): Promise<Transaction> => {
     const token = await  auth.getAccessTokenSilently();
@@ -322,6 +340,24 @@ export const editTag = async (tagId: number,
 
     if (!response.ok) {
         throw new Error('Błąd podczas zapisywania tagu');
+    }
+};
+
+export const editVendor = async (vendorId: number,
+                              newVendor: VendorInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newVendor),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania sprzedawcy');
     }
 };
 

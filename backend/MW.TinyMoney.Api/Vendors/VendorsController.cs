@@ -3,8 +3,10 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Tags;
 
 namespace MW.TinyMoney.Api.Vendors
 {
@@ -27,16 +29,49 @@ namespace MW.TinyMoney.Api.Vendors
             {
                 return Ok(await _vendorStore.GetDetailedVendors());
             }
-            else
+
+            return Ok((await _vendorStore.GetVendors()).Select(x => new VendorDto()
             {
-                return Ok((await _vendorStore.GetVendors()).Select(x => new VendorDto()
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    DefaultSubcategoryId = x.DefaultSubcategoryId
-                }));
-            }
+                Id = x.Id,
+                Name = x.Name,
+                DefaultSubcategoryId = x.DefaultSubcategoryId
+            }));
         }
+        
+        [HttpPost("")]
+        [ProducesResponseType((int)HttpStatusCode.Created)]
+        public async Task<IActionResult> AddVendor([FromBody] VendorDto newVendor)
+        {
+            if (!newVendor.DefaultSubcategoryId.HasValue)
+                ModelState.AddModelError(nameof(newVendor.DefaultSubcategoryId), "Default subcategory id must be specified");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
+            await _vendorStore.SaveVendor(new Vendor()
+            {
+                Name = newVendor.Name,
+                DefaultSubcategoryId = newVendor.DefaultSubcategoryId.Value
+            });
+            
+            return StatusCode(StatusCodes.Status201Created);
+        }
+        
+        [HttpPut("{vendorId}")]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        public async Task<IActionResult> UpdateTag([FromRoute] int vendorId, [FromBody] VendorDto vendorData)
+        {
+            if (!vendorData.DefaultSubcategoryId.HasValue)
+                ModelState.AddModelError(nameof(vendorData.DefaultSubcategoryId), "Default subcategory id must be specified");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            await _vendorStore.UpdateVendor(vendorId, new Vendor()
+            {
+                Name = vendorData.Name,
+                DefaultSubcategoryId = vendorData.DefaultSubcategoryId.Value
+            });
+            return StatusCode(StatusCodes.Status202Accepted);
+        }
+
         [HttpDelete("{vendorId}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
