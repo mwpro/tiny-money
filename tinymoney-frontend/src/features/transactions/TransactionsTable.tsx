@@ -108,14 +108,17 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                 {transactions.summary.expensesCount > 0 && <TableRow>
                     <TableCell className="text-right" colSpan={5}>Razem - wydatki ({transactions.summary.expensesCount})</TableCell>
                     <TableCell className="text-right"><Curr input={transactions.summary.expensesTotal} colored isPositive={false} /></TableCell>
+                    <TableCell />
                 </TableRow>}
                 {transactions.summary.incomesCount > 0 && <TableRow>
                     <TableCell className="text-right" colSpan={5}>Razem - przychody ({transactions.summary.incomesCount})</TableCell>
                     <TableCell className="text-right"><Curr input={transactions.summary.incomesTotal} colored /></TableCell>
+                    <TableCell />
                 </TableRow>}
                 {transactions.summary.expensesCount > 0 && transactions.summary.incomesCount > 0 && <TableRow>
                     <TableCell className="text-right" colSpan={5}>Bilans ({transactions.summary.expensesCount + transactions.summary.incomesCount})</TableCell>
                     <TableCell className="text-right"><Curr input={transactions.summary.balance} colored /></TableCell>
+                    <TableCell />
                 </TableRow>}
             </TableFooter>
         </Table>

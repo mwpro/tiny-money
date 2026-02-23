@@ -11,6 +11,8 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {SummaryReportPage} from "@/features/reports/summary-report/SummaryReportPage.tsx";
 import {TopListReportPage} from "@/features/reports/toplist-report/TopListReportPage.tsx";
 import {SankeyReportPage} from "@/features/reports/SankeyReportPage.tsx";
+import {TagsPage} from "@/features/tags/TagsPage.tsx";
+import {VendorsPage} from "@/features/vendors/VendorsPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -64,6 +66,8 @@ function App() {
                     <Route path="reports/top-list" element={<TopListReportPage />} />
                     <Route path="reports/sankey" element={<SankeyReportPage />} />
                     <Route path="budgets" element={<BudgetsPage />} />
+                    <Route path="tags" element={<TagsPage />} />
+                    <Route path="vendors" element={<VendorsPage />} />
 
                 </Route>
             </Routes>

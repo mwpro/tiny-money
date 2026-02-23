@@ -2,6 +2,8 @@ import {type Auth0ContextInterface} from "@auth0/auth0-react";
 import {format} from "date-fns";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
+import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
+import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 
 export type Transaction = {
     id: number;
@@ -269,6 +271,40 @@ export const addTransaction = async (newTransaction: NewTransaction, auth: Auth0
     return response.json();
 };
 
+export const addTag = async (newTag: TagInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTag),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas dodawania tagu');
+    }
+};
+
+export const addVendor = async (newVendor: VendorInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newVendor),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas dodawania sprzedawcy');
+    }
+};
+
 export const editTransaction = async (transactionId: number, 
                                       newTransaction: NewTransaction, auth: Auth0ContextInterface): Promise<Transaction> => {
     const token = await  auth.getAccessTokenSilently();
@@ -289,6 +325,42 @@ export const editTransaction = async (transactionId: number,
     return response.json();
 };
 
+export const editTag = async (tagId: number,
+                              newTag: TagInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags/${tagId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newTag),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania tagu');
+    }
+};
+
+export const editVendor = async (vendorId: number,
+                              newVendor: VendorInputs, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newVendor),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas zapisywania sprzedawcy');
+    }
+};
+
 export const removeTransaction = async (transactionId: number, auth: Auth0ContextInterface): Promise<void> => {
     const token = await  auth.getAccessTokenSilently();
     
@@ -304,10 +376,54 @@ export const removeTransaction = async (transactionId: number, auth: Auth0Contex
     }
 };
 
+export const removeTag = async (tagId: number, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/tags/${tagId}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas usuwania tagu');
+    }
+};
+
+export const removeVendor = async (vendorId: number, vendorIdToMerge: number | undefined, auth: Auth0ContextInterface): Promise<void> => {
+    const token = await  auth.getAccessTokenSilently();
+    
+    const response = await fetch(`${API_URL}/vendors/${vendorId}`, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mergeToVendorId: vendorIdToMerge
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Błąd podczas usuwania sprzedawcy');
+    }
+};
+
 export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
+export type VendorDetails = { 
+    id: number; 
+    name: string, 
+    defaultSubcategoryId: number,
+    subcategoryName: string,
+    categoryName: string,
+    isIncomeCategory: boolean,
+    numberOfTransactions: number,
+    lastTransactionDate: string | undefined
+};
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
-export type Tag = { id: number; name: string };
+export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 
 export const getVendors = async (auth: Auth0ContextInterface): Promise<Vendor[]> => {
@@ -340,6 +456,17 @@ export const getTags = async (auth: Auth0ContextInterface): Promise<Tag[]> => {
         }
     });
     if (!res.ok) throw new Error('Błąd pobierania tagów');
+    return res.json();
+};
+
+export const getVendorsDetails = async (auth: Auth0ContextInterface): Promise<VendorDetails[]> => {
+    const token = await auth.getAccessTokenSilently();
+    const res = await fetch(`${API_URL}/vendors?detailed=true`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
     return res.json();
 };
 

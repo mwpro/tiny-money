@@ -32,7 +32,7 @@ import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
-import {dateFormat} from "@/lib/utils.ts";
+import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -60,8 +60,10 @@ export function TransactionsPage() {
     } : undefined);
     const [tagFilter, setTagFilter] = useState<Tag | undefined>(() => searchParams.get("tagId") ? {
         id: Number(searchParams.get("tagId")),
-        name: ""
+        name: "",
+        numberOfTransactions: 0
     } : undefined);
+    const [dateRangeDescription, setDateRangeDescription] = useState<string>("")
     
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 500
@@ -134,6 +136,7 @@ export function TransactionsPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <title>{prepareTitleText(`Transakcje - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
                 <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
@@ -144,7 +147,7 @@ export function TransactionsPage() {
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
-                }} presets={transactionsListPresets} monthYearMode={false} />
+                }} onRangeDescriptionChange={description => setDateRangeDescription(description)} presets={transactionsListPresets} monthYearMode={false} />
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant={"outline"} onClick={() => {

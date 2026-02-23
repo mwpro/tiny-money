@@ -11,7 +11,7 @@ import {
     subMonths
 } from "date-fns";
 import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
-import {dateFormat} from "@/lib/utils.ts";
+import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
 import {ResponsiveContainer, Sankey} from "recharts";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
 import {
@@ -123,6 +123,7 @@ const CustomLink = (props: {
 export function SankeyReportPage() {
     const auth = useAuth0();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
     const [sankeyChartData, setSankeyChartData] = useState<SankeyChart[]>([]);
 
     const handlePeriodChange = (dateFrom: Date | undefined, dateTo: Date | undefined) => {
@@ -158,6 +159,7 @@ export function SankeyReportPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <title>{prepareTitleText(`Sankey - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Raport - Sankey chart</h1>
             </div>
@@ -165,7 +167,8 @@ export function SankeyReportPage() {
             <div className="flex flex-row gap-3 mb-6">
                 <h2 className="text-xl font-bold">Filtry</h2>
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
-                                 onChange={handlePeriodChange} presets={reportPresets} monthYearMode={true} />
+                                 onChange={handlePeriodChange} onRangeDescriptionChange={setDateRangeDescription}
+                                 presets={reportPresets} monthYearMode={true} />
             </div>
 
             {(reportQuery.isLoading) &&

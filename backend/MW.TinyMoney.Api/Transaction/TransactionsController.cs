@@ -90,7 +90,7 @@ namespace MW.TinyMoney.Api.Transaction
                     Name = updatedTransaction.Vendor.Name,
                     DefaultSubcategoryId = updatedTransaction.SubcategoryId
                 };
-                _vendorStore.SaveVendor(vendor);
+                await _vendorStore.SaveVendor(vendor);
                 updatedTransaction.Vendor.Id = vendor.Id;
                 updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
                 response.NewVendor = updatedTransaction.Vendor;
@@ -102,7 +102,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     Name = newTag.Name,
                 };
-                _tagStore.SaveTag(tag);
+                await _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
                 response.NewTags.Add(newTag);
@@ -125,7 +125,7 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         [HttpPost("")]
-        public IActionResult AddTransaction([FromBody] AddTransactionDto addTransactionDto)
+        public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
         {
             // TODO validation, should be a single transaction scope
             var response = new AddTransactionResponse();
@@ -136,7 +136,7 @@ namespace MW.TinyMoney.Api.Transaction
                     Name = addTransactionDto.Vendor.Name,
                     DefaultSubcategoryId = addTransactionDto.SubcategoryId
                 };
-                _vendorStore.SaveVendor(vendor);
+                await _vendorStore.SaveVendor(vendor);
                 addTransactionDto.Vendor.Id = vendor.Id;
                 addTransactionDto.Vendor.DefaultSubcategoryId = addTransactionDto.SubcategoryId;
                 response.NewVendor = addTransactionDto.Vendor;
@@ -148,7 +148,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     Name = newTag.Name,
                 };
-                _tagStore.SaveTag(tag);
+                await _tagStore.SaveTag(tag);
                 newTag.Id = tag.Id;
 
                 response.NewTags.Add(newTag);

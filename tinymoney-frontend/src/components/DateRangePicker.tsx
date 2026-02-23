@@ -16,24 +16,27 @@ import {
     isSameDay, startOfDay,
     parse
 } from 'date-fns';
-import {dateFormat} from "@/lib/utils.ts";
+import { pl } from 'date-fns/locale/pl'
+import {dateFormat, monthYearFormat, monthYearNameFormat} from "@/lib/utils.ts";
 
 interface DateRangePickerProps {
     dateFrom: Date | undefined,
     dateTo: Date | undefined,
     onChange: (dateFrom: Date | undefined, dateTo: Date | undefined) => void,
+    onRangeDescriptionChange: (rangeDescription: string) => void,
     presets: DateRangePreset[],
     monthYearMode: boolean
 }
 
 interface DateRangePreset {
-    name: string,
+    name: string | ((now: Date) => string),
     preset: (now: Date) => { dateFrom: Date | undefined, dateTo: Date | undefined }
 }
 
 export const transactionsListPresets: DateRangePreset[] = [
     {
-        name: "Bieżący miesiąc", preset: (now) => {
+        name: (now) => format(startOfMonth(now), monthYearNameFormat, { locale: pl }),
+        preset: (now) => {
             return ({
                 dateFrom: startOfMonth(now),
                 dateTo: endOfMonth(now)
@@ -41,7 +44,17 @@ export const transactionsListPresets: DateRangePreset[] = [
         }
     },
     {
-        name: "Poprzedni miesiąc", preset: (now) => {
+        name: (now) => format(startOfMonth(subMonths(now, 1)), monthYearNameFormat, { locale: pl }), 
+        preset: (now) => {
+            return ({
+                dateFrom: startOfMonth(subMonths(now, 1)),
+                dateTo: endOfMonth(subMonths(now, 1))
+            });
+        }
+    },
+    {
+        name: (now) => format(startOfMonth(subMonths(now, 2)), monthYearNameFormat, { locale: pl }), 
+        preset: (now) => {
             return ({
                 dateFrom: startOfMonth(subMonths(now, 1)),
                 dateTo: endOfMonth(subMonths(now, 1))
@@ -129,7 +142,7 @@ function normalizeRangeToStartOfDay(dateFrom: Date | undefined, dateTo: Date | u
     return [dateFrom ? startOfDay(dateFrom) : undefined, dateTo ? startOfDay(dateTo) : undefined ];
 }
 
-export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearMode}: DateRangePickerProps) {
+export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearMode, onRangeDescriptionChange}: DateRangePickerProps) {
     const defaultPreset = presets.find(p => {
         const pValue = p.preset(new Date())
         return pValue.dateFrom == dateFrom && pValue.dateTo == dateTo 
@@ -142,6 +155,16 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
     const [dateToInternal, setDateToInternal] = useState<Date | undefined>(usedPresetInternal?.preset(new Date()).dateTo)
     const [monthFrom, setMonthFrom] = useState<Date>(new Date);
     const [monthTo, setMonthTo] = useState<Date>(new Date);
+
+    useEffect(() => {
+        if (usedPreset){
+            onRangeDescriptionChange((typeof usedPreset.name === "string" ? usedPreset.name : usedPreset.name(new Date())));
+        } else if (dateFrom && dateTo) {
+            onRangeDescriptionChange(`${format(dateFrom, monthYearMode ? monthYearFormat : dateFormat)} - ${format(dateTo, monthYearMode ? monthYearFormat : dateFormat)}`);
+        } else {
+            onRangeDescriptionChange("");
+        }
+    }, [usedPreset]);
 
     useEffect(() => {
         setDateFromInternal(dateFrom);
@@ -160,7 +183,8 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
         setUsedPresetInternal(preset);
         setUsedPreset(preset);
         setOpen(false);
-        onChange(dateFrom, dateTo);
+        onChange(dateFrom, dateTo
+        );
     };
 
     const applyCustomRange = () => {
@@ -195,19 +219,19 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
                         id="date"
                         className="justify-between font-normal"
                     >
-                        {usedPreset ? usedPreset.name : "Własny zakres"}
-                        {dateFrom && dateTo && ` - ${format(dateFrom, dateFormat)} - ${format(dateTo, dateFormat)}`}
+                        {usedPreset ? (typeof usedPreset.name === "string" ? usedPreset.name : usedPreset.name(new Date())) : "Własny zakres"}
+                        {dateFrom && dateTo && ` - ${format(dateFrom, monthYearMode ? monthYearFormat : dateFormat)} - ${format(dateTo, monthYearMode ? monthYearFormat : dateFormat)}`}
                         <ChevronDownIcon/>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-lg overflow-hidden" align="start">
                     <div className="flex flex-wrap gap-2">
-                        {presets.map(p => <Badge
-                                key={p.name}
+                        {presets.map((p, i) => <Badge
+                                key={i}
                                 variant="secondary"
                                 className={`${usedPresetInternal && usedPresetInternal.name === p.name ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"} cursor-pointer`}
                                 onClick={() => usePreset(p)}>
-                                {p.name}
+                                {typeof p.name === "string" ? p.name : p.name(new Date())}
                             </Badge>
                         )}
                         <Badge

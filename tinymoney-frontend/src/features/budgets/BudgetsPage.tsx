@@ -5,13 +5,14 @@ import {useQuery} from "@tanstack/react-query";
 import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {Link, useSearchParams} from "react-router-dom";
-import {endOfMonth, parse, startOfMonth} from "date-fns";
+import {endOfMonth, format, parse, startOfMonth} from "date-fns";
 import {CopyBudgetDialog} from "@/features/budgets/CopyBudgetDialog.tsx";
 import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Curr} from "@/components/Curr.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {ButtonGroup, ButtonGroupSeparator} from "@/components/ui/button-group.tsx";
-import {getTransactionsUrl} from "@/lib/utils.ts";
+import {getTransactionsUrl, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
+import {pl} from "date-fns/locale/pl";
 
 export function BudgetsPage() {
     const auth = useAuth0();
@@ -49,6 +50,7 @@ export function BudgetsPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
+            <title>{prepareTitleText(`Budżet - ${format(budgetPeriodReferenceDate, monthYearNameFormat, { locale: pl })}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Budżet</h1>
             </div>
