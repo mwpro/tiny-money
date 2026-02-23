@@ -53,7 +53,7 @@ export function TagsPage() {
                     })} />
                     <Label htmlFor="airplane-mode">Tagi bez transakcji</Label>
                 </div>
-                <Input placeholder="Wyszukaj..." value={listSettings.nameFilter} onChange={v => setSearchParams(prev => {
+                <Input placeholder="Wyszukaj..." className="bg-background" value={listSettings.nameFilter} onChange={v => setSearchParams(prev => {
                     (v.target.value?.length > 0) ? prev.set("name", v.target.value) : prev.delete("name");
                     return prev;
                 })} />
