@@ -64,7 +64,7 @@ namespace MW.TinyMoney.Api.Vendors
             FROM vendor v
             LEFT JOIN transaction t ON v.id = t.vendor_id
             LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
-            LEFT JOIN m1061_tinymoney_dev.category c on s.parent_category_id = c.id
+            LEFT JOIN category c on s.parent_category_id = c.id
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
             ORDER BY v.name";
         
@@ -78,7 +78,7 @@ namespace MW.TinyMoney.Api.Vendors
             FROM vendor v
             LEFT JOIN transaction t ON v.id = t.vendor_id
             LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
-            LEFT JOIN m1061_tinymoney_dev.category c on s.parent_category_id = c.id
+            LEFT JOIN category c on s.parent_category_id = c.id
             WHERE v.id = @vendorId
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
             ORDER BY v.name";

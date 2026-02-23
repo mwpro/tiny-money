@@ -106,8 +106,11 @@ namespace MW.TinyMoney.Api.Tags
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
+            await using var dbTransaction = await connection.BeginTransactionAsync();
             
-            await connection.ExecuteAsync(DeleteTagQuery, new { id });
+            await connection.ExecuteAsync(DeleteTagQuery, new { id }, dbTransaction);
+            
+            await dbTransaction.CommitAsync();
         }
     }
 }

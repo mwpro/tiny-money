@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
-using MW.TinyMoney.Api.Tags;
 
 namespace MW.TinyMoney.Api.Vendors
 {
@@ -58,7 +57,7 @@ namespace MW.TinyMoney.Api.Vendors
         
         [HttpPut("{vendorId}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        public async Task<IActionResult> UpdateTag([FromRoute] int vendorId, [FromBody] VendorDto vendorData)
+        public async Task<IActionResult> UpdateVendor([FromRoute] int vendorId, [FromBody] VendorDto vendorData)
         {
             if (!vendorData.DefaultSubcategoryId.HasValue)
                 ModelState.AddModelError(nameof(vendorData.DefaultSubcategoryId), "Default subcategory id must be specified");
