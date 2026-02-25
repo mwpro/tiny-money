@@ -32,7 +32,7 @@ app.UseAuthentication();
 app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
-app.UseSpaDefaultPageRewrite();
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
