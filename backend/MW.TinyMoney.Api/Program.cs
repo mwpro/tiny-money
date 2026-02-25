@@ -20,6 +20,8 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
+app.MapStaticAssets().ShortCircuit();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -30,6 +32,7 @@ app.UseAuthentication();
 app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
