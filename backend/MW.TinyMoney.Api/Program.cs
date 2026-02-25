@@ -20,6 +20,9 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
