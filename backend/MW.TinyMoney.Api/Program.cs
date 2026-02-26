@@ -15,6 +15,7 @@ using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("/run/secrets/appsettings.secret.json", optional: true);
 
 ConfigureServices(builder.Services, builder.Configuration);
 
@@ -31,6 +32,7 @@ app.UseSwaggerUI(c =>
 app.UseAuthentication();
 app.UseCors();
 app.UseAuthorization();
+app.UseFrontendConfigurationEndpoint();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 

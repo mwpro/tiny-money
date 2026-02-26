@@ -4,6 +4,7 @@ import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
 import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
+import type {Configuration} from "@/main.tsx";
 
 export type Transaction = {
     id: number;
@@ -187,8 +188,8 @@ export interface TopEntry {
     amount: number,
     numberOfTransactions: number
 }
-
-const API_URL = import.meta.env.VITE_API_URL;
+const config: Configuration = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json(); // todo use single config
+const API_URL = config.apiUrl;
 
 export const getTransactions = async (auth: Auth0ContextInterface, params: TransactionQueryParams): Promise<TransactionsResponse> => {
     const token = await auth.getAccessTokenSilently();
