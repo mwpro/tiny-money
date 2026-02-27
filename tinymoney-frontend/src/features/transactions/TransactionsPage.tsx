@@ -2,7 +2,6 @@ import {useQuery} from "@tanstack/react-query"
 import {
     getCategories,
     getTags,
-    getTransactions,
     getVendors,
     type Tag,
     type Transaction,
@@ -33,6 +32,7 @@ import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -49,6 +49,7 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 
 export function TransactionsPage() {
     const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
@@ -68,9 +69,10 @@ export function TransactionsPage() {
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 500
     });
+    
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => getTransactions(auth, debouncedQueryParams),        
+        queryFn: () => apiClient.getTransactions(debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter
             || debouncedQueryParams.tagIdFilter)
