@@ -1,15 +1,10 @@
 import {useQuery} from "@tanstack/react-query"
 import {
-    getCategories,
-    getTags,
-    getTransactions,
-    getVendors,
     type Tag,
     type Transaction,
     type TransactionQueryParams,
     type Vendor
-} from "@/lib/api"
-import {useAuth0} from "@auth0/auth0-react";
+} from "@/api/ApiTypes.ts"
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
@@ -33,6 +28,7 @@ import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -48,7 +44,7 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 }
 
 export function TransactionsPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
@@ -68,9 +64,10 @@ export function TransactionsPage() {
     const [debouncedQueryParams] = useDebouncedValue(queryParams, {
         wait: 500
     });
+    
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => getTransactions(auth, debouncedQueryParams),        
+        queryFn: () => apiClient.getTransactions(debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter
             || debouncedQueryParams.tagIdFilter)
@@ -100,23 +97,23 @@ export function TransactionsPage() {
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => getVendors(auth),
+        queryFn: () => apiClient.getVendors(),
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         ...dictionariesConfig
     })
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => getTags(auth),
+        queryFn: () => apiClient.getTags(),
         ...dictionariesConfig
     })
 

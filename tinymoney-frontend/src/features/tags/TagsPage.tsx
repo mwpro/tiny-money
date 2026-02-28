@@ -1,6 +1,5 @@
 import {useQuery} from "@tanstack/react-query"
-import {getTags, type Tag} from "@/lib/api"
-import {useAuth0} from "@auth0/auth0-react";
+import {type Tag} from "@/api/ApiTypes.ts"
 import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
@@ -13,6 +12,7 @@ import {TagEditorDialog} from "@/features/tags/TagEditorDialog.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Switch} from "@/components/ui/switch.tsx";
 import {Input} from "@/components/ui/input.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface ListSettings {
     withoutTransactionsFilter: boolean,
@@ -20,7 +20,7 @@ interface ListSettings {
 }
 
 export function TagsPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [tagToRemove, setTagToRemove] = useState<Tag | undefined>(undefined)
     const [tagToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
     const [searchParams, setSearchParams] = useSearchParams();
@@ -35,7 +35,7 @@ export function TagsPage() {
     
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => getTags(auth)
+        queryFn: () => apiClient.getTags()
     })
     return (
         <div className="max-w-7xl mx-auto">

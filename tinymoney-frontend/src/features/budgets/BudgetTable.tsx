@@ -1,5 +1,5 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {Budget, SubcategoryBudgetSuggestions} from "@/lib/api.ts";
+import type {Budget, SubcategoryBudgetSuggestions} from "@/api/ApiTypes.ts";
 import {Fragment} from "react";
 import {BudgetAmountInput} from "@/features/budgets/BudgetAmountInput.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";

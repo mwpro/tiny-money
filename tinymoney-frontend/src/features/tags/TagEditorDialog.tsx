@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
 import {useForm} from "react-hook-form"
 import {useMutation, useQueryClient} from "@tanstack/react-query"
-import {addTag, editTag, type Tag} from "@/lib/api"
+import {type Tag} from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
@@ -9,8 +9,8 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {Input} from "@/components/ui/input.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface TagEditorDialogProps {
     tagToEdit?: Tag,
@@ -24,7 +24,7 @@ export interface TagInputs {
 export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const auth = useAuth0();
+    const apiClient = useApiClient();
 
     useEffect(() => {
         setIsOpen(!!tagToEdit);
@@ -52,8 +52,8 @@ export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
 
     const mutation = useMutation({
         mutationFn: (newTag: TagInputs) => tagToEdit
-            ? editTag(tagToEdit.id, newTag, auth)
-            : addTag(newTag, auth),
+            ? apiClient.editTag(tagToEdit.id, newTag)
+            : apiClient.addTag(newTag),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['tags']})

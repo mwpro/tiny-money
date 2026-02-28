@@ -1,7 +1,5 @@
-import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getTopListReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     endOfMonth,
@@ -14,6 +12,7 @@ import {DateRangePicker, reportPresets} from "@/components/DateRangePicker.tsx";
 import {TopTransactionsTable} from "@/features/reports/toplist-report/TopTransactionsTable.tsx";
 import {TopEntriesTable} from "@/features/reports/toplist-report/TopEntriesTable.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -21,7 +20,7 @@ export interface ReportSettings {
 }
 
 export function TopListReportPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("")
 
@@ -48,7 +47,7 @@ export function TopListReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => getTopListReport(auth, reportSettings.dateFrom, reportSettings.dateTo)
+        queryFn: () => apiClient.getTopListReport(reportSettings.dateFrom, reportSettings.dateTo)
     })
 
     return (

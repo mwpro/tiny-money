@@ -7,11 +7,11 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {removeVendor, type VendorDetails} from "@/lib/api.ts";
+import {type VendorDetails} from "@/api/ApiTypes.ts";
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
 import Autocomplete from "@/components/Autocomplete.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface VendorRemovalDialogProps {
     vendorToRemove?: VendorDetails,
@@ -19,13 +19,13 @@ interface VendorRemovalDialogProps {
 }
 
 export function VendorRemovalDialog({vendorToRemove, vendors}: VendorRemovalDialogProps) {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
     const [vendorToMerge, setVendorToMerge] = useState<{ id?: number; name: string }>()
 
     const deleteMutation = useMutation({
-        mutationFn: (vendorId: number) => removeVendor(vendorId, vendorToMerge?.id, auth),
+        mutationFn: (vendorId: number) => apiClient.removeVendor(vendorId, vendorToMerge?.id,),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors-details']})

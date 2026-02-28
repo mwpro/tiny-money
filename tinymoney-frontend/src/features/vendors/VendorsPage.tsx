@@ -1,7 +1,5 @@
 import {useQuery} from "@tanstack/react-query"
-import {getVendorsDetails, type VendorDetails} from "@/lib/api"
-import {useAuth0} from "@auth0/auth0-react";
- import {useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -14,6 +12,8 @@ import {format} from "date-fns";
 import {VendorRemovalDialog} from "@/features/vendors/VendorRemovalDialog.tsx";
 import {VendorEditorDialog} from "@/features/vendors/VendorEditorDialog.tsx";
 import {Input} from "@/components/ui/input.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import type {VendorDetails} from "@/api/ApiTypes.ts";
 
 interface ListSettings {
     withoutTransactionsFilter: boolean,
@@ -21,7 +21,7 @@ interface ListSettings {
 }
 
 export function VendorsPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [vendorToRemove, setVendorToRemove] = useState<VendorDetails | undefined>(undefined)
     const [vendorToEdit, setVendorToEdit] = useState<VendorDetails | undefined>(undefined)
     const [searchParams, setSearchParams] = useSearchParams();
@@ -36,7 +36,7 @@ export function VendorsPage() {
     
     const vendorsQuery = useQuery({
         queryKey: ['vendors-details'],
-        queryFn: () => getVendorsDetails(auth)
+        queryFn: () => apiClient.getVendorsDetails()
     })
     return (
         <div className="max-w-7xl mx-auto">

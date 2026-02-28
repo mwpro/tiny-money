@@ -1,7 +1,5 @@
-import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getSummaryReport} from "@/lib/api.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     differenceInCalendarMonths,
@@ -20,6 +18,7 @@ import {CategoryBreakdownPieChart} from "@/features/reports/summary-report/Categ
 import {CategoryBreakdownBarChart} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -28,7 +27,7 @@ export interface ReportSettings {
 }
 
 export function SummaryReportPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
 
@@ -63,7 +62,7 @@ export function SummaryReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => getSummaryReport(auth, reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
+        queryFn: () => apiClient.getSummaryReport(reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
     })
 
     return (

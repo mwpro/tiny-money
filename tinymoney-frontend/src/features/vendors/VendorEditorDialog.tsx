@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
 import {Controller, useForm} from "react-hook-form"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
-import {addVendor, editVendor, getCategories, type VendorDetails} from "@/lib/api"
+import {type VendorDetails} from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
@@ -9,7 +9,6 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription
 } from "@/components/ui/dialog"
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {Input} from "@/components/ui/input.tsx";
 import {
     Select,
@@ -20,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface VendorEditorDialogProps {
     vendorToEdit?: VendorDetails,
@@ -34,7 +34,7 @@ export interface VendorInputs {
 export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const auth = useAuth0();
+    const apiClient = useApiClient();
 
     useEffect(() => {
         setIsOpen(!!vendorToEdit);
@@ -65,20 +65,20 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         ...dictionariesConfig
     })
 
     const mutation = useMutation({
         mutationFn: (newVendor: VendorInputs) => vendorToEdit
-            ? editVendor(vendorToEdit.id, newVendor, auth)
-            : addVendor(newVendor, auth),
+            ? apiClient.editVendor(vendorToEdit.id, newVendor)
+            : apiClient.addVendor(newVendor),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})

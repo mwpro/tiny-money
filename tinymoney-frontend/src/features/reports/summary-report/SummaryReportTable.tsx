@@ -1,6 +1,6 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Curr} from "@/components/Curr.tsx";
-import type {SummaryReport} from "@/lib/api.ts";
+import type {SummaryReport} from "@/api/ApiTypes.ts";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 interface BudgetTableProps {

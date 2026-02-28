@@ -1,11 +1,11 @@
-import {saveBudget, type SubcategoryBudget} from "@/lib/api.ts";
+import {type SubcategoryBudget} from "@/api/ApiTypes.ts";
 import {useEffect, useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Field} from "@/components/ui/field.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface BudgetNotesInputProps {
     budget: SubcategoryBudget,
@@ -13,7 +13,7 @@ interface BudgetNotesInputProps {
 }
 
 export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const queryClient = useQueryClient()
     const [budgetNotes, setBudgetNotes] = useState(() => budget.notes);
 
@@ -22,7 +22,7 @@ export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) 
     }, [budget]);
 
     const saveBudgetMutation = useMutation({
-        mutationFn: (notes: string | undefined) => saveBudget(budgetPeriod, budget.subcategoryId, budget.amount, notes, auth),
+        mutationFn: (notes: string | undefined) => apiClient.saveBudget(budgetPeriod, budget.subcategoryId, budget.amount, notes),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet zapisany");

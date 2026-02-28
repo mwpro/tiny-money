@@ -1,5 +1,5 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
-import type {ReportCategory} from "@/lib/api.ts";
+import type {ReportCategory} from "@/api/ApiTypes.ts";
 import {Fragment, useState} from "react";
 import {Link} from "react-router-dom";
 import {endOfMonth, endOfYear, parse} from "date-fns";

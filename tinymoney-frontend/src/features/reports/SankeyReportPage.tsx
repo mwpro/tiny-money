@@ -1,7 +1,6 @@
-import {useAuth0} from "@auth0/auth0-react";
 import {Fragment, useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getSankeyReport, type SankeyChart} from "@/lib/api.ts";
+import {type SankeyChart} from "@/api/ApiTypes.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     endOfMonth,
@@ -21,6 +20,7 @@ import {
     BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb.tsx";
 import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export interface ReportSettings {
     dateFrom: Date | undefined,
@@ -121,7 +121,7 @@ const CustomLink = (props: {
 };
 
 export function SankeyReportPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
     const [sankeyChartData, setSankeyChartData] = useState<SankeyChart[]>([]);
@@ -149,7 +149,7 @@ export function SankeyReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['sankeyReport', reportSettings],
-        queryFn: () => getSankeyReport(auth, reportSettings.dateFrom, reportSettings.dateTo),
+        queryFn: () => apiClient.getSankeyReport(reportSettings.dateFrom, reportSettings.dateTo),
     })
     useEffect(() => {
         if (reportQuery.data?.root) {

@@ -7,22 +7,22 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {removeTag, type Tag} from "@/lib/api.ts";
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import type {Tag} from "@/api/ApiTypes.ts";
 
 interface TagRemovalDialogProps {
     tagToRemove?: Tag
 }
 
 export function TagRemovalDialog({tagToRemove}: TagRemovalDialogProps) {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
     
     const deleteMutation = useMutation({
-        mutationFn: (tagId: number) => removeTag(tagId, auth),
+        mutationFn: (tagId: number) => apiClient.removeTag(tagId),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['tags']})
