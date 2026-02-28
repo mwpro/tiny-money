@@ -1,8 +1,6 @@
-import {useAuth0} from "@auth0/auth0-react";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
 import {useEffect, useMemo} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {getBudget, getBudgetSuggestions} from "@/lib/api.ts";
 import {BudgetTable} from "@/features/budgets/BudgetTable.tsx";
 import {Link, useSearchParams} from "react-router-dom";
 import {endOfMonth, format, parse, startOfMonth} from "date-fns";
@@ -13,9 +11,10 @@ import {Button} from "@/components/ui/button.tsx";
 import {ButtonGroup, ButtonGroupSeparator} from "@/components/ui/button-group.tsx";
 import {getTransactionsUrl, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
 import {pl} from "date-fns/locale/pl";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export function BudgetsPage() {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     
     const handlePeriodChange = (newPeriod: MonthSelection) => {
@@ -40,12 +39,12 @@ export function BudgetsPage() {
 
     const budgetQuery = useQuery({
         queryKey: ['budget', budgetPeriod],
-        queryFn: () => getBudget(auth, budgetPeriod)
+        queryFn: () => apiClient.getBudget(budgetPeriod)
     })
 
     const budgetSuggestionsQuery = useQuery({
         queryKey: ['budgetSuggestions', budgetPeriod],
-        queryFn: () => getBudgetSuggestions(auth, budgetPeriod)
+        queryFn: () => apiClient.getBudgetSuggestions(budgetPeriod)
     })
 
     return (

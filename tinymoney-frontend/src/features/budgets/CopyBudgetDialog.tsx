@@ -7,20 +7,19 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {copyBudget} from "@/lib/api.ts";
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
 import {useEffect, useState} from "react";
 import {parse, subMonths} from "date-fns";
 import {Button} from "@/components/ui/button.tsx";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface CopyBudgetDialogProps {
     currentMonth: MonthSelection
 }
 
 export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const queryClient = useQueryClient()
 
     const [isOpen, setIsOpen] = useState(false)
@@ -41,7 +40,7 @@ export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
     }, [currentMonth]);
     
     const copyMutation = useMutation({
-        mutationFn: () => copyBudget(auth, fromPeriod, toPeriod),
+        mutationFn: () => apiClient.copyBudget(fromPeriod, toPeriod),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet skopiowany")

@@ -7,23 +7,23 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {getVendors, removeTransaction, type Transaction} from "@/lib/api.ts";
+import {type Transaction} from "@/lib/api.ts";
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {Curr} from "@/components/Curr.tsx";
 import {useEffect, useState} from "react";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface TransactionRemovalDialogProps {
     transactionToRemove?: Transaction
 }
 
 export function TransactionRemovalDialog({transactionToRemove}: TransactionRemovalDialogProps) {
-    const auth = useAuth0();
+    const apiClient = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
     
     const deleteMutation = useMutation({
-        mutationFn: (transactionId: number) => removeTransaction(transactionId, auth),
+        mutationFn: (transactionId: number) => apiClient.removeTransaction(transactionId),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             toast.success("Transakcja usunięta")
@@ -41,7 +41,7 @@ export function TransactionRemovalDialog({transactionToRemove}: TransactionRemov
     const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => getVendors(auth),
+        queryFn: () => apiClient.getVendors(),
         ...dictionariesConfig
     })
     

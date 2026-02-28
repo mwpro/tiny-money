@@ -4,11 +4,6 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
 import {
-    addTransaction,
-    editTransaction,
-    getCategories,
-    getTags,
-    getVendors,
     type NewTransaction,
     type Transaction
 } from "@/lib/api"
@@ -22,7 +17,6 @@ import {
     Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue
 } from "@/components/ui/select"
 import {toast} from "sonner";
-import {useAuth0} from "@auth0/auth0-react";
 import {TagsInput} from "@/components/TagsInput.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {transactionSchema} from "@/features/transactions/transactions-editor/TransactionSchema.ts";
@@ -36,6 +30,7 @@ import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGro
 import {Minus, Plus} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
+import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -47,8 +42,8 @@ interface TransactionEditorDialogProps {
 export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const auth = useAuth0();
-
+    const apiClient = useApiClient();
+    
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
     }, [transactionToEdit]);
@@ -61,26 +56,26 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => getVendors(auth),
+        queryFn: () => apiClient.getVendors(),
         ...dictionariesConfig
     })
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         ...dictionariesConfig
     })
 
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => getTags(auth),
+        queryFn: () => apiClient.getTags(),
         ...dictionariesConfig
     })
 
@@ -120,8 +115,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
     const mutation = useMutation({
         mutationFn: (newTransaction: NewTransaction) => transactionToEdit
-            ? editTransaction(transactionToEdit.id, newTransaction, auth)
-            : addTransaction(newTransaction, auth),
+            ? apiClient.editTransaction(transactionToEdit.id, newTransaction)
+            : apiClient.addTransaction(newTransaction),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})

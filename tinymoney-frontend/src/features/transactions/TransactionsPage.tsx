@@ -1,14 +1,10 @@
 import {useQuery} from "@tanstack/react-query"
 import {
-    getCategories,
-    getTags,
-    getVendors,
     type Tag,
     type Transaction,
     type TransactionQueryParams,
     type Vendor
 } from "@/lib/api"
-import {useAuth0} from "@auth0/auth0-react";
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
@@ -48,7 +44,6 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 }
 
 export function TransactionsPage() {
-    const auth = useAuth0();
     const apiClient = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
@@ -102,23 +97,23 @@ export function TransactionsPage() {
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => getVendors(auth),
+        queryFn: () => apiClient.getVendors(),
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         ...dictionariesConfig
     })
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => getCategories(auth),
+        queryFn: () => apiClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => getTags(auth),
+        queryFn: () => apiClient.getTags(),
         ...dictionariesConfig
     })
 
