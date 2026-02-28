@@ -76,6 +76,10 @@ Import staging area for bank statement parsing — transactions land in a buffer
 
 Changes are made via PRs to `master`.
 
+## Commit Style
+
+Do NOT add `Co-Authored-By: Claude` or any AI attribution lines to commits. The presence of `CLAUDE.md` in the repository is sufficient to indicate AI usage in the project.
+
 ## Key Conventions
 
 - **Frontend forms**: Use React Hook Form for form management
