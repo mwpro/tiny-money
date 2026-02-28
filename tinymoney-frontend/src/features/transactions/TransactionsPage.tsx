@@ -4,7 +4,7 @@ import {
     type Transaction,
     type TransactionQueryParams,
     type Vendor
-} from "@/lib/api"
+} from "@/api/ApiTypes.ts"
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";

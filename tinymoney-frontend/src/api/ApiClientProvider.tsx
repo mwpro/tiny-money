@@ -1,8 +1,8 @@
 import {useAuth0} from "@auth0/auth0-react";
 import React, {createContext} from "react";
 import {type Configuration} from "@/main.tsx";
-import type {ApiClient} from "@/api/ApiClient.tsx";
-import {ApiClientImpl} from "@/api/ApiClientImpl.tsx";
+import type {ApiClient} from "@/api/ApiClient.ts";
+import {ApiClientImpl} from "@/api/ApiClientImpl.ts";
 
 export interface ApiClientProviderProps{
     configuration: Configuration,

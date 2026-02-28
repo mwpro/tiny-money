@@ -7,7 +7,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {type VendorDetails} from "@/lib/api.ts";
+import {type VendorDetails} from "@/api/ApiTypes.ts";
 import {toast} from "sonner";
 import {useEffect, useState} from "react";
 import Autocomplete from "@/components/Autocomplete.tsx";

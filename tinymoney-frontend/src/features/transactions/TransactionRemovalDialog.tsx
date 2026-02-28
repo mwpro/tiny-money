@@ -7,7 +7,7 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {type Transaction} from "@/lib/api.ts";
+import {type Transaction} from "@/api/ApiTypes.ts";
 import {toast} from "sonner";
 import {Curr} from "@/components/Curr.tsx";
 import {useEffect, useState} from "react";

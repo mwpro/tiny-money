@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react"
 import {Controller, useForm} from "react-hook-form"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
-import {type VendorDetails} from "@/lib/api"
+import {type VendorDetails} from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"

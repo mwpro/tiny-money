@@ -7,10 +7,10 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {type Tag} from "@/lib/api.ts";
 import {toast} from "sonner";
 import {useEffect, useState} from "react";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import type {Tag} from "@/api/ApiTypes.ts";
 
 interface TagRemovalDialogProps {
     tagToRemove?: Tag

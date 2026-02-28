@@ -1,4 +1,4 @@
-import {type SubcategoryBudget, type SubcategoryBudgetSuggestions} from "@/lib/api.ts";
+import {type SubcategoryBudget, type SubcategoryBudgetSuggestions} from "@/api/ApiTypes.ts";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
 import {useEffect, useState} from "react";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";

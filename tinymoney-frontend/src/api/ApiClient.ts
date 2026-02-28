@@ -6,7 +6,7 @@ import type {
     TransactionQueryParams,
     TransactionsResponse,
     Vendor, VendorDetails
-} from "@/lib/api.ts";
+} from "@/api/ApiTypes.ts";
 import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
 import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 import type {MonthSelection} from "@/components/MonthPicker.tsx";

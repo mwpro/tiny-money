@@ -10,7 +10,7 @@ import type {Budget, BudgetSuggestionsResponse, Category,
     TransactionsResponse,
     Vendor,
     VendorDetails
-} from "@/lib/api.ts";
+} from "@/api/ApiTypes.ts";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import type {Configuration} from "@/main.tsx";

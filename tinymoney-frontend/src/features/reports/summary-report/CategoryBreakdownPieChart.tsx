@@ -9,7 +9,7 @@ import {
     ChartTooltipContent,
     type ChartConfig, ChartLegend,
 } from "@/components/ui/chart"
-import type {ReportCategory} from "@/lib/api.ts";
+import type {ReportCategory} from "@/api/ApiTypes.ts";
 import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 const chartConfig = {

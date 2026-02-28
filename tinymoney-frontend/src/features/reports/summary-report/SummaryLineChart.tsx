@@ -1,4 +1,4 @@
-import type {ReportPeriod} from "@/lib/api.ts";
+import type {ReportPeriod} from "@/api/ApiTypes.ts";
 import {CartesianGrid, Line, LineChart, XAxis, YAxis} from "recharts"
 import {
     Card,

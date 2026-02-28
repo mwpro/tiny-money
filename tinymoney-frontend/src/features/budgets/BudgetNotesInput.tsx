@@ -1,4 +1,4 @@
-import {type SubcategoryBudget} from "@/lib/api.ts";
+import {type SubcategoryBudget} from "@/api/ApiTypes.ts";
 import {useEffect, useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {toast} from "sonner";

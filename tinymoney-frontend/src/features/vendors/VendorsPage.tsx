@@ -1,6 +1,5 @@
 import {useQuery} from "@tanstack/react-query"
-import {type VendorDetails} from "@/lib/api"
- import {useMemo, useState} from "react";
+import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
@@ -14,6 +13,7 @@ import {VendorRemovalDialog} from "@/features/vendors/VendorRemovalDialog.tsx";
 import {VendorEditorDialog} from "@/features/vendors/VendorEditorDialog.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import type {VendorDetails} from "@/api/ApiTypes.ts";
 
 interface ListSettings {
     withoutTransactionsFilter: boolean,

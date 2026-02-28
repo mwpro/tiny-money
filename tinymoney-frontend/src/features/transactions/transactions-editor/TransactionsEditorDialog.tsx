@@ -6,7 +6,7 @@ import {z} from "zod"
 import {
     type NewTransaction,
     type Transaction
-} from "@/lib/api"
+} from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"

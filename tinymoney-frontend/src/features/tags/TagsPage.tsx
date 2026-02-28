@@ -1,5 +1,5 @@
 import {useQuery} from "@tanstack/react-query"
-import {type Tag} from "@/lib/api"
+import {type Tag} from "@/api/ApiTypes.ts"
 import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";

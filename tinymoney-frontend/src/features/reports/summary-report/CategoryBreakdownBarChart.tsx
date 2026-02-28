@@ -8,7 +8,7 @@ import {
     ChartTooltipContent,
     type ChartConfig, ChartLegend, 
 } from "@/components/ui/chart"
-import type {ReportCategory} from "@/lib/api.ts";
+import type {ReportCategory} from "@/api/ApiTypes.ts";
 import {Bar, BarChart, CartesianGrid, XAxis, YAxis} from "recharts";
 import {useState} from "react";
 

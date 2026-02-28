@@ -8,7 +8,7 @@ import {
     DropdownMenuGroup, DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu.tsx";
-import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/lib/api.ts";
+import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";

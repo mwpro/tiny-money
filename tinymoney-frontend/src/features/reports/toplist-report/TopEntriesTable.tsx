@@ -1,6 +1,6 @@
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {Curr} from "@/components/Curr.tsx";
-import type {TopEntry} from "@/lib/api.ts";
+import type {TopEntry} from "@/api/ApiTypes.ts";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Link} from "react-router-dom";
 import {ListIcon} from "lucide-react";

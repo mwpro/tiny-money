@@ -1,6 +1,6 @@
 import {Fragment, useEffect, useMemo, useState} from "react";
 import {useQuery} from "@tanstack/react-query";
-import {type SankeyChart} from "@/lib/api.ts";
+import {type SankeyChart} from "@/api/ApiTypes.ts";
 import {useSearchParams} from "react-router-dom";
 import {
     endOfMonth,
