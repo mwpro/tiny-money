@@ -11,7 +11,8 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 const importSchema = z.object({
-    fileType: z.enum(["ing", "pekao"] as const, { error: "Wybierz typ pliku" }),
+    fileType: z.string().refine(v => ["ing", "pekao"].includes(v), { error: "Wybierz typ pliku"}),
+            //.enum(["ing", "pekao"] as const, { error: "Wybierz typ pliku" }),
     file: z.instanceof(FileList).refine(f => f.length > 0, "Wybierz plik"),
 });
 
@@ -38,6 +39,10 @@ export function ImportBankStatementDialog() {
 
     const {control, handleSubmit, register, reset, watch, formState: {errors}} = useForm<ImportFormValues>({
         resolver: zodResolver(importSchema),
+        defaultValues: {
+            file: undefined,
+            fileType: ""
+        }
     });
 
     const fileType = watch("fileType");
@@ -47,7 +52,6 @@ export function ImportBankStatementDialog() {
             const file = data.file[0];
             const encoding = encodings[data.fileType] ?? "utf-8";
             const fileContent = await readFileAsText(file, encoding);
-            console.log([file, encoding, fileContent])
             return apiClient.importBankStatement(fileContent, data.fileType);
         },
         onSuccess: (result) => {

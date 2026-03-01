@@ -9,7 +9,7 @@ namespace MW.TinyMoney.Api.Import.Parsers;
 public class PekaoCsvBankStatementParser : IImportParser
 {
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
-    private static readonly Regex NotInterestingDataFilter = new("[a-zA-Z]", RegexOptions.None, TimeSpan.FromSeconds(5));
+    private static readonly Regex NotInterestingDataFilter = new("[a-zA-Z]", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     public bool CanHandle(string fileType) =>
         fileType.Equals("pekao", StringComparison.OrdinalIgnoreCase);
