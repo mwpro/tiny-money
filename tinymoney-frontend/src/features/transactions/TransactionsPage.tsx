@@ -147,12 +147,12 @@ export function TransactionsPage() {
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6">
-                <h2 className="text-xl font-bold">Filtry</h2>
-                <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
-                    setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
-                }} onRangeDescriptionChange={description => setDateRangeDescription(description)} presets={transactionsListPresets} monthYearMode={false} />
-                
+            <div className="flex flex-wrap gap-3 mb-6 items-center">
+                <div className="w-full md:w-auto">
+                    <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
+                        setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
+                    }} onRangeDescriptionChange={description => setDateRangeDescription(description)} presets={transactionsListPresets} monthYearMode={false} />
+                </div>
                 <ButtonGroup>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -212,7 +212,8 @@ export function TransactionsPage() {
                     setQueryParams(prevState => ({...prevState, amountToFilter: amount != 0 ? amount : undefined}));
                 }}
                 ></Input>
-                <Autocomplete className="bg-background"
+
+                <Autocomplete className="bg-background w-full md:w-auto md:flex-1"
                               fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
                                   o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={vendorFilter?.name} clearQueryAfterSelection={false}
@@ -231,7 +232,7 @@ export function TransactionsPage() {
                     subcategoryIdFilter: !value || value === "__NONE__" ? undefined : Number(value)
                 }))}
                         value={(queryParams.subcategoryIdFilter) ? queryParams.subcategoryIdFilter.toString() : "__NONE__"}>
-                    <SelectTrigger className={`bg-background ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
+                    <SelectTrigger className={`bg-background w-full md:w-auto md:flex-1 ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
                         <SelectValue>{ subcategoriesQuery.data && queryParams.subcategoryIdFilter ? subcategoriesQuery.data.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
@@ -241,13 +242,13 @@ export function TransactionsPage() {
                             .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
-                                {category.subcategories.map(subcategory => 
+                                {category.subcategories.map(subcategory =>
                                     (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                             </SelectGroup>
                         ))}
                     </SelectContent>
                 </Select>
-                <Autocomplete className="bg-background grow"
+                <Autocomplete className="bg-background w-full md:w-auto md:flex-1"
                               fetchSuggestions={async input => (tagsQuery.data || []).filter(o =>
                                   o.name.toLowerCase().includes(input.toLowerCase()))}
                               value={tagFilter?.name} clearQueryAfterSelection={false}

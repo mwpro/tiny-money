@@ -72,8 +72,7 @@ export function SummaryReportPage() {
                 <h1 className="text-2xl font-bold">Raport - podsumowanie</h1>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6">
-                <h2 className="text-xl font-bold">Filtry</h2>
+            <div className="flex flex-wrap gap-3 mb-6">
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
                                  onChange={handlePeriodChange} onRangeDescriptionChange={setDateRangeDescription}
                                  presets={reportPresets} monthYearMode={true} />
@@ -103,7 +102,7 @@ export function SummaryReportPage() {
                     
                     <div className="mb-6">
                         <h2 className="text-xl font-bold mb-3">Przychody</h2>
-                        <div className={"flex flex-row gap-4 mb-3"}>
+                        <div className="flex flex-col md:flex-row gap-4 mb-3">
                             <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                             <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => c.isIncome)} />
                         </div>
@@ -112,7 +111,7 @@ export function SummaryReportPage() {
                     
                     <div className="mb-6">
                         <h2 className="text-xl font-bold mb-3">Wydatki</h2>
-                        <div className={"flex flex-row gap-4 mb-3"}>
+                        <div className="flex flex-col md:flex-row gap-4 mb-3">
                             <CategoryBreakdownPieChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />
                             <CategoryBreakdownBarChart categories={reportQuery.data.categories.filter(c => !c.isIncome)} />                        
                         </div>

@@ -211,20 +211,19 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
     };
     
     return (
-        <div>
-            <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                     <Button
                         variant="outline"
                         id="date"
-                        className="justify-between font-normal"
+                        className="justify-between font-normal w-full md:w-auto"
                     >
                         {usedPreset ? (typeof usedPreset.name === "string" ? usedPreset.name : usedPreset.name(new Date())) : "Własny zakres"}
                         {dateFrom && dateTo && ` - ${format(dateFrom, monthYearMode ? monthYearFormat : dateFormat)} - ${format(dateTo, monthYearMode ? monthYearFormat : dateFormat)}`}
                         <ChevronDownIcon/>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-lg overflow-hidden" align="start">
+                <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] overflow-y-auto max-h-[80svh]" align="start">
                     <div className="flex flex-wrap gap-2">
                         {presets.map((p, i) => <Badge
                                 key={i}
@@ -244,7 +243,7 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
                         </Badge>
                     </div>
                     {!usedPresetInternal && <div>
-                        <div className="flex pt-5 gap-5">
+                        <div className="flex flex-col sm:flex-row pt-5 gap-5">
                             <Calendar
                                 className="p-0"
                                 mode="single"
@@ -285,7 +284,6 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
                     </div>
                     }
                 </PopoverContent>
-            </Popover>
-        </div>
+        </Popover>
     )
 }
