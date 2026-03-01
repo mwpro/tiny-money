@@ -19,5 +19,6 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public VendorDto Vendor { get; set; }
         public int SubcategoryId { get; set; }
         public IEnumerable<TagDto> Tags { get; set; }
+        public bool IsVerified { get; set; }
     }
 }

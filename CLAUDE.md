@@ -76,6 +76,12 @@ Import staging area for bank statement parsing — transactions land in a buffer
 
 Changes are made via PRs to `master`.
 
+After making code changes, always verify compilation before finishing:
+- **Backend**: `cd backend/MW.TinyMoney.Api && dotnet build`
+- **Frontend**: `cd tinymoney-frontend && npm run build`
+
+Fix any errors before considering the task done.
+
 ## Commit Style
 
 Do NOT add `Co-Authored-By: Claude` or any AI attribution lines to commits. The presence of `CLAUDE.md` in the repository is sufficient to indicate AI usage in the project.

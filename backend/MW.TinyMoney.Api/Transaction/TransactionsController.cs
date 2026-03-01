@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
@@ -28,24 +29,24 @@ namespace MW.TinyMoney.Api.Transaction
         [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
             [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId,
-            [FromQuery] int? tagId)
+            [FromQuery] int? tagId, [FromQuery] bool? isVerified)
         {
             if (month.HasValue) // legacy model
             {
-                var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1), 
-                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)), 
-                    null, null, null, null, null, null);
+                var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1),
+                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)),
+                    null, null, null, null, null, null, null);
                 return Ok(transactions);
             }
             else
             {
-                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue)
+                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
                 {
                     return BadRequest("Dates must be provided when no other filters were specified");
                 }
                 var transactions = await _transactionStore.GetTransactions(
                     dateFrom, dateTo, isExpense, amountFrom, amountTo,
-                    vendorId, subcategoryId, tagId);
+                    vendorId, subcategoryId, tagId, isVerified);
                 return Ok(new TransactionsResponse
                 {
                     Transactions = transactions,
@@ -108,6 +109,10 @@ namespace MW.TinyMoney.Api.Transaction
                 response.NewTags.Add(newTag);
             }
 
+            var autoVerify = !transaction.IsVerified
+                && transaction.VendorId == ImportPlaceholders.VendorId
+                && updatedTransaction.Vendor.Id.Value != ImportPlaceholders.VendorId;
+
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
             transaction.Description = updatedTransaction.Description;
@@ -116,7 +121,10 @@ namespace MW.TinyMoney.Api.Transaction
             transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
             transaction.TransactionDate = updatedTransaction.TransactionDate;
             transaction.VendorId = updatedTransaction.Vendor.Id.Value;
-            
+            transaction.IsVerified = autoVerify || updatedTransaction.IsVerified;
+            if (transaction.IsVerified)
+                transaction.IsPossibleDuplicate = false;
+
             await _transactionStore.UpdateTransaction(transaction);
 
             response.Transaction = transaction;
@@ -165,7 +173,9 @@ namespace MW.TinyMoney.Api.Transaction
                 SubcategoryId = addTransactionDto.SubcategoryId,
                 TagIds = addTransactionDto.Tags.Select(x => x.Id.Value).ToList(),
                 TransactionDate = addTransactionDto.TransactionDate,
-                VendorId = addTransactionDto.Vendor.Id.Value
+                VendorId = addTransactionDto.Vendor.Id.Value,
+                IsVerified = addTransactionDto.IsVerified,
+                IsPossibleDuplicate = false
             };
             _transactionStore.SaveTransaction(createdTransaction);
 

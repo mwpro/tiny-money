@@ -146,7 +146,7 @@ public class SankeyReport : ISankeyReport
             SELECT /* category level */
                 c.id AS 'id',
                 null AS 'parentId',
-                t.is_expense as `isExpense`, 
+                t.is_expense as `isExpense`,
                 c.name as `label`,
                 SUM(t.amount) AS `value`
             FROM transaction t
@@ -154,28 +154,31 @@ public class SankeyReport : ISankeyReport
                 JOIN category c ON c.id = s.parent_category_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND t.is_verified = 1
             GROUP BY t.is_expense, c.id, c.name;
             SELECT /* subcategory level */
                 s.id AS 'id',
                 s.parent_category_id AS 'parentId',
-                t.is_expense as `isExpense`, 
+                t.is_expense as `isExpense`,
                 s.name as `label`,
                 SUM(t.amount) AS `value`
             FROM transaction t
                 JOIN subcategory s ON s.id = t.subcategory_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND t.is_verified = 1
             GROUP BY t.is_expense, s.id, s.name, s.parent_category_id;
             SELECT /* vendor level */
                 v.id AS 'id',
                 t.subcategory_id AS 'parentId',
-                t.is_expense as `isExpense`, 
+                t.is_expense as `isExpense`,
                 v.name as `label`,
                 SUM(t.amount) AS `value`
             FROM transaction t
                 JOIN vendor v ON v.id = t.vendor_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND t.is_verified = 1
             GROUP BY t.is_expense, t.subcategory_id, v.id, v.name
             ORDER BY SUM(t.amount) DESC;
             ";

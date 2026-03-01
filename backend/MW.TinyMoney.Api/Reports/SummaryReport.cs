@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports;
@@ -34,12 +35,14 @@ public class SummaryReport : ISummaryReport
                     FROM transaction
                     WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND is_verified = 1
                 ),
                     all_combinations AS (
                          SELECT p.period_name, c.id AS catId, c.is_income as isIncome, c.name AS catName, s.id AS subId, s.name AS subName
                          FROM periods p
                                   CROSS JOIN category c
                                   JOIN subcategory s ON s.parent_category_id = c.id
+                         WHERE s.id != @importSubcategoryId
                      ),
                      monthly_sums AS (
                          SELECT
@@ -49,6 +52,7 @@ public class SummaryReport : ISummaryReport
                          FROM transaction
                          WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                            AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                           AND is_verified = 1
                          GROUP BY period_name, subcategory_id
                      )
                 SELECT
@@ -79,7 +83,8 @@ public class SummaryReport : ISummaryReport
         var queryResults = await connection.QueryAsync<SummaryReportQueryResult>(SummaryReportQuery,
             new
             {
-                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
+                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y",
+                importSubcategoryId = ImportPlaceholders.SubcategoryId
             });
 
         var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,

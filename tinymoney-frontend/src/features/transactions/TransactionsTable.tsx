@@ -62,13 +62,15 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                     </TableRow> }
                 {transactions.transactions.map((t) => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id}
+                        className={t.isPossibleDuplicate ? "border-l-4 border-l-red-500" : !t.isVerified ? "border-l-4 border-l-amber-400" : undefined}
+                        title={!t.isVerified && t.isPossibleDuplicate ? "Niezweryfikowana · Możliwy duplikat" : !t.isVerified ? "Niezweryfikowana" : t.isPossibleDuplicate ? "Możliwy duplikat" : undefined}>
                         <TableCell>
                             {format(new Date(t.transactionDate), dateFormat)}
                         </TableCell>
                         <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
                         <TableCell>{getVendorName(t.vendorId)}</TableCell>
-                        <TableCell className="font-medium">{t.description}</TableCell>
+                        <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
                         <TableCell>
                             <div className="flex gap-1 flex-wrap">
                                 {getTagNames(t.tagIds).map((tag) => (

@@ -1,6 +1,7 @@
 import type {
     Budget, BudgetSuggestionsResponse,
     Category,
+    ImportBankStatementResult,
     NewTransaction, SankeyReport, SummaryReport, Tag, TopListReport,
     Transaction,
     TransactionQueryParams,
@@ -38,4 +39,6 @@ export interface ApiClient {
     getSummaryReport(dateFrom: Date | undefined, dateTo: Date | undefined, splitByMonth: boolean): Promise<SummaryReport>;
     getTopListReport(dateFrom: Date | undefined, dateTo: Date | undefined): Promise<TopListReport>;
     getSankeyReport(dateFrom: Date | undefined, dateTo: Date | undefined): Promise<SankeyReport>;
+
+    importBankStatement(fileContent: string, fileType: string): Promise<ImportBankStatementResult>;
 }

@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
@@ -10,11 +11,13 @@ namespace MW.TinyMoney.Api.Transaction
     public interface ITransactionStore
     {
         void SaveTransaction(Transaction.ApiModels.Transaction transaction);
+        Task SaveTransactionsBatch(IReadOnlyList<Transaction.ApiModels.Transaction> transactions);
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
-            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId);
+            bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
+            bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -30,26 +33,28 @@ namespace MW.TinyMoney.Api.Transaction
         }
 
         private const string SaveTransactionQuery =
-            @"INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id)
-                VALUES(@amount, @createdBy, @createdDate, @description, @isExpense, @modifiedDate, @transactionDate, @subcategoryId, @vendorId);
+            @"INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id, is_verified, is_possible_duplicate)
+                VALUES(@amount, @createdBy, @createdDate, @description, @isExpense, @modifiedDate, @transactionDate, @subcategoryId, @vendorId, @isVerified, @isPossibleDuplicate);
                 SELECT LAST_INSERT_ID();";
-        
+
         private const string UpdateTransactionQuery =
             @"UPDATE transaction SET
-                amount = @amount, 
+                amount = @amount,
                 created_by = @createdBy,
-                created_date = @createdDate, 
-                description = @description, 
-                is_expense = @isExpense, 
-                modified_date = @modifiedDate, 
-                transaction_date = @transactionDate, 
-                subcategory_id = @subcategoryId, 
-                vendor_id = @vendorId
+                created_date = @createdDate,
+                description = @description,
+                is_expense = @isExpense,
+                modified_date = @modifiedDate,
+                transaction_date = @transactionDate,
+                subcategory_id = @subcategoryId,
+                vendor_id = @vendorId,
+                is_verified = @isVerified,
+                is_possible_duplicate = @isPossibleDuplicate
                 WHERE id = @id;";
 
         private const string DeleteTransactionTags =
             "DELETE FROM transaction_tag WHERE transaction_id = @transactionId;";
-        
+
         private const string SaveTransactionTags =
             @"INSERT INTO transaction_tag (transaction_id, tag_id)
                 VALUES(@transactionId, @tagId)";
@@ -65,7 +70,9 @@ namespace MW.TinyMoney.Api.Transaction
                 t.modified_date AS 'modifiedDate',
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
-                t.subcategory_id AS 'subcategoryId'
+                t.subcategory_id AS 'subcategoryId',
+                t.is_verified AS 'isVerified',
+                t.is_possible_duplicate AS 'isPossibleDuplicate'
                 # todo tags
             FROM transaction t
             WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
@@ -84,6 +91,8 @@ namespace MW.TinyMoney.Api.Transaction
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
                 t.subcategory_id AS 'subcategoryId',
+                t.is_verified AS 'isVerified',
+                t.is_possible_duplicate AS 'isPossibleDuplicate',
                 tt.tag_id AS 'tagId'
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
@@ -100,9 +109,11 @@ namespace MW.TinyMoney.Api.Transaction
                 t.modified_date AS 'modifiedDate',
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
-                t.subcategory_id AS 'subcategoryId'
+                t.subcategory_id AS 'subcategoryId',
+                t.is_verified AS 'isVerified',
+                t.is_possible_duplicate AS 'isPossibleDuplicate'
             FROM transaction t
-            WHERE 
+            WHERE
                 (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
                 AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
                 AND (@isExpense IS NULL OR t.is_expense = @isExpense)
@@ -111,17 +122,19 @@ namespace MW.TinyMoney.Api.Transaction
                 AND (@vendorId IS NULL OR t.vendor_id = @vendorId)
                 AND (@subcategoryId IS NULL OR t.subcategory_id = @subcategoryId)
                 AND (@tagId IS NULL OR EXISTS(SELECT 1 FROM transaction_tag tte WHERE tte.transaction_id = t.id AND tte.tag_id = @tagId))
+                AND (@isVerified IS NULL OR t.is_verified = @isVerified)
             ORDER BY t.transaction_date
             LIMIT @transactionsLimit";
 
         private const string DeleteTransactionQuery =
-            @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId; 
+            @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId;
               DELETE FROM transaction WHERE id = @transactionId;";
 
-        private const string GetTagsForTransactions = 
-            @"SELECT transaction_id AS transactionId, tag_id AS tagId 
-              FROM transaction_tag 
+        private const string GetTagsForTransactions =
+            @"SELECT transaction_id AS transactionId, tag_id AS tagId
+              FROM transaction_tag
               WHERE transaction_id in @transactionIds";
+
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
@@ -138,6 +151,38 @@ namespace MW.TinyMoney.Api.Transaction
                     dbTransaction.Commit();
                 }
             }
+        }
+
+        public async Task SaveTransactionsBatch(IReadOnlyList<Transaction.ApiModels.Transaction> transactions)
+        {
+            if (transactions.Count == 0) return;
+
+            var sql = new StringBuilder();
+            sql.Append("INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id, is_verified, is_possible_duplicate) VALUES ");
+
+            var parameters = new DynamicParameters();
+            for (var i = 0; i < transactions.Count; i++)
+            {
+                if (i > 0) sql.Append(", ");
+                sql.Append($"(@amount{i}, @createdBy{i}, @createdDate{i}, @description{i}, @isExpense{i}, @modifiedDate{i}, @transactionDate{i}, @subcategoryId{i}, @vendorId{i}, @isVerified{i}, @isPossibleDuplicate{i})");
+                var t = transactions[i];
+                parameters.Add($"amount{i}", t.Amount);
+                parameters.Add($"createdBy{i}", t.CreatedBy);
+                parameters.Add($"createdDate{i}", t.CreatedDate);
+                parameters.Add($"description{i}", t.Description);
+                parameters.Add($"isExpense{i}", t.IsExpense);
+                parameters.Add($"modifiedDate{i}", t.ModifiedDate);
+                parameters.Add($"transactionDate{i}", t.TransactionDate);
+                parameters.Add($"subcategoryId{i}", t.SubcategoryId);
+                parameters.Add($"vendorId{i}", t.VendorId);
+                parameters.Add($"isVerified{i}", t.IsVerified);
+                parameters.Add($"isPossibleDuplicate{i}", t.IsPossibleDuplicate);
+            }
+            sql.Append(";");
+
+            using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(sql.ToString(), parameters);
         }
 
         public async Task UpdateTransaction(ApiModels.Transaction transaction)
@@ -179,9 +224,9 @@ namespace MW.TinyMoney.Api.Transaction
 
                         if (tagId.HasValue)
                         {
-                            tagsIds.Add(tagId.Value);                            
+                            tagsIds.Add(tagId.Value);
                         }
-                        
+
                         return result;
                     }, new
                     {
@@ -205,9 +250,10 @@ namespace MW.TinyMoney.Api.Transaction
                 });
             }
         }
-        
+
         public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom,
-            DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId)
+            DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
+            bool? isVerified)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {
@@ -216,13 +262,14 @@ namespace MW.TinyMoney.Api.Transaction
                 var transactions = (await connection.QueryAsync<Transaction.ApiModels.Transaction>(
                     GetTransactionsQuery, new
                     {
-                        dateFrom, dateTo, 
+                        dateFrom, dateTo,
                         isExpense = isExpense,
                         amountFrom = amountFrom,
                         amountTo = amountTo,
                         vendorId = vendorId,
                         subcategoryId = subcategoryId,
                         tagId = tagId,
+                        isVerified = isVerified,
                         TransactionsLimit
                     })).ToList();
 
@@ -237,7 +284,7 @@ namespace MW.TinyMoney.Api.Transaction
                     transaction.TagIds = transactionsTags.Where(t => t.transactionId == transaction.Id)
                         .Select(t => t.tagId).ToList();
                 }
-                
+
                 return transactions;
             }
         }

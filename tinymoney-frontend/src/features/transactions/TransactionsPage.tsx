@@ -8,6 +8,7 @@ import {
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
+import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
@@ -24,11 +25,12 @@ import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-import {AlertCircleIcon, Diff, Minus, Plus} from "lucide-react";
+import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import {ButtonGroup} from "@/components/ui/button-group.tsx";
 
 function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchParams) : TransactionQueryParams {
     return {
@@ -40,6 +42,7 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
         subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
         vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined,
         tagIdFilter: searchParams.get("tagId") ? Number(searchParams.get("tagId")) : undefined,
+        isVerifiedFilter: searchParams.get("isVerified") != null ? searchParams.get("isVerified") == "true" : undefined,
     };
 }
 
@@ -68,13 +71,13 @@ export function TransactionsPage() {
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
         queryFn: () => apiClient.getTransactions(debouncedQueryParams),        
-        enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo) 
+        enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo)
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter
-            || debouncedQueryParams.tagIdFilter)
+            || debouncedQueryParams.tagIdFilter || debouncedQueryParams.isVerifiedFilter !== undefined)
     })
 
     useEffect(() => {
-            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter} = debouncedQueryParams;
+            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter, isVerifiedFilter} = debouncedQueryParams;
             setSearchParams((params) => {
                 dateFrom ? params.set("dateFrom", format(dateFrom, dateFormat)) : params.delete("dateFrom");
                 dateTo ? params.set("dateTo", format(dateTo, dateFormat)) : params.delete("dateTo");
@@ -84,6 +87,7 @@ export function TransactionsPage() {
                 vendorIdFilter ? params.set("vendorId", vendorIdFilter.toString()) : params.delete("vendorId");
                 subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
                 tagIdFilter ? params.set("tagId", tagIdFilter.toString()) : params.delete("tagId");
+                isVerifiedFilter != undefined ? params.set("isVerified", isVerifiedFilter.toString()) : params.delete("isVerified");
                 return params;
             })
         },
@@ -136,7 +140,10 @@ export function TransactionsPage() {
             <title>{prepareTitleText(`Transakcje - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
+                <div className="flex gap-2">
+                    <ImportBankStatementDialog />
+                    <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
+                </div>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
             </div>
 
@@ -145,29 +152,52 @@ export function TransactionsPage() {
                 <DateRangePicker dateFrom={queryParams.dateFrom} dateTo={queryParams.dateTo} onChange={(dateFrom, dateTo) => {
                     setQueryParams(prevState => ({...prevState, dateFrom, dateTo}));
                 }} onRangeDescriptionChange={description => setDateRangeDescription(description)} presets={transactionsListPresets} monthYearMode={false} />
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant={"outline"} onClick={() => {
-                            setQueryParams(prevState => ({...prevState,
-                                isExpenseFilter:
-                                    prevState.isExpenseFilter === undefined ? true
-                                        : (prevState.isExpenseFilter ? false : undefined)
+                
+                <ButtonGroup>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant={queryParams.isExpenseFilter !== undefined ? "default" : "outline"} onClick={() => {
+                                setQueryParams(prevState => ({...prevState,
+                                    isExpenseFilter:
+                                        prevState.isExpenseFilter === undefined ? true
+                                            : (prevState.isExpenseFilter ? false : undefined)
 
-                            }))
-                        }} >
-                            {queryParams.isExpenseFilter == undefined && (<Diff />)}
-                            {queryParams.isExpenseFilter == false && (<Plus className={"text-green-600"} />)}
-                            {queryParams.isExpenseFilter == true && (<Minus className={"text-red-600"} />)}
-                        </Button>                        
-                    </TooltipTrigger>
-                    <TooltipContent side={"bottom"}>
-                        <p>
-                            {queryParams.isExpenseFilter == undefined && ("Przychody i wydatki")}
-                            {queryParams.isExpenseFilter == false && ("Przychody")}
-                            {queryParams.isExpenseFilter == true && ("Wydatki")}
-                        </p>
-                    </TooltipContent>
-                </Tooltip>
+                                }))
+                            }} >
+                                {queryParams.isExpenseFilter == undefined && (<Diff />)}
+                                {queryParams.isExpenseFilter == false && (<Plus className={"text-green-600"} />)}
+                                {queryParams.isExpenseFilter == true && (<Minus className={"text-red-600"} />)}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side={"bottom"}>
+                            <p>
+                                {queryParams.isExpenseFilter == undefined && ("Przychody i wydatki")}
+                                {queryParams.isExpenseFilter == false && ("Przychody")}
+                                {queryParams.isExpenseFilter == true && ("Wydatki")}
+                            </p>
+                        </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant={queryParams.isVerifiedFilter === false ? "default" : "outline"}
+                                onClick={() => setQueryParams(prevState => ({
+                                    ...prevState,
+                                    isVerifiedFilter: prevState.isVerifiedFilter === false ? undefined : false
+                                }))}
+                            >
+                                <ShieldQuestionMark />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side={"bottom"}>
+                            <p>
+                                {queryParams.isVerifiedFilter == undefined && ("Zweryfikowane i niezweryfikowane")}
+                                {queryParams.isVerifiedFilter == false && ("Tylko niezweryfikowane")}
+                            </p>
+                        </TooltipContent>
+                    </Tooltip>
+                </ButtonGroup>
                 <Input type="number" placeholder="Kwota od" className="w-[120px] bg-background" value={queryParams.amountFromFilter?.toString() ?? ""} onChange={e => {
                     const amount = Number(e.target.value);
                     if (amount > 10_000_000 || amount < 0)

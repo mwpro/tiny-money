@@ -29,7 +29,7 @@ public class TopListReport : ITopListReport
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1 AND t.is_verified = 1
             ORDER BY amount DESC
             LIMIT @numberOfTopEntries;
             SELECT /* Incomes */
@@ -41,7 +41,7 @@ public class TopListReport : ITopListReport
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0 AND t.is_verified = 1
             ORDER BY amount DESC
             LIMIT @numberOfTopEntries;
             SELECT /* Expense vendors */
@@ -52,7 +52,7 @@ public class TopListReport : ITopListReport
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1 AND t.is_verified = 1
             GROUP BY v.id
             ORDER BY SUM(amount) DESC
             LIMIT @numberOfTopEntries;
@@ -64,7 +64,7 @@ public class TopListReport : ITopListReport
             FROM transaction t
                 JOIN vendor v ON t.vendor_id = v.id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 0 AND t.is_verified = 1
             GROUP BY v.id
             ORDER BY SUM(amount) DESC
             LIMIT @numberOfTopEntries;
@@ -77,7 +77,7 @@ public class TopListReport : ITopListReport
                 JOIN transaction_tag tt ON tt.transaction_id = t.id
                 JOIN tag tag ON tag.id = tt.tag_id
             WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
-                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1
+                      AND (@dateTo IS NULL OR transaction_date <= @dateTo) AND t.is_expense = 1 AND t.is_verified = 1
             GROUP BY tt.tag_id
             ORDER BY SUM(amount) DESC
             LIMIT @numberOfTopEntries;";
