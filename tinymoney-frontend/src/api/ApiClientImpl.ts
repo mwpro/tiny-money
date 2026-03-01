@@ -1,5 +1,6 @@
 import type {Auth0ContextInterface} from "@auth0/auth0-react";
 import type {Budget, BudgetSuggestionsResponse, Category,
+    ImportBankStatementResult,
     NewTransaction,
     SankeyReport,
     SummaryReport,
@@ -39,7 +40,8 @@ export class ApiClientImpl implements ApiClient {
             vendorIdFilter,
             amountToFilter,
             amountFromFilter,
-            tagIdFilter
+            tagIdFilter,
+            isVerifiedFilter
         } = params;
         const queryParams = new URLSearchParams();
         if (dateFrom) {
@@ -65,6 +67,9 @@ export class ApiClientImpl implements ApiClient {
         }
         if (tagIdFilter != undefined) {
             queryParams.append('tagId', tagIdFilter.toString());
+        }
+        if (isVerifiedFilter != undefined) {
+            queryParams.append('isVerified', isVerifiedFilter.toString());
         }
 
         const response = await fetch(`${this._configuration.apiUrl}/transactions?${queryParams}`, {
@@ -376,5 +381,24 @@ export class ApiClientImpl implements ApiClient {
         });
         if (!res.ok) throw new Error('Błąd pobierania raportu');
         return res.json();
+    }
+
+    async importBankStatement(fileContent: string, fileType: string): Promise<ImportBankStatementResult> {
+        const token = await this._auth.getAccessTokenSilently();
+
+        const response = await fetch(`${this._configuration.apiUrl}/transactions/import`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ fileContent, fileType }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Błąd podczas importu transakcji');
+        }
+
+        return response.json();
     }
 }

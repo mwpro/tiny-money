@@ -34,6 +34,7 @@ public class SummaryReport : ISummaryReport
                     FROM transaction
                     WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                       AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                      AND is_verified = 1
                 ),
                     all_combinations AS (
                          SELECT p.period_name, c.id AS catId, c.is_income as isIncome, c.name AS catName, s.id AS subId, s.name AS subName
@@ -49,6 +50,7 @@ public class SummaryReport : ISummaryReport
                          FROM transaction
                          WHERE (@dateFrom IS NULL OR transaction_date >= @dateFrom)
                            AND (@dateTo IS NULL OR transaction_date <= @dateTo)
+                           AND is_verified = 1
                          GROUP BY period_name, subcategory_id
                      )
                 SELECT

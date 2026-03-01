@@ -9,6 +9,8 @@ export type Transaction = {
     vendorId: number;
     subcategoryId: number;
     tagIds: number[];
+    isVerified: boolean;
+    isPossibleDuplicate: boolean;
 }
 
 export type TransactionsResponse = {
@@ -33,6 +35,7 @@ export interface TransactionQueryParams {
     amountFromFilter: number | undefined;
     amountToFilter: number | undefined,
     tagIdFilter: number | undefined,
+    isVerifiedFilter: boolean | undefined,
 }
 
 export interface BudgetSuggestionsResponse {
@@ -188,8 +191,14 @@ export type NewTransaction = {
     description?: string | undefined,
     vendor: VendorUpsert,
     subcategoryId: number;
-    tags: TagUpsert[]
+    tags: TagUpsert[];
+    isVerified: boolean;
 }
+
+export type ImportBankStatementResult = {
+    numberOfImportedTransactions: number;
+    numberOfPossibleDuplicates: number;
+};
 
 export type VendorUpsert = {
     id?: number | undefined,

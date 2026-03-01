@@ -8,7 +8,10 @@ using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Buffer;
 using MW.TinyMoney.Api.Buffer.Parsers;
 using MW.TinyMoney.Api.Categories;
+using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
+using ImportIngParser = MW.TinyMoney.Api.Import.Parsers.IngCsvBankStatementParser;
+using ImportPekaoParser = MW.TinyMoney.Api.Import.Parsers.PekaoCsvBankStatementParser;
 using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
@@ -20,6 +23,13 @@ builder.Configuration.AddJsonFile("/run/secrets/appsettings.secret.json", option
 ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
+
+// Resolve import placeholder IDs (Unknown vendor, Uncategorized subcategory)
+using (var scope = app.Services.CreateScope())
+{
+    var initializer = scope.ServiceProvider.GetRequiredService<ImportPlaceholdersInitializer>();
+    await initializer.InitializeAsync();
+}
 
 app.MapStaticAssets().ShortCircuit();
 
@@ -80,4 +90,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IBankStatementParser, GetinPdfBankStatementParser>();
     services.AddTransient<IBankStatementParser, PekaoCsvBankStatementParser>();
     services.AddTransient<IBankStatementParser, IngCsvBankStatementParser>();
+
+    // New import module
+    services.AddTransient<ImportIngParser>();
+    services.AddTransient<ImportPekaoParser>();
+    services.AddTransient<IImportService, ImportService>();
+    services.AddTransient<ImportPlaceholdersInitializer>();
 }

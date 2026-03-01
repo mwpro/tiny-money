@@ -8,6 +8,7 @@ import {
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
+import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
@@ -40,6 +41,7 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
         subcategoryIdFilter: searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined,
         vendorIdFilter: searchParams.get("vendorId") ? Number(searchParams.get("vendorId")) : undefined,
         tagIdFilter: searchParams.get("tagId") ? Number(searchParams.get("tagId")) : undefined,
+        isVerifiedFilter: searchParams.get("isVerified") != null ? searchParams.get("isVerified") == "true" : undefined,
     };
 }
 
@@ -74,7 +76,7 @@ export function TransactionsPage() {
     })
 
     useEffect(() => {
-            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter} = debouncedQueryParams;
+            const {dateFrom, dateTo, isExpenseFilter, vendorIdFilter, subcategoryIdFilter, amountFromFilter, amountToFilter, tagIdFilter, isVerifiedFilter} = debouncedQueryParams;
             setSearchParams((params) => {
                 dateFrom ? params.set("dateFrom", format(dateFrom, dateFormat)) : params.delete("dateFrom");
                 dateTo ? params.set("dateTo", format(dateTo, dateFormat)) : params.delete("dateTo");
@@ -84,6 +86,7 @@ export function TransactionsPage() {
                 vendorIdFilter ? params.set("vendorId", vendorIdFilter.toString()) : params.delete("vendorId");
                 subcategoryIdFilter ? params.set("subcategoryId", subcategoryIdFilter.toString()) : params.delete("subcategoryId");
                 tagIdFilter ? params.set("tagId", tagIdFilter.toString()) : params.delete("tagId");
+                isVerifiedFilter != undefined ? params.set("isVerified", isVerifiedFilter.toString()) : params.delete("isVerified");
                 return params;
             })
         },
@@ -136,7 +139,10 @@ export function TransactionsPage() {
             <title>{prepareTitleText(`Transakcje - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
-                <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
+                <div className="flex gap-2">
+                    <ImportBankStatementDialog />
+                    <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
+                </div>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
             </div>
 
@@ -231,6 +237,26 @@ export function TransactionsPage() {
                                       setQueryParams(prevState => ({...prevState, tagIdFilter: undefined}));
                                   }
                               }} allowCustomValues={false} placeholder="Tag" deletable />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant={queryParams.isVerifiedFilter === false ? "default" : "outline"}
+                            onClick={() => setQueryParams(prevState => ({
+                                ...prevState,
+                                isVerifiedFilter: prevState.isVerifiedFilter === false ? undefined : false
+                            }))}
+                        >
+                            Niezweryfikowane
+                            {transactionsQuery.data && (() => {
+                                const count = transactionsQuery.data.transactions.filter(t => !t.isVerified).length;
+                                return count > 0 ? ` (${count})` : null;
+                            })()}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side={"bottom"}>
+                        <p>Pokaż tylko niezweryfikowane transakcje</p>
+                    </TooltipContent>
+                </Tooltip>
             </div>
 
             {(!transactionsQuery.isEnabled && <Alert  className="mb-6" variant="destructive">

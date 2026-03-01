@@ -62,7 +62,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                     </TableRow> }
                 {transactions.transactions.map((t) => (
-                    <TableRow key={t.id}>
+                    <TableRow key={t.id} className={!t.isVerified ? "border-l-4 border-l-amber-400" : undefined}>
                         <TableCell>
                             {format(new Date(t.transactionDate), dateFormat)}
                         </TableCell>
@@ -71,6 +71,16 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         <TableCell className="font-medium">{t.description}</TableCell>
                         <TableCell>
                             <div className="flex gap-1 flex-wrap">
+                                {!t.isVerified && (
+                                    <Badge variant="outline" className="text-xs font-normal border-amber-400 text-amber-600">
+                                        Niezweryfikowana
+                                    </Badge>
+                                )}
+                                {t.isPossibleDuplicate && (
+                                    <Badge variant="outline" className="text-xs font-normal border-orange-500 text-orange-600">
+                                        Możliwy duplikat
+                                    </Badge>
+                                )}
                                 {getTagNames(t.tagIds).map((tag) => (
                                     <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
                                         {tag.name}

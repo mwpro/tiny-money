@@ -18,5 +18,7 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public int VendorId { get; set; }
         public int SubcategoryId { get; set; }
         public IList<int> TagIds { get; set; }
+        public bool IsVerified { get; set; }
+        public bool IsPossibleDuplicate { get; set; }
     }
 }

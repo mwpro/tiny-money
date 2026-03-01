@@ -27,10 +27,12 @@ import {
     type WithDescription
 } from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
-import {Minus, Plus} from "lucide-react";
+import {AlertTriangle, Minus, Plus} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -88,7 +90,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             transactionDate: format(new Date(), dateFormat),
             subcategoryId: 0,
             vendor: {id: undefined, name: ""},
-            tags: []
+            tags: [],
+            isVerified: true
         }
     })
 
@@ -100,6 +103,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             setValue("isExpense", transactionToEdit.isExpense);
             setValue("transactionDate", format(transactionToEdit.transactionDate, dateFormat));
             setValue("subcategoryId", transactionToEdit.subcategoryId);
+            setValue("isVerified", transactionToEdit.isVerified);
             const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
             if (selectedVendor) {
                 setValue("vendor", selectedVendor);
@@ -307,6 +311,30 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                                     }}/>
                             )}
                         />
+                    </div>
+
+                    {transactionToEdit?.isPossibleDuplicate && (
+                        <Alert variant="default" className="border-orange-400">
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            <AlertDescription className="text-orange-700">
+                                Ta transakcja może być duplikatem istniejącej transakcji.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                        <Controller
+                            control={control}
+                            name="isVerified"
+                            render={({field}) => (
+                                <Checkbox
+                                    id="isVerified"
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
+                            )}
+                        />
+                        <Label htmlFor="isVerified">Zweryfikowana</Label>
                     </div>
 
                     <DialogFooter>
