@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
-public class IngCsvBankStatementParser
+public class IngCsvBankStatementParser : IImportParser
 {
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
 
@@ -20,13 +20,13 @@ public class IngCsvBankStatementParser
         foreach (var line in lines)
         {
             var columns = line.Split(';')
-                .Select(x => x.Replace("\"", "")).ToList();
+                .Select(x => x.Replace("\"", "").Trim()).ToList();
 
             var date = columns[0];
-            var description =
-                $"{columns[2]}{Environment.NewLine}" +
-                $"{columns[3]}{Environment.NewLine}" +
-                $"{columns[6]}{Environment.NewLine}";
+            var descriptionParts = new[] { columns[2], columns[3], columns[6] }
+                .Select(p => p.Trim())
+                .Where(p => !string.IsNullOrWhiteSpace(p));
+            var description = string.Join(Environment.NewLine, descriptionParts);
             var amount = !string.IsNullOrWhiteSpace(columns[8]) ? columns[8] : columns[10];
 
             var parsedAmount = decimal.Parse(amount, PolishCulture);

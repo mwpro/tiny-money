@@ -11,46 +11,40 @@ namespace MW.TinyMoney.Api.Import;
 
 public class ImportService : IImportService
 {
-    private readonly IngCsvBankStatementParser _ingParser;
-    private readonly PekaoCsvBankStatementParser _pekaoParser;
+    private const int DuplicateDetectionWindowDays = 3;
+
+    private const string DuplicateCandidatesQuery = """
+        SELECT t.amount, t.is_expense AS isExpense, t.transaction_date AS transactionDate
+        FROM transaction t
+        WHERE t.transaction_date BETWEEN @minDate AND @maxDate
+        """;
+
+    private readonly IEnumerable<IImportParser> _parsers;
     private readonly Transaction.ITransactionStore _transactionStore;
     private readonly MySqlConnectionFactory _connectionFactory;
 
     public ImportService(
-        IngCsvBankStatementParser ingParser,
-        PekaoCsvBankStatementParser pekaoParser,
+        IEnumerable<IImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
         MySqlConnectionFactory connectionFactory)
     {
-        _ingParser = ingParser;
-        _pekaoParser = pekaoParser;
+        _parsers = parsers;
         _transactionStore = transactionStore;
         _connectionFactory = connectionFactory;
     }
 
     public async Task<ICommandResult<ImportResult>> ImportAsync(ImportRequest request)
     {
-        IReadOnlyList<RawTransaction> parsed;
-        if (_ingParser.CanHandle(request.FileType))
-        {
-            parsed = _ingParser.Parse(request.FileContent);
-        }
-        else if (_pekaoParser.CanHandle(request.FileType))
-        {
-            parsed = _pekaoParser.Parse(request.FileContent);
-        }
-        else
-        {
+        var parser = _parsers.FirstOrDefault(p => p.CanHandle(request.FileType));
+        if (parser == null)
             return new InvalidInputResult<ImportResult>($"Unknown file type: {request.FileType}");
-        }
 
+        var parsed = parser.Parse(request.FileContent);
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
-        var duplicateFlags = await DetectDuplicates(parsed);
-
         var now = DateTime.UtcNow;
-        var transactions = parsed.Select((raw, i) => new Transaction.ApiModels.Transaction
+        var transactions = parsed.Select(raw => new Transaction.ApiModels.Transaction
         {
             Amount = raw.Amount,
             IsExpense = raw.IsExpense,
@@ -59,46 +53,38 @@ public class ImportService : IImportService
             VendorId = ImportPlaceholders.VendorId,
             SubcategoryId = ImportPlaceholders.SubcategoryId,
             IsVerified = false,
-            IsPossibleDuplicate = duplicateFlags[i],
+            IsPossibleDuplicate = false,
             CreatedDate = now,
             CreatedBy = "Import",
             ModifiedDate = now,
             TagIds = new List<int>()
         }).ToList();
 
+        await DetectDuplicates(transactions);
         await _transactionStore.SaveTransactionsBatch(transactions);
 
         return new CommandSuccess<ImportResult>(new ImportResult(
             NumberOfImportedTransactions: transactions.Count,
-            NumberOfPossibleDuplicates: duplicateFlags.Count(f => f)));
+            NumberOfPossibleDuplicates: transactions.Count(t => t.IsPossibleDuplicate)));
     }
 
-    private async Task<bool[]> DetectDuplicates(IReadOnlyList<RawTransaction> parsed)
+    private async Task DetectDuplicates(IReadOnlyList<Transaction.ApiModels.Transaction> transactions)
     {
-        var minDate = parsed.Min(r => r.TransactionDate).AddDays(-3);
-        var maxDate = parsed.Max(r => r.TransactionDate).AddDays(3);
-
-        const string query = @"
-            SELECT t.amount, t.is_expense AS isExpense, t.transaction_date AS transactionDate
-            FROM transaction t
-            WHERE t.is_verified = 1
-              AND t.transaction_date BETWEEN @minDate AND @maxDate";
+        var minDate = transactions.Min(t => t.TransactionDate).AddDays(-DuplicateDetectionWindowDays);
+        var maxDate = transactions.Max(t => t.TransactionDate).AddDays(DuplicateDetectionWindowDays);
 
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync();
 
         var candidates = (await connection.QueryAsync<(decimal amount, bool isExpense, DateTime transactionDate)>(
-            query, new { minDate, maxDate })).ToList();
+            DuplicateCandidatesQuery, new { minDate, maxDate })).ToList();
 
-        var flags = new bool[parsed.Count];
-        for (int i = 0; i < parsed.Count; i++)
+        foreach (var transaction in transactions)
         {
-            var row = parsed[i];
-            flags[i] = candidates.Any(c =>
-                c.amount == row.Amount &&
-                c.isExpense == row.IsExpense &&
-                Math.Abs((c.transactionDate - row.TransactionDate).TotalDays) <= 3);
+            transaction.IsPossibleDuplicate = candidates.Any(c =>
+                c.amount == transaction.Amount &&
+                c.isExpense == transaction.IsExpense &&
+                Math.Abs((c.transactionDate - transaction.TransactionDate).TotalDays) <= DuplicateDetectionWindowDays);
         }
-        return flags;
     }
 }

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
-using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Transaction
@@ -18,7 +17,7 @@ namespace MW.TinyMoney.Api.Transaction
         IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
-            bool? isVerified = null);
+            bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
     }
 
@@ -136,8 +135,6 @@ namespace MW.TinyMoney.Api.Transaction
               FROM transaction_tag
               WHERE transaction_id in @transactionIds";
 
-        private const string GetCurrentTransactionForUpdateQuery =
-            @"SELECT vendor_id AS vendorId, is_verified AS isVerified FROM transaction WHERE id = @id";
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
         {
@@ -164,7 +161,7 @@ namespace MW.TinyMoney.Api.Transaction
             sql.Append("INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id, is_verified, is_possible_duplicate) VALUES ");
 
             var parameters = new DynamicParameters();
-            for (int i = 0; i < transactions.Count; i++)
+            for (var i = 0; i < transactions.Count; i++)
             {
                 if (i > 0) sql.Append(", ");
                 sql.Append($"(@amount{i}, @createdBy{i}, @createdDate{i}, @description{i}, @isExpense{i}, @modifiedDate{i}, @transactionDate{i}, @subcategoryId{i}, @vendorId{i}, @isVerified{i}, @isPossibleDuplicate{i})");
@@ -195,24 +192,6 @@ namespace MW.TinyMoney.Api.Transaction
                 connection.Open();
                 await using (var dbTransaction = await connection.BeginTransactionAsync())
                 {
-                    // Load current state for auto-verify logic
-                    var current = await connection.QuerySingleOrDefaultAsync<(int vendorId, bool isVerified)>(
-                        GetCurrentTransactionForUpdateQuery, new { id = transaction.Id }, dbTransaction);
-
-                    // Auto-verify: if currently unverified with placeholder vendor and new vendor is real
-                    if (!current.isVerified
-                        && current.vendorId == ImportPlaceholders.VendorId
-                        && transaction.VendorId != ImportPlaceholders.VendorId)
-                    {
-                        transaction.IsVerified = true;
-                    }
-
-                    // Clear possible duplicate flag when verifying
-                    if (transaction.IsVerified)
-                    {
-                        transaction.IsPossibleDuplicate = false;
-                    }
-
                     await connection.ExecuteAsync(UpdateTransactionQuery, transaction, dbTransaction);
 
                     await connection.ExecuteAsync(DeleteTransactionTags, new {transactionId = transaction.Id}, dbTransaction);
@@ -274,7 +253,7 @@ namespace MW.TinyMoney.Api.Transaction
 
         public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom,
             DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
-            bool? isVerified = null)
+            bool? isVerified)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
             {

@@ -47,6 +47,7 @@ export function ImportBankStatementDialog() {
             const file = data.file[0];
             const encoding = encodings[data.fileType] ?? "utf-8";
             const fileContent = await readFileAsText(file, encoding);
+            console.log([file, encoding, fileContent])
             return apiClient.importBankStatement(fileContent, data.fileType);
         },
         onSuccess: (result) => {

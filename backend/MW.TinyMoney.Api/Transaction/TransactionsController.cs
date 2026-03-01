@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
@@ -34,12 +35,12 @@ namespace MW.TinyMoney.Api.Transaction
             {
                 var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1),
                     new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)),
-                    null, null, null, null, null, null);
+                    null, null, null, null, null, null, null);
                 return Ok(transactions);
             }
             else
             {
-                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue)
+                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
                 {
                     return BadRequest("Dates must be provided when no other filters were specified");
                 }
@@ -108,6 +109,10 @@ namespace MW.TinyMoney.Api.Transaction
                 response.NewTags.Add(newTag);
             }
 
+            var autoVerify = !transaction.IsVerified
+                && transaction.VendorId == ImportPlaceholders.VendorId
+                && updatedTransaction.Vendor.Id.Value != ImportPlaceholders.VendorId;
+
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
             transaction.Description = updatedTransaction.Description;
@@ -116,7 +121,9 @@ namespace MW.TinyMoney.Api.Transaction
             transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
             transaction.TransactionDate = updatedTransaction.TransactionDate;
             transaction.VendorId = updatedTransaction.Vendor.Id.Value;
-            transaction.IsVerified = updatedTransaction.IsVerified;
+            transaction.IsVerified = autoVerify || updatedTransaction.IsVerified;
+            if (transaction.IsVerified)
+                transaction.IsPossibleDuplicate = false;
 
             await _transactionStore.UpdateTransaction(transaction);
 

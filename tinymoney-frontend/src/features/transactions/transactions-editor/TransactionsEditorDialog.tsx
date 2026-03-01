@@ -160,6 +160,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
 
+                    {transactionToEdit?.isPossibleDuplicate && (
+                        <Alert variant="default" className="border-orange-400">
+                            <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            <AlertDescription className="text-orange-700">
+                                Ta transakcja może być duplikatem istniejącej transakcji.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
                     <div className="grid gap-2">
                         <Label>Data</Label>
                         <Controller control={control} name={"transactionDate"} render={({field}) => (
@@ -312,15 +321,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                             )}
                         />
                     </div>
-
-                    {transactionToEdit?.isPossibleDuplicate && (
-                        <Alert variant="default" className="border-orange-400">
-                            <AlertTriangle className="h-4 w-4 text-orange-500" />
-                            <AlertDescription className="text-orange-700">
-                                Ta transakcja może być duplikatem istniejącej transakcji.
-                            </AlertDescription>
-                        </Alert>
-                    )}
 
                     <div className="flex items-center gap-2">
                         <Controller

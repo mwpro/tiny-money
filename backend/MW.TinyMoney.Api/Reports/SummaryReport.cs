@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports;
@@ -41,6 +42,7 @@ public class SummaryReport : ISummaryReport
                          FROM periods p
                                   CROSS JOIN category c
                                   JOIN subcategory s ON s.parent_category_id = c.id
+                         WHERE s.id != @importSubcategoryId
                      ),
                      monthly_sums AS (
                          SELECT
@@ -81,7 +83,8 @@ public class SummaryReport : ISummaryReport
         var queryResults = await connection.QueryAsync<SummaryReportQueryResult>(SummaryReportQuery,
             new
             {
-                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y"
+                dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y",
+                importSubcategoryId = ImportPlaceholders.SubcategoryId
             });
 
         var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,

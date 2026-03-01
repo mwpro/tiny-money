@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
-public class PekaoCsvBankStatementParser
+public class PekaoCsvBankStatementParser : IImportParser
 {
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
     private static readonly Regex NotInterestingDataFilter = new("[a-zA-Z]", RegexOptions.None, TimeSpan.FromSeconds(5));
@@ -26,10 +26,15 @@ public class PekaoCsvBankStatementParser
             var columns = line.Split(';');
 
             var date = columns[0];
-            var description =
-                $"{columns[10]}{Environment.NewLine}{columns[2]}{Environment.NewLine}" +
-                (NotInterestingDataFilter.IsMatch(columns[3]) ? $"{columns[3]}{Environment.NewLine}" : string.Empty) +
-                (NotInterestingDataFilter.IsMatch(columns[6]) ? columns[6] : string.Empty);
+            var descriptionParts = new[]
+                {
+                    columns[10].Trim(),
+                    columns[2].Trim(),
+                    NotInterestingDataFilter.IsMatch(columns[3]) ? columns[3].Trim() : null,
+                    NotInterestingDataFilter.IsMatch(columns[6]) ? columns[6].Trim() : null
+                }
+                .Where(p => !string.IsNullOrWhiteSpace(p));
+            var description = string.Join(Environment.NewLine, descriptionParts);
             var amount = columns[7];
 
             var parsedAmount = decimal.Parse(amount, PolishCulture);
