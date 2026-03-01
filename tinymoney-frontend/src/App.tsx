@@ -68,7 +68,9 @@ function App() {
                     <Route path="budgets" element={<BudgetsPage />} />
                     <Route path="tags" element={<TagsPage />} />
                     <Route path="vendors" element={<VendorsPage />} />
-
+                    
+                    {/*fallback*/}
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Route>
             </Routes>
         </BrowserRouter>

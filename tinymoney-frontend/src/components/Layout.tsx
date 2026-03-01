@@ -40,10 +40,6 @@ export function Layout() {
                             <Button variant={isActive("/budgets") ? "secondary" : "ghost"} asChild>
                                 <Link to="/budgets">Budżet</Link>
                             </Button>
-                            <Button variant="ghost" asChild>
-                                <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/buffer"
-                                      target="_blank">Import</Link>
-                            </Button>
                             <ButtonGroup>
                                 <Button variant={isActive("/reports") ? "secondary" : "ghost"}>Raporty</Button>
                                 <DropdownMenu>
@@ -64,10 +60,6 @@ export function Layout() {
                                             
                                             <DropdownMenuItem asChild>
                                                 <Link to="/reports/sankey">Sankey</Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild>
-                                                <Link to="https://tinymoneystorageprod.z6.web.core.windows.net/reports"
-                                                      target="_blank">Stare raporty</Link>
                                             </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                     </DropdownMenuContent>
