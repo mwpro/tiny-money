@@ -54,7 +54,7 @@ export function BudgetsPage() {
                 <h1 className="text-2xl font-bold">Budżet</h1>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6 justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:justify-between sm:items-center">
                 <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
                 <ButtonGroup>
                     <CopyBudgetDialog currentMonth={budgetPeriod} />

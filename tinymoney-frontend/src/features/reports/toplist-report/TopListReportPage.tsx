@@ -57,8 +57,7 @@ export function TopListReportPage() {
                 <h1 className="text-2xl font-bold">Raport - Top lista</h1>
             </div>
 
-            <div className="flex flex-row gap-3 mb-6">
-                <h2 className="text-xl font-bold">Filtry</h2>
+            <div className="flex flex-wrap gap-3 mb-6">
                 <DateRangePicker dateFrom={reportSettings.dateFrom} dateTo={reportSettings.dateTo}
                                  onChange={handlePeriodChange} onRangeDescriptionChange={setDateRangeDescription}
                                  presets={reportPresets} monthYearMode={true} />
@@ -71,7 +70,7 @@ export function TopListReportPage() {
             {reportQuery.data &&
                 <>
                     <div className="mb-6">
-                        <div className={"flex flex-row gap-4 mb-3"}>
+                        <div className="flex flex-col md:flex-row gap-4 mb-3">
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold mb-3">Wydatki</h2>
                                 <TopTransactionsTable transactions={reportQuery.data.expenses} incomes={false} />                                
@@ -83,7 +82,7 @@ export function TopListReportPage() {
                         </div>
                     </div>
                     <div className="mb-6">
-                        <div className={"flex flex-row gap-4 mb-3"}>
+                        <div className="flex flex-col md:flex-row gap-4 mb-3">
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold mb-3">Sprzedawcy</h2>
                                 <TopEntriesTable entries={reportQuery.data.expenseVendors} incomes={false} reportSettings={reportSettings} transactionsUrlConfigurer={t => ({vendorId: t.id})} />                                

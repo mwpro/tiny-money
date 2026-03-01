@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@utility pb-mobile-nav {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
