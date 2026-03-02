@@ -19,7 +19,7 @@ interface CopyBudgetDialogProps {
 }
 
 export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
-    const apiClient = useApiClient();
+    const { budgetClient } = useApiClient();
     const queryClient = useQueryClient()
 
     const [isOpen, setIsOpen] = useState(false)
@@ -40,7 +40,7 @@ export function CopyBudgetDialog({currentMonth}: CopyBudgetDialogProps) {
     }, [currentMonth]);
     
     const copyMutation = useMutation({
-        mutationFn: () => apiClient.copyBudget(fromPeriod, toPeriod),
+        mutationFn: () => budgetClient.copyBudget(fromPeriod, toPeriod),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet skopiowany")

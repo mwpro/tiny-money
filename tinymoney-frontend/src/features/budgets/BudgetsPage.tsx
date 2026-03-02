@@ -14,7 +14,7 @@ import {pl} from "date-fns/locale/pl";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export function BudgetsPage() {
-    const apiClient = useApiClient();
+    const { budgetClient } = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     
     const handlePeriodChange = (newPeriod: MonthSelection) => {
@@ -39,12 +39,12 @@ export function BudgetsPage() {
 
     const budgetQuery = useQuery({
         queryKey: ['budget', budgetPeriod],
-        queryFn: () => apiClient.getBudget(budgetPeriod)
+        queryFn: () => budgetClient.getBudget(budgetPeriod)
     })
 
     const budgetSuggestionsQuery = useQuery({
         queryKey: ['budgetSuggestions', budgetPeriod],
-        queryFn: () => apiClient.getBudgetSuggestions(budgetPeriod)
+        queryFn: () => budgetClient.getBudgetSuggestions(budgetPeriod)
     })
 
     return (

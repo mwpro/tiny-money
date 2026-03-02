@@ -1,13 +1,31 @@
 name: CI Build
 on:
   push:
-    branches: [ master ]
-    paths:
-      - tinymoney-frontend
+    branches: [master]
+  pull_request:
+    branches: [master]
+
 jobs:
-  build:
+  frontend-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm install && npm run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tinymoney-frontend/package-lock.json
+      - run: npm ci
         working-directory: tinymoney-frontend
+      - run: npm run build
+        working-directory: tinymoney-frontend
+
+  backend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet build
+        working-directory: backend/MW.TinyMoney.Api

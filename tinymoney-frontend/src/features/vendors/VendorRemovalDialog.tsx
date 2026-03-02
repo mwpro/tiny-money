@@ -19,13 +19,13 @@ interface VendorRemovalDialogProps {
 }
 
 export function VendorRemovalDialog({vendorToRemove, vendors}: VendorRemovalDialogProps) {
-    const apiClient = useApiClient();
+    const { vendorsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
     const [vendorToMerge, setVendorToMerge] = useState<{ id?: number; name: string }>()
 
     const deleteMutation = useMutation({
-        mutationFn: (vendorId: number) => apiClient.removeVendor(vendorId, vendorToMerge?.id,),
+        mutationFn: (vendorId: number) => vendorsClient.removeVendor(vendorId, vendorToMerge?.id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors-details']})

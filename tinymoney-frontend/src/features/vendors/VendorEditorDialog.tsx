@@ -34,7 +34,7 @@ export interface VendorInputs {
 export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const apiClient = useApiClient();
+    const { vendorsClient, categoriesClient } = useApiClient();
 
     useEffect(() => {
         setIsOpen(!!vendorToEdit);
@@ -65,20 +65,20 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         ...dictionariesConfig
     })
 
     const mutation = useMutation({
         mutationFn: (newVendor: VendorInputs) => vendorToEdit
-            ? apiClient.editVendor(vendorToEdit.id, newVendor)
-            : apiClient.addVendor(newVendor),
+            ? vendorsClient.editVendor(vendorToEdit.id, newVendor)
+            : vendorsClient.addVendor(newVendor),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})

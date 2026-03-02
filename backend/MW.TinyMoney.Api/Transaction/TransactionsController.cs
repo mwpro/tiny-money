@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -195,7 +196,17 @@ namespace MW.TinyMoney.Api.Transaction
             }
 
             await _transactionStore.DeleteTransaction(transaction);
-            
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTransactions([FromBody] IReadOnlyList<int> transactionIds)
+        {
+            if (transactionIds == null || transactionIds.Count == 0)
+                return BadRequest();
+
+            await _transactionStore.DeleteTransactions(transactionIds);
             return Ok();
         }
     }

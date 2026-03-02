@@ -18,12 +18,12 @@ interface TransactionRemovalDialogProps {
 }
 
 export function TransactionRemovalDialog({transactionToRemove}: TransactionRemovalDialogProps) {
-    const apiClient = useApiClient();
+    const { transactionsClient, vendorsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
-    
+
     const deleteMutation = useMutation({
-        mutationFn: (transactionId: number) => apiClient.removeTransaction(transactionId),
+        mutationFn: (transactionId: number) => transactionsClient.removeTransaction(transactionId),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             toast.success("Transakcja usunięta")
@@ -41,7 +41,7 @@ export function TransactionRemovalDialog({transactionToRemove}: TransactionRemov
     const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => apiClient.getVendors(),
+        queryFn: () => vendorsClient.getVendors(),
         ...dictionariesConfig
     })
     

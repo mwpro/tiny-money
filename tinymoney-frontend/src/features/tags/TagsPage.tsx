@@ -20,7 +20,7 @@ interface ListSettings {
 }
 
 export function TagsPage() {
-    const apiClient = useApiClient();
+    const { tagsClient } = useApiClient();
     const [tagToRemove, setTagToRemove] = useState<Tag | undefined>(undefined)
     const [tagToEdit, setTagToEdit] = useState<Tag | undefined>(undefined)
     const [searchParams, setSearchParams] = useSearchParams();
@@ -35,7 +35,7 @@ export function TagsPage() {
     
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => apiClient.getTags()
+        queryFn: () => tagsClient.getTags()
     })
     return (
         <div className="max-w-7xl mx-auto">

@@ -20,7 +20,7 @@ export interface ReportSettings {
 }
 
 export function TopListReportPage() {
-    const apiClient = useApiClient();
+    const { reportsClient } = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("")
 
@@ -47,7 +47,7 @@ export function TopListReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => apiClient.getTopListReport(reportSettings.dateFrom, reportSettings.dateTo)
+        queryFn: () => reportsClient.getTopListReport(reportSettings.dateFrom, reportSettings.dateTo)
     })
 
     return (

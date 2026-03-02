@@ -24,7 +24,7 @@ export interface TagInputs {
 export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const apiClient = useApiClient();
+    const { tagsClient } = useApiClient();
 
     useEffect(() => {
         setIsOpen(!!tagToEdit);
@@ -52,8 +52,8 @@ export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
 
     const mutation = useMutation({
         mutationFn: (newTag: TagInputs) => tagToEdit
-            ? apiClient.editTag(tagToEdit.id, newTag)
-            : apiClient.addTag(newTag),
+            ? tagsClient.editTag(tagToEdit.id, newTag)
+            : tagsClient.addTag(newTag),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['tags']})
