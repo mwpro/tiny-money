@@ -13,7 +13,7 @@ interface BudgetNotesInputProps {
 }
 
 export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) {
-    const apiClient = useApiClient();
+    const { budgetClient } = useApiClient();
     const queryClient = useQueryClient()
     const [budgetNotes, setBudgetNotes] = useState(() => budget.notes);
 
@@ -22,7 +22,7 @@ export function BudgetNotesInput({budget, budgetPeriod}: BudgetNotesInputProps) 
     }, [budget]);
 
     const saveBudgetMutation = useMutation({
-        mutationFn: (notes: string | undefined) => apiClient.saveBudget(budgetPeriod, budget.subcategoryId, budget.amount, notes),
+        mutationFn: (notes: string | undefined) => budgetClient.saveBudget(budgetPeriod, budget.subcategoryId, budget.amount, notes),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet zapisany");

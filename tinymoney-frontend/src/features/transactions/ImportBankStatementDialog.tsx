@@ -35,7 +35,7 @@ function readFileAsText(file: File, encoding: string): Promise<string> {
 export function ImportBankStatementDialog() {
     const [isOpen, setIsOpen] = useState(false);
     const queryClient = useQueryClient();
-    const apiClient = useApiClient();
+    const { transactionsClient } = useApiClient();
 
     const {control, handleSubmit, register, reset, watch, formState: {errors}} = useForm<ImportFormValues>({
         resolver: zodResolver(importSchema),
@@ -52,7 +52,7 @@ export function ImportBankStatementDialog() {
             const file = data.file[0];
             const encoding = encodings[data.fileType] ?? "utf-8";
             const fileContent = await readFileAsText(file, encoding);
-            return apiClient.importBankStatement(fileContent, data.fileType);
+            return transactionsClient.importBankStatement(fileContent, data.fileType);
         },
         onSuccess: (result) => {
             queryClient.invalidateQueries({queryKey: ['transactions']});

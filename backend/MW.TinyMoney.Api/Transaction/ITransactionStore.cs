@@ -19,6 +19,7 @@ namespace MW.TinyMoney.Api.Transaction
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
             bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
+        Task DeleteTransactions(IReadOnlyList<int> transactionIds);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -129,6 +130,10 @@ namespace MW.TinyMoney.Api.Transaction
         private const string DeleteTransactionQuery =
             @"DELETE FROM transaction_tag WHERE transaction_id = @transactionId;
               DELETE FROM transaction WHERE id = @transactionId;";
+
+        private const string DeleteTransactionsBulkQuery =
+            @"DELETE FROM transaction_tag WHERE transaction_id IN @transactionIds;
+              DELETE FROM transaction WHERE id IN @transactionIds;";
 
         private const string GetTagsForTransactions =
             @"SELECT transaction_id AS transactionId, tag_id AS tagId
@@ -295,6 +300,12 @@ namespace MW.TinyMoney.Api.Transaction
             {
                 await connection.ExecuteAsync(DeleteTransactionQuery, new {transactionId = transaction.Id});
             }
+        }
+
+        public async Task DeleteTransactions(IReadOnlyList<int> transactionIds)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.ExecuteAsync(DeleteTransactionsBulkQuery, new {transactionIds});
         }
     }
 }

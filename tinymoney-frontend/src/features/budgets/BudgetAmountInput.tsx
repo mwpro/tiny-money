@@ -15,7 +15,7 @@ interface BudgetAmountInputProps {
 }
 
 export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: BudgetAmountInputProps) {
-    const apiClient = useApiClient();
+    const { budgetClient } = useApiClient();
     const queryClient = useQueryClient()
 
     const [isOpen, setOpen] = useState(false)
@@ -28,7 +28,7 @@ export function BudgetAmountInput({budget, budgetPeriod, budgetSuggestions}: Bud
     }, [budget]);
 
     const saveBudgetMutation = useMutation({
-        mutationFn: (budgetValue: number) => apiClient.saveBudget(budgetPeriod, budget.subcategoryId, budgetValue, budget.notes),
+        mutationFn: (budgetValue: number) => budgetClient.saveBudget(budgetPeriod, budget.subcategoryId, budgetValue, budget.notes),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['budget']})
             toast.success("Budżet zapisany")

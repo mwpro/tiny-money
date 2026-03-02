@@ -121,7 +121,7 @@ const CustomLink = (props: {
 };
 
 export function SankeyReportPage() {
-    const apiClient = useApiClient();
+    const { reportsClient } = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
     const [sankeyChartData, setSankeyChartData] = useState<SankeyChart[]>([]);
@@ -149,7 +149,7 @@ export function SankeyReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['sankeyReport', reportSettings],
-        queryFn: () => apiClient.getSankeyReport(reportSettings.dateFrom, reportSettings.dateTo),
+        queryFn: () => reportsClient.getSankeyReport(reportSettings.dateFrom, reportSettings.dateTo),
     })
     useEffect(() => {
         if (reportQuery.data?.root) {

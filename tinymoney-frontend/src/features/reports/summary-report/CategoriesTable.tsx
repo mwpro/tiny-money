@@ -33,7 +33,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                         <Fragment key={category.categoryId}>
                             {categories.length > 1 && <TableRow key={category.categoryId} className="bg-gray-100">
                                 <TableCell onClick={() => setExpandedCategory(prev => prev !== category.categoryId ? category.categoryId : undefined)}
-                                           className={`font-bold`}>{category.categoryName}</TableCell>
+                                           className="font-bold">{category.categoryName}</TableCell>
                                 {category.periods.map(period => (<TableCell key={period.periodLabel} className="text-right">
                                     <Curr input={period.transactionsSum}/>
                                 </TableCell>))}

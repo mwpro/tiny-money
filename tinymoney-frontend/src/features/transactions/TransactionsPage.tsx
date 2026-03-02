@@ -9,6 +9,7 @@ import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
+import {BulkTransactionRemovalDialog} from "@/features/transactions/BulkTransactionRemovalDialog.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
@@ -25,7 +26,7 @@ import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark} from "lucide-react";
+import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark, Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
@@ -47,10 +48,12 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 }
 
 export function TransactionsPage() {
-    const apiClient = useApiClient();
+    const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+    const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
     const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => buildTransactionQueryParamsFromSearchParams(searchParams)); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
@@ -70,7 +73,7 @@ export function TransactionsPage() {
     
     const transactionsQuery = useQuery({
         queryKey: ['transactions', debouncedQueryParams],
-        queryFn: () => apiClient.getTransactions(debouncedQueryParams),        
+        queryFn: () => transactionsClient.getTransactions(debouncedQueryParams),        
         enabled: () => !!((debouncedQueryParams.dateFrom && debouncedQueryParams.dateTo)
             || debouncedQueryParams.amountFromFilter || debouncedQueryParams.amountToFilter || debouncedQueryParams.vendorIdFilter || debouncedQueryParams.subcategoryIdFilter
             || debouncedQueryParams.tagIdFilter || debouncedQueryParams.isVerifiedFilter !== undefined)
@@ -101,23 +104,23 @@ export function TransactionsPage() {
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => apiClient.getVendors(),
+        queryFn: () => vendorsClient.getVendors(),
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         ...dictionariesConfig
     })
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => apiClient.getTags(),
+        queryFn: () => tagsClient.getTags(),
         ...dictionariesConfig
     })
 
@@ -141,10 +144,22 @@ export function TransactionsPage() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Lista transakcji</h1>
                 <div className="flex gap-2">
+                    {selectedIds.size > 0 && (
+                        <Button variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+                            <Trash2 />
+                            Usuń zaznaczone ({selectedIds.size})
+                        </Button>
+                    )}
                     <ImportBankStatementDialog />
                     <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 </div>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
+                <BulkTransactionRemovalDialog
+                    transactionIds={Array.from(selectedIds)}
+                    isOpen={bulkDeleteOpen}
+                    onClose={() => setBulkDeleteOpen(false)}
+                    onSuccess={() => setSelectedIds(new Set())}
+                />
             </div>
 
             <div className="flex flex-wrap gap-3 mb-6 items-center">
@@ -290,7 +305,8 @@ export function TransactionsPage() {
                 <TransactionsTable
                     transactions={transactionsQuery.data} vendors={vendorsQuery.data}
                     subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
-                    onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}/>
+                    onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
+                    selectedIds={selectedIds} onSelectionChange={setSelectedIds}/>
             }
         </div>
     )

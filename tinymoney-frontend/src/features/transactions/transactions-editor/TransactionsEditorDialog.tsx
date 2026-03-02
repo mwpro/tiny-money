@@ -44,7 +44,7 @@ interface TransactionEditorDialogProps {
 export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const queryClient = useQueryClient()
-    const apiClient = useApiClient();
+    const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
@@ -58,26 +58,26 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
     const vendorsQuery = useQuery({
         queryKey: ['vendors'],
-        queryFn: () => apiClient.getVendors(),
+        queryFn: () => vendorsClient.getVendors(),
         ...dictionariesConfig
     })
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         ...dictionariesConfig
     })
 
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
-        queryFn: () => apiClient.getCategories(),
+        queryFn: () => categoriesClient.getCategories(),
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
 
     const tagsQuery = useQuery({
         queryKey: ['tags'],
-        queryFn: () => apiClient.getTags(),
+        queryFn: () => tagsClient.getTags(),
         ...dictionariesConfig
     })
 
@@ -119,8 +119,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
 
     const mutation = useMutation({
         mutationFn: (newTransaction: NewTransaction) => transactionToEdit
-            ? apiClient.editTransaction(transactionToEdit.id, newTransaction)
-            : apiClient.addTransaction(newTransaction),
+            ? transactionsClient.editTransaction(transactionToEdit.id, newTransaction)
+            : transactionsClient.addTransaction(newTransaction),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})

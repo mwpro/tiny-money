@@ -27,7 +27,7 @@ export interface ReportSettings {
 }
 
 export function SummaryReportPage() {
-    const apiClient = useApiClient();
+    const { reportsClient } = useApiClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("");
 
@@ -62,7 +62,7 @@ export function SummaryReportPage() {
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => apiClient.getSummaryReport(reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
+        queryFn: () => reportsClient.getSummaryReport(reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
     })
 
     return (

@@ -17,12 +17,12 @@ interface TagRemovalDialogProps {
 }
 
 export function TagRemovalDialog({tagToRemove}: TagRemovalDialogProps) {
-    const apiClient = useApiClient();
+    const { tagsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
     
     const deleteMutation = useMutation({
-        mutationFn: (tagId: number) => apiClient.removeTag(tagId),
+        mutationFn: (tagId: number) => tagsClient.removeTag(tagId),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['tags']})

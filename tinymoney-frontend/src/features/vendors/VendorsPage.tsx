@@ -21,7 +21,7 @@ interface ListSettings {
 }
 
 export function VendorsPage() {
-    const apiClient = useApiClient();
+    const { vendorsClient } = useApiClient();
     const [vendorToRemove, setVendorToRemove] = useState<VendorDetails | undefined>(undefined)
     const [vendorToEdit, setVendorToEdit] = useState<VendorDetails | undefined>(undefined)
     const [searchParams, setSearchParams] = useSearchParams();
@@ -36,7 +36,7 @@ export function VendorsPage() {
     
     const vendorsQuery = useQuery({
         queryKey: ['vendors-details'],
-        queryFn: () => apiClient.getVendorsDetails()
+        queryFn: () => vendorsClient.getVendorsDetails()
     })
     return (
         <div className="max-w-7xl mx-auto">
