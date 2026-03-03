@@ -58,7 +58,7 @@ public class ImportService : IImportService
         return await CreateAndSaveTransactions(parsed);
     }
 
-    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(IReadOnlyList<RawTransaction> parsed)
+    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(IReadOnlyCollection<RawTransaction> parsed)
     {
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));

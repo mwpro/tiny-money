@@ -5,5 +5,5 @@ namespace MW.TinyMoney.Api.Import.Parsers;
 
 public interface IFileImportParser : IImportParser
 {
-    IReadOnlyList<RawTransaction> ParseStream(Stream stream);
+    IReadOnlyCollection<RawTransaction> ParseStream(Stream stream);
 }

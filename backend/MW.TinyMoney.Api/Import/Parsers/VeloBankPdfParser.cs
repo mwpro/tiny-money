@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
+using UglyToad.PdfPig.DocumentLayoutAnalysis;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.PageSegmenter;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
@@ -17,14 +16,8 @@ public class VeloBankPdfParser : IFileImportParser
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
     private const string HistoryMarker = "Historia rachunku";
 
-    // Statement format: text reconstructed with | separating description from amount column.
-    // Row shape: DATE1 DATE2[DESCRIPTION]|AMOUNT BALANCE
-    // DATE format: yyyy.MM.dd (e.g. 2025.11.01)
-    private static readonly Regex StatementRowRegex = new(
-        @"(?<bookDate>\d{4}\.\d{2}\.\d{2}) (?<transDate>\d{4}\.\d{2}\.\d{2})(?<desc>.*?)(?<amount>-?\d{1,3}(?: \d{3})*,\d{2}) \d{1,3}(?: \d{3})*,\d{2}(?:(?<desc2>.*?)?(?=\d{4}\.\d{2}\.\d{2} \d{4}\.\d{2}\.\d{2}))?",
-        RegexOptions.Compiled | RegexOptions.Singleline,
-        TimeSpan.FromSeconds(15));
-
+    private const string StatementDateFormat = "yyyy.MM.dd";
+    
     // Account history format: plain text, amounts have " PLN" suffix.
     // Row shape: DD.MM.YYYYDD.MM.YYYY DESCRIPTION AMOUNT PLN BALANCE PLN (dates concatenated)
     private static readonly Regex HistoryRowRegex = new(
@@ -41,13 +34,10 @@ public class VeloBankPdfParser : IFileImportParser
     /// </summary>
     public IReadOnlyList<RawTransaction> Parse(string rawContent)
     {
-        if (rawContent.Contains(HistoryMarker, StringComparison.OrdinalIgnoreCase))
-            return ExtractTransactions(HistoryRowRegex, "dd.MM.yyyy", rawContent);
-
-        return ExtractTransactions(StatementRowRegex, "yyyy.MM.dd", rawContent);
+        return new List<RawTransaction>();
     }
 
-    public IReadOnlyList<RawTransaction> ParseStream(Stream stream)
+    public IReadOnlyCollection<RawTransaction> ParseStream(Stream stream)
     {
         using var document = PdfDocument.Open(stream);
 
@@ -62,32 +52,93 @@ public class VeloBankPdfParser : IFileImportParser
         }
 
         // Statement: column-aware word-level extraction to avoid thousands-separator ambiguity
-        var reconstructed =  ReadStatementText(document);
-        return ExtractTransactions(StatementRowRegex, "yyyy.MM.dd", reconstructed);
+        return ReadStatementText(document);
     }
 
-    private static string ReadStatementText(PdfDocument document)
+    private static IReadOnlyCollection<RawTransaction> ReadStatementText(PdfDocument document)
     {
-        var sb = new StringBuilder();
-        foreach (var page in document.GetPages())
-        {
-            var words = page.GetWords(NearestNeighbourWordExtractor.Instance).ToList();
-            foreach (var word in words)
-            {
-                if (word.Letters.Count == 0 || word.Letters[0].PointSize < 8) // magic number that filters the document footer annd some headers
-                {
-                    continue;
-                } // todo new lines are lost
+        const double TOLERANCE = 1.0;
+        var result = new List<RawTransaction>();
 
-                sb.Append($"{word} ");
-            }
+        var firstPage = document.GetPage(1);
+        var firstPageWords = firstPage.GetWords();
+        const double expectedFontPointSize = 8;
+        var firstPageBlocks = RecursiveXYCut.Instance.GetBlocks(firstPageWords)
+            .Where(block => block.TextLines.First().Words.First().Letters.First().PointSize == (double)expectedFontPointSize)
+            .OrderByDescending(block => block.BoundingBox.TopLeft.Y)
+            .ToList();
+
+        var transactionDateHeader = firstPageBlocks.FirstOrDefault(b => b.Text.Equals("Data\ntransakcji", StringComparison.Ordinal));
+        var descriptionHeader = firstPageBlocks.FirstOrDefault(b => b.Text.Equals("Saldo początkowe", StringComparison.Ordinal));
+        var transactionAmountLeftBoundary = firstPageBlocks.FirstOrDefault(b => b.Text.Equals("Kwota transakcji\nw PLN", StringComparison.Ordinal));
+        var transactionAmountRightBoundary = firstPageBlocks.FirstOrDefault(b => b.Text.Equals("Saldo po transakcji\nw PLN", StringComparison.Ordinal));
+        if (transactionDateHeader == null || descriptionHeader == null || transactionAmountLeftBoundary == null ||
+            transactionAmountRightBoundary == null)
+        {
+            return result;
         }
-        
-        return sb
-            .Replace("    ", " ") // todo funny code - can it be avoided?
-            .Replace("   ", " ")
-            .Replace("  ", " ")
-            .ToString();
+
+        var transactionDateFields = firstPageBlocks.Where(b => 
+            Math.Abs(b.BoundingBox.TopLeft.X - transactionDateHeader.BoundingBox.TopLeft.X) < TOLERANCE && 
+            b.BoundingBox.TopLeft.Y < transactionDateHeader.BoundingBox.TopLeft.Y).ToArray();
+        var transactionDescriptionFields = firstPageBlocks.Where(b => 
+            Math.Abs(b.BoundingBox.TopLeft.X - descriptionHeader.BoundingBox.TopLeft.X) < TOLERANCE && 
+            b.BoundingBox.TopLeft.Y < descriptionHeader.BoundingBox.TopLeft.Y).ToArray();
+        var amountFields = firstPageBlocks.Where(b => 
+            b.BoundingBox.TopLeft.X > transactionAmountLeftBoundary.BoundingBox.TopLeft.X && 
+            b.BoundingBox.TopLeft.X < transactionAmountRightBoundary.BoundingBox.TopLeft.X && 
+            b.BoundingBox.TopLeft.Y < transactionAmountLeftBoundary.BoundingBox.TopLeft.Y).ToArray();
+
+        result.AddRange(PrepareStatementTransactions(transactionDescriptionFields, transactionDateFields, amountFields, StatementDateFormat));
+
+        foreach (var page in document.GetPages().Skip(1))
+        {
+            var pageWords = page.GetWords();
+            var pageBlocks = RecursiveXYCut.Instance.GetBlocks(pageWords)
+                .Where(block => block.TextLines.First().Words.First().Letters.First().PointSize == (double)expectedFontPointSize)
+                .OrderByDescending(block => block.BoundingBox.TopLeft.Y)
+                .ToList();
+            
+            var pageTransactionDateFields = pageBlocks.Where(b => 
+                Math.Abs(b.BoundingBox.TopLeft.X - transactionDateHeader.BoundingBox.TopLeft.X) < TOLERANCE).ToArray();
+            var pageTransactionDescriptionFields = pageBlocks.Where(b => 
+                Math.Abs(b.BoundingBox.TopLeft.X - descriptionHeader.BoundingBox.TopLeft.X) < TOLERANCE).ToArray();
+            var pageAmountFields = pageBlocks.Where(b => 
+                b.BoundingBox.TopLeft.X > transactionAmountLeftBoundary.BoundingBox.TopLeft.X && 
+                b.BoundingBox.TopLeft.X < transactionAmountRightBoundary.BoundingBox.TopLeft.X).ToArray();
+
+            if (pageTransactionDescriptionFields.First().BoundingBox.TopLeft.Y - pageTransactionDateFields.First().BoundingBox.TopLeft.Y > TOLERANCE)
+            {
+                var description = pageTransactionDescriptionFields.First().Text.Trim();
+                var lastTransaction = result.Last();
+                result.Remove(lastTransaction);
+                result.Add(lastTransaction with { RawDescription = $"{lastTransaction.RawDescription} {description}"});
+                
+                pageTransactionDescriptionFields = pageTransactionDescriptionFields.Skip(1).ToArray();
+            }
+            
+            result.AddRange(PrepareStatementTransactions(pageTransactionDescriptionFields, pageTransactionDateFields, pageAmountFields, StatementDateFormat));
+        }
+
+        return result;
+    }
+
+    private static IEnumerable<RawTransaction> PrepareStatementTransactions(TextBlock[] transactionDescriptionFields,
+        TextBlock[] transactionDateFields, TextBlock[] amountFields, string dateFormat)
+    {
+        for (var i = 0; i < transactionDateFields.Length; i++)
+        {
+            var description = transactionDescriptionFields.ElementAtOrDefault(i)?.Text.Trim() ?? "";
+            var dateRaw = transactionDateFields[i].Text.Trim();
+            var amountRaw = amountFields[i].Text.Trim();
+
+            var parsedAmount = decimal.Parse(amountRaw, PolishCulture);
+            yield return new RawTransaction(
+                Amount: Math.Abs(parsedAmount),
+                IsExpense: parsedAmount < 0,
+                TransactionDate: DateTime.ParseExact(dateRaw, dateFormat, PolishCulture),
+                RawDescription: description);
+        }
     }
 
     private static IReadOnlyList<RawTransaction> ExtractTransactions(
