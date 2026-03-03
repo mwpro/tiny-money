@@ -1,3 +1,5 @@
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using MW.TinyMoney.Api.Buffer;
 
@@ -9,4 +11,5 @@ public record ImportResult(int NumberOfImportedTransactions, int NumberOfPossibl
 public interface IImportService
 {
     Task<ICommandResult<ImportResult>> ImportAsync(ImportRequest request);
+    Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct);
 }

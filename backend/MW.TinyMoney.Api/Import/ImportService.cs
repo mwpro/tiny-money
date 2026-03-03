@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Buffer;
@@ -40,6 +42,24 @@ public class ImportService : IImportService
             return new InvalidInputResult<ImportResult>($"Unknown file type: {request.FileType}");
 
         var parsed = parser.Parse(request.FileContent);
+        return await CreateAndSaveTransactions(parsed);
+    }
+
+    public async Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct)
+    {
+        var parser = _parsers.FirstOrDefault(p => p.CanHandle(fileType));
+        if (parser == null)
+            return new InvalidInputResult<ImportResult>($"Unknown file type: {fileType}");
+
+        var parsed = parser is IFileImportParser fileParser
+            ? fileParser.ParseStream(fileStream)
+            : parser.Parse(await new StreamReader(fileStream).ReadToEndAsync(ct));
+
+        return await CreateAndSaveTransactions(parsed);
+    }
+
+    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(IReadOnlyList<RawTransaction> parsed)
+    {
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 

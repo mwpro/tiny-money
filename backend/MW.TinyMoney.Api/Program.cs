@@ -13,6 +13,7 @@ using MW.TinyMoney.Api.Infrastructure;
 using IImportParser = MW.TinyMoney.Api.Import.Parsers.IImportParser;
 using ImportIngParser = MW.TinyMoney.Api.Import.Parsers.IngCsvBankStatementParser;
 using ImportPekaoParser = MW.TinyMoney.Api.Import.Parsers.PekaoCsvBankStatementParser;
+using ImportVeloBankParser = MW.TinyMoney.Api.Import.Parsers.VeloBankPdfParser;
 using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
@@ -88,6 +89,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     // New import module
     services.AddTransient<IImportParser, ImportIngParser>();
     services.AddTransient<IImportParser, ImportPekaoParser>();
+    services.AddTransient<IImportParser, ImportVeloBankParser>();
     services.AddTransient<IImportService, ImportService>();
     services.AddHostedService<ImportPlaceholdersInitializer>();
 }
