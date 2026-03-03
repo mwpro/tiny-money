@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
+using UglyToad.PdfPig.DocumentLayoutAnalysis.WordExtractor;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
@@ -19,15 +21,9 @@ public class VeloBankPdfParser : IFileImportParser
     // Row shape: DATE1 DATE2[DESCRIPTION]|AMOUNT BALANCE
     // DATE format: yyyy.MM.dd (e.g. 2025.11.01)
     private static readonly Regex StatementRowRegex = new(
-        @"(?<bookDate>\d{4}\.\d{2}\.\d{2}) (?<transDate>\d{4}\.\d{2}\.\d{2})(?<desc>[^|]*?)\|(?<amount>-?\d{1,3}(?: \d{3})*,\d{2}) \d{1,3}(?: \d{3})*,\d{2}",
+        @"(?<bookDate>\d{4}\.\d{2}\.\d{2}) (?<transDate>\d{4}\.\d{2}\.\d{2})(?<desc>.*?)(?<amount>-?\d{1,3}(?: \d{3})*,\d{2}) \d{1,3}(?: \d{3})*,\d{2}(?:(?<desc2>.*?)?(?=\d{4}\.\d{2}\.\d{2} \d{4}\.\d{2}\.\d{2}))?",
         RegexOptions.Compiled | RegexOptions.Singleline,
-        TimeSpan.FromSeconds(30));
-
-    // Matches the two-date prefix that starts every real transaction row in the statement format.
-    // Used to distinguish actual transactions from header/footer rows that also have right-column content.
-    private static readonly Regex StatementRowPrefix = new(
-        @"^\d{4}\.\d{2}\.\d{2} \d{4}\.\d{2}\.\d{2}",
-        RegexOptions.Compiled, TimeSpan.FromSeconds(5));
+        TimeSpan.FromSeconds(15));
 
     // Account history format: plain text, amounts have " PLN" suffix.
     // Row shape: DD.MM.YYYYDD.MM.YYYY DESCRIPTION AMOUNT PLN BALANCE PLN (dates concatenated)
@@ -66,90 +62,32 @@ public class VeloBankPdfParser : IFileImportParser
         }
 
         // Statement: column-aware word-level extraction to avoid thousands-separator ambiguity
-        var reconstructed = BuildColumnAwareStatementText(document);
+        var reconstructed =  ReadStatementText(document);
         return ExtractTransactions(StatementRowRegex, "yyyy.MM.dd", reconstructed);
     }
 
-    private static string BuildColumnAwareStatementText(PdfDocument document)
+    private static string ReadStatementText(PdfDocument document)
     {
         var sb = new StringBuilder();
-        string? pendingLine = null;
-        // Learned from transaction rows: X where description text starts (after the two date columns).
-        // Footer/header rows start near the left margin (same X as dates), so rows whose leftmost word
-        // starts before this threshold are not description continuations and are skipped.
-        double descriptionColumnX = double.MaxValue;
-
         foreach (var page in document.GetPages())
         {
-            var words = page.GetWords().ToList();
-            if (!words.Any()) continue;
-
-            // The "Kwota transakcji" column starts at ~65 % of page width.
-            // Words to the left are dates/description; words to the right are amount/balance.
-            var amountColumnX = page.Width * 0.65;
-
-            var rows = GroupIntoRows(words, yTolerance: 5.0);
-            foreach (var row in rows)
+            var words = page.GetWords(NearestNeighbourWordExtractor.Instance).ToList();
+            foreach (var word in words)
             {
-                var leftWords = row
-                    .Where(w => w.BoundingBox.Left < amountColumnX)
-                    .OrderBy(w => w.BoundingBox.Left)
-                    .ToList();
-                var right = string.Join(" ", row
-                    .Where(w => w.BoundingBox.Left >= amountColumnX)
-                    .OrderBy(w => w.BoundingBox.Left)
-                    .Select(w => w.Text));
-                var left = string.Join(" ", leftWords.Select(w => w.Text));
-
-                if (string.IsNullOrWhiteSpace(right))
+                if (word.Letters.Count == 0 || word.Letters[0].PointSize < 8) // magic number that filters the document footer annd some headers
                 {
-                    // Accept as description continuation only if text starts at the description column.
-                    // This filters out footer/header rows that start at the left margin.
-                    if (pendingLine != null && leftWords.Count > 0
-                        && leftWords[0].BoundingBox.Left >= descriptionColumnX - 10)
-                    {
-                        var pipeIdx = pendingLine.IndexOf('|');
-                        pendingLine = pendingLine[..pipeIdx] + " " + left + pendingLine[pipeIdx..];
-                    }
-                }
-                else
-                {
-                    // Row with right-column content — flush pending line and start new one.
-                    if (pendingLine != null)
-                        sb.AppendLine(pendingLine);
-                    pendingLine = left + "|" + right;
+                    continue;
+                } // todo new lines are lost
 
-                    // Learn description column X: start of the 3rd+ word in the left column
-                    // (words 1–2 are the two date fields; word 3+ is description text).
-                    if (leftWords.Count >= 3)
-                    {
-                        var descX = leftWords.Skip(2).Min(w => w.BoundingBox.Left);
-                        descriptionColumnX = Math.Min(descriptionColumnX, descX);
-                    }
-                }
+                sb.Append($"{word} ");
             }
         }
-
-        if (pendingLine != null)
-            sb.AppendLine(pendingLine);
-
-        return sb.ToString();
-    }
-
-    private static List<List<Word>> GroupIntoRows(List<Word> words, double yTolerance)
-    {
-        var rows = new List<List<Word>>();
-        // PDF Y=0 is bottom; higher Y = higher on page. Sort descending for top-to-bottom order.
-        foreach (var word in words.OrderByDescending(w => w.BoundingBox.Top))
-        {
-            var row = rows.FirstOrDefault(r =>
-                Math.Abs(r[0].BoundingBox.Top - word.BoundingBox.Top) <= yTolerance);
-            if (row != null)
-                row.Add(word);
-            else
-                rows.Add(new List<Word> { word });
-        }
-        return rows.OrderByDescending(r => r[0].BoundingBox.Top).ToList();
+        
+        return sb
+            .Replace("    ", " ") // todo funny code - can it be avoided?
+            .Replace("   ", " ")
+            .Replace("  ", " ")
+            .ToString();
     }
 
     private static IReadOnlyList<RawTransaction> ExtractTransactions(
@@ -160,6 +98,7 @@ public class VeloBankPdfParser : IFileImportParser
         {
             var dateRaw = match.Groups["transDate"].Value;
             var description = match.Groups["desc"].Value.Trim();
+            var descriptionPart2 = match.Groups["desc2"]?.Value?.Trim();
             var amountRaw = match.Groups["amount"].Value.Replace(" ", "");
 
             var parsedAmount = decimal.Parse(amountRaw, PolishCulture);
@@ -167,7 +106,7 @@ public class VeloBankPdfParser : IFileImportParser
                 Amount: Math.Abs(parsedAmount),
                 IsExpense: parsedAmount < 0,
                 TransactionDate: DateTime.ParseExact(dateRaw, dateFormat, PolishCulture),
-                RawDescription: description));
+                RawDescription: $"{description} {descriptionPart2 ?? ""}".Trim()));
         }
         return result;
     }
