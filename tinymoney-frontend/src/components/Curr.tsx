@@ -28,6 +28,6 @@ export function Curr({input, colored, isPositive}: CurrProps){
     const colorDecision = (isPositive == undefined && num >= 0) || isPositive;
     
     return (
-        <span className={`font-mono ${colored && (colorDecision ? "text-green-600" : "text-red-600")}`}>{currencyNumberFormat.format(num)}</span>
+        <span className={`font-mono tabular-nums ${colored && (colorDecision ? "text-income" : "text-expense")}`}>{currencyNumberFormat.format(num)}</span>
     );
 }

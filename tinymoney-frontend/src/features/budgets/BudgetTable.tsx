@@ -34,7 +34,7 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                 <TableBody>
                     {budget.monthlyBudget.categoryBudgets.map((categoryBudget) => (
                         <Fragment key={categoryBudget.categoryId}>
-                            <TableRow className={`font-bold ${!categoryBudget.amount && !categoryBudget.amountLeft ? "text-gray-400" : ""} bg-gray-100`}>
+                            <TableRow className={`font-bold ${!categoryBudget.amount && !categoryBudget.amountLeft ? "text-muted-foreground" : ""} bg-muted`}>
                                 <TableCell>{categoryBudget.categoryName}</TableCell>
                                 <TableCell className="text-right">
                                     <Curr input={categoryBudget.amount} />
@@ -50,7 +50,7 @@ export function BudgetTable({budget, budgetPeriod, budgetSuggestions}: BudgetTab
                             {categoryBudget.subcategoryBudgets.map(subcategoryBudget => {
                                 return (
                                     <TableRow key={`${categoryBudget.categoryId}-${subcategoryBudget.subcategoryId}`}
-                                              className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-gray-400" : ""}>
+                                              className={!subcategoryBudget.amount && !subcategoryBudget.amountLeft ? "text-muted-foreground" : ""}>
                                         <TableCell>
                                             <Link to={getTransactionsUrl({subcategoryId: subcategoryBudget.subcategoryId, dateFrom: startOfMonth(budgetPeriodReferenceDate), dateTo: endOfMonth(budgetPeriodReferenceDate)})} target={"_blank"}>
                                                 <ListIcon className="inline pr-1" size={19} />

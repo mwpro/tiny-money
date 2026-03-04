@@ -10,47 +10,66 @@ import {
     DropdownMenuTrigger,
     DropdownMenuItem
 } from "./ui/dropdown-menu";
-import {ArrowLeftRightIcon, BarChart2Icon, ChevronDownIcon, LayoutDashboardIcon, MenuIcon, WalletIcon} from "lucide-react";
+import {ArrowLeftRightIcon, BarChart2Icon, ChevronDownIcon, CoinsIcon, MenuIcon, MoonIcon, SunIcon, WalletIcon} from "lucide-react";
 import {getTransactionsUrl} from "@/lib/utils.ts";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
+
+function useDarkMode() {
+    const [dark, setDark] = useState(() => {
+        const stored = localStorage.getItem('theme');
+        if (stored) return stored === 'dark';
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    });
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', dark);
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }, [dark]);
+    return [dark, () => setDark(d => !d)] as const;
+}
 
 export function Layout() {
     const location = useLocation()
     const {logout, user} = useAuth0();
     const [moreOpen, setMoreOpen] = useState(false);
     const [reportsOpen, setReportsOpen] = useState(false);
+    const [dark, toggleDark] = useDarkMode();
 
     const isActive = (path: string) => location.pathname === path;
     const isReportsActive = () => location.pathname.startsWith("/reports");
 
     return (
-        <div className="min-h-dvh bg-slate-50 flex flex-col">
-            <header className="hidden md:block border-b bg-white">
+        <div className="min-h-dvh bg-background flex flex-col">
+            <header className="hidden md:block border-b bg-header-bg text-header-fg">
                 <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-8">
-                        <span className="text-xl font-bold tracking-tight">TINY-Money</span>
+                        <div className="flex items-center gap-2">
+                            <CoinsIcon className="size-5" />
+                            <span className="text-lg tracking-tight leading-none">
+                                <span className="font-light font-sans">tiny</span>
+                                <span className="font-serif font-bold"> Money</span>
+                            </span>
+                        </div>
 
-                        <nav className="flex gap-4">
-                            <Button variant={isActive("/dashboard") ? "secondary" : "ghost"} asChild>
+                        <nav className="flex gap-1">
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/dashboard") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/dashboard">Dashboard</Link>
                             </Button>
-                            <Button variant={isActive("/transactions") ? "secondary" : "ghost"} asChild>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/transactions") ? "bg-white/20" : ""}`} asChild>
                                 <Link to={getTransactionsUrl({
                                     dateFrom: startOfMonth(new Date()),
                                     dateTo: endOfMonth(new Date())
                                 })}>Transakcje
                                 </Link>
                             </Button>
-                            <Button variant={isActive("/budgets") ? "secondary" : "ghost"} asChild>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/budgets") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/budgets">Budżet</Link>
                             </Button>
                             <ButtonGroup>
-                                <Button variant={isReportsActive() ? "secondary" : "ghost"}>Raporty</Button>
+                                <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isReportsActive() ? "bg-white/20" : ""}`}>Raporty</Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant={isReportsActive() ? "secondary" : "ghost"}
-                                                className="!pl-2">
+                                        <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg !pl-2 ${isReportsActive() ? "bg-white/20" : ""}`}>
                                             <ChevronDownIcon/>
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -69,25 +88,24 @@ export function Layout() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </ButtonGroup>
-                            <Link to="/tags">
-                                <Button variant={isActive("/tags") ? "secondary" : "ghost"}>
-                                    Tagi
-                                </Button>
-                            </Link>
-                            <Link to="/vendors">
-                                <Button variant={isActive("/vendors") ? "secondary" : "ghost"}>
-                                    Sprzedawcy
-                                </Button>
-                            </Link>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/tags") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/tags">Tagi</Link>
+                            </Button>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/vendors") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/vendors">Sprzedawcy</Link>
+                            </Button>
                         </nav>
                     </div>
 
-                    <Button
-                        onClick={() => logout({logoutParams: {returnTo: window.location.origin}})}
-                        variant={"ghost"}
-                    >
-                        Wyloguj {user?.name}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="hover:bg-white/15 hover:text-header-fg" onClick={toggleDark} aria-label="Toggle dark mode">
+                            {dark ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
+                        </Button>
+                        <Button variant="ghost" className="hover:bg-white/15 hover:text-header-fg"
+                            onClick={() => logout({logoutParams: {returnTo: window.location.origin}})}>
+                            Wyloguj {user?.name}
+                        </Button>
+                    </div>
                 </div>
             </header>
 
@@ -95,12 +113,12 @@ export function Layout() {
                 <Outlet/>
             </main>
 
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-white z-50 flex flex-col" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-card z-50 flex flex-col" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
             <div className="flex h-16">
                 <Link to="/dashboard"
                       className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/dashboard") ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                    <LayoutDashboardIcon className="size-5"/>
-                    <span className="leading-tight text-center">TINY<br/>Money</span>
+                    <CoinsIcon className="size-5"/>
+                    <span className="leading-tight text-center">tiny<br/>Money</span>
                 </Link>
 
                 <Link to={getTransactionsUrl({
@@ -158,6 +176,11 @@ export function Layout() {
                             </Button>
 
                             <div className="border-t my-1"/>
+
+                            <Button variant="ghost" className="justify-start w-full" onClick={toggleDark}>
+                                {dark ? <SunIcon className="size-4 mr-2" /> : <MoonIcon className="size-4 mr-2" />}
+                                {dark ? 'Jasny motyw' : 'Ciemny motyw'}
+                            </Button>
 
                             <Button variant="ghost" className="justify-start w-full"
                                     onClick={() => {

@@ -161,7 +161,7 @@ export function SankeyReportPage() {
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText(`Sankey - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Raport - Sankey chart</h1>
+                <h1 className="text-2xl font-bold font-serif">Raport - Sankey chart</h1>
             </div>
 
             <div className="flex flex-row gap-3 mb-6">
@@ -174,7 +174,7 @@ export function SankeyReportPage() {
             {(reportQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {sankeyChartData.length > 0 &&
                 <>
                     <Breadcrumb>

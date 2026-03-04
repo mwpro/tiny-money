@@ -31,7 +31,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                 <TableBody>
                     {categories.map((category) => (
                         <Fragment key={category.categoryId}>
-                            {categories.length > 1 && <TableRow key={category.categoryId} className="bg-gray-100">
+                            {categories.length > 1 && <TableRow key={category.categoryId} className="bg-muted">
                                 <TableCell onClick={() => setExpandedCategory(prev => prev !== category.categoryId ? category.categoryId : undefined)}
                                            className="font-bold">{category.categoryName}</TableCell>
                                 {category.periods.map(period => (<TableCell key={period.periodLabel} className="text-right">
