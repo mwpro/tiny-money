@@ -9,8 +9,8 @@ using MW.TinyMoney.Api.Buffer;
 using MW.TinyMoney.Api.Buffer.Parsers;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Import;
+using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
-using IImportParser = MW.TinyMoney.Api.Import.Parsers.IImportParser;
 using ImportIngParser = MW.TinyMoney.Api.Import.Parsers.IngCsvBankStatementParser;
 using ImportPekaoParser = MW.TinyMoney.Api.Import.Parsers.PekaoCsvBankStatementParser;
 using ImportVeloBankParser = MW.TinyMoney.Api.Import.Parsers.VeloBankPdfParser;
@@ -18,6 +18,10 @@ using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
+using IngCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.IngCsvBankStatementParser;
+using PekaoCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.PekaoCsvBankStatementParser;
+
+System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("/run/secrets/appsettings.secret.json", optional: true);
@@ -87,9 +91,9 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IBankStatementParser, IngCsvBankStatementParser>();
 
     // New import module
-    services.AddTransient<IImportParser, ImportIngParser>();
-    services.AddTransient<IImportParser, ImportPekaoParser>();
-    services.AddTransient<IImportParser, ImportVeloBankParser>();
+    services.AddTransient<IFileImportParser, ImportIngParser>();
+    services.AddTransient<IFileImportParser, ImportPekaoParser>();
+    services.AddTransient<IFileImportParser, ImportVeloBankParser>();
     services.AddTransient<IImportService, ImportService>();
     services.AddHostedService<ImportPlaceholdersInitializer>();
 }

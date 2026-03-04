@@ -17,20 +17,6 @@ const importSchema = z.object({
 
 type ImportFormValues = z.infer<typeof importSchema>;
 
-const encodings: Record<string, string> = {
-    ing: "windows-1250",
-    pekao: "utf-8",
-};
-
-function readFileAsText(file: File, encoding: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsText(file, encoding);
-    });
-}
-
 export function ImportBankStatementDialog() {
     const [isOpen, setIsOpen] = useState(false);
     const queryClient = useQueryClient();
@@ -47,15 +33,8 @@ export function ImportBankStatementDialog() {
     const fileType = watch("fileType");
 
     const mutation = useMutation({
-        mutationFn: async (data: ImportFormValues) => {
-            const file = data.file[0];
-            if (data.fileType === "velobank") {
-                return transactionsClient.importBankStatementFile(file, data.fileType);
-            }
-            const encoding = encodings[data.fileType] ?? "utf-8";
-            const fileContent = await readFileAsText(file, encoding);
-            return transactionsClient.importBankStatement(fileContent, data.fileType);
-        },
+        mutationFn: (data: ImportFormValues) =>
+            transactionsClient.importBankStatementFile(data.file[0], data.fileType),
         onSuccess: (result) => {
             queryClient.invalidateQueries({queryKey: ['transactions']});
             let message = `Zaimportowano ${result.numberOfImportedTransactions} transakcji`;
@@ -87,7 +66,7 @@ export function ImportBankStatementDialog() {
                 <DialogHeader>
                     <DialogTitle>Importuj wyciąg bankowy</DialogTitle>
                     <DialogDescription>
-                        Wybierz typ pliku i załaduj wyciąg w formacie CSV
+                        Wybierz bank i załaduj plik wyciągu
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -121,11 +100,6 @@ export function ImportBankStatementDialog() {
                             {...register("file")}
                         />
                         {errors.file && <span className="text-red-500 text-xs">{errors.file.message as string}</span>}
-                        {fileType && encodings[fileType] && (
-                            <p className="text-xs text-muted-foreground">
-                                Kodowanie: {encodings[fileType]}
-                            </p>
-                        )}
                     </div>
 
                     <DialogFooter>

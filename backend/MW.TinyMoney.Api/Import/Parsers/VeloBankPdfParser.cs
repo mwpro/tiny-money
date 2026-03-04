@@ -20,15 +20,6 @@ public class VeloBankPdfParser : IFileImportParser
     public bool CanHandle(string fileType) =>
         fileType.Equals("velobank", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>
-    /// Text-based fallback. Not normally called — use ParseStream for correct column handling.
-    /// History format works fine here; statement format may have column-bleed edge cases.
-    /// </summary>
-    public IReadOnlyList<RawTransaction> Parse(string rawContent)
-    {
-        return new List<RawTransaction>();
-    }
-
     public IReadOnlyCollection<RawTransaction> ParseStream(Stream stream)
     {
         using var document = PdfDocument.Open(stream);

@@ -1,18 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
-public class IngCsvBankStatementParser : IImportParser
+public class IngCsvBankStatementParser : IFileImportParser
 {
+    private static readonly Encoding FileEncoding = Encoding.GetEncoding("windows-1250");
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
 
     public bool CanHandle(string fileType) =>
         fileType.Equals("ing", StringComparison.OrdinalIgnoreCase);
 
-    public IReadOnlyList<RawTransaction> Parse(string rawContent)
+    public IReadOnlyCollection<RawTransaction> ParseStream(Stream stream)
+    {
+        using var reader = new StreamReader(stream, FileEncoding);
+        return Parse(reader.ReadToEnd());
+    }
+
+    private IReadOnlyList<RawTransaction> Parse(string rawContent)
     {
         var result = new List<RawTransaction>();
         var lines = RemoveContentHeaderAndFooter(rawContent);

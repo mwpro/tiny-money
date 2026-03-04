@@ -21,12 +21,12 @@ public class ImportService : IImportService
         WHERE t.transaction_date BETWEEN @minDate AND @maxDate
         """;
 
-    private readonly IEnumerable<IImportParser> _parsers;
+    private readonly IEnumerable<IFileImportParser> _parsers;
     private readonly Transaction.ITransactionStore _transactionStore;
     private readonly MySqlConnectionFactory _connectionFactory;
 
     public ImportService(
-        IEnumerable<IImportParser> parsers,
+        IEnumerable<IFileImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
         MySqlConnectionFactory connectionFactory)
     {
@@ -35,26 +35,13 @@ public class ImportService : IImportService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<ICommandResult<ImportResult>> ImportAsync(ImportRequest request)
-    {
-        var parser = _parsers.FirstOrDefault(p => p.CanHandle(request.FileType));
-        if (parser == null)
-            return new InvalidInputResult<ImportResult>($"Unknown file type: {request.FileType}");
-
-        var parsed = parser.Parse(request.FileContent);
-        return await CreateAndSaveTransactions(parsed);
-    }
-
     public async Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct)
     {
         var parser = _parsers.FirstOrDefault(p => p.CanHandle(fileType));
         if (parser == null)
             return new InvalidInputResult<ImportResult>($"Unknown file type: {fileType}");
 
-        var parsed = parser is IFileImportParser fileParser
-            ? fileParser.ParseStream(fileStream)
-            : parser.Parse(await new StreamReader(fileStream).ReadToEndAsync(ct));
-
+        var parsed = parser.ParseStream(fileStream);
         return await CreateAndSaveTransactions(parsed);
     }
 
