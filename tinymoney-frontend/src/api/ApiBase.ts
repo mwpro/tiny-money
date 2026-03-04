@@ -24,4 +24,19 @@ export class ApiBase {
             body: body !== undefined ? JSON.stringify(body) : undefined,
         });
     }
+    
+    protected async requestFormData(
+        method: string,
+        path: string,
+        formData: FormData
+    ): Promise<Response> {
+        const token = await this._auth.getAccessTokenSilently();
+        return fetch(`${this._apiUrl}${path}`, {
+            method,
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            body: formData
+        });
+    }
 }

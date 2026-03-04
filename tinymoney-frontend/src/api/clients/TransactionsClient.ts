@@ -63,15 +63,11 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
     }
 
     async importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult> {
-        const token = await this._auth.getAccessTokenSilently();
         const formData = new FormData();
         formData.append('file', file);
         formData.append('fileType', fileType);
-        const res = await fetch(`${this._apiUrl}/transactions/import/file`, {
-            method: 'POST',
-            headers: {Authorization: `Bearer ${token}`},
-            body: formData,
-        });
+        
+        const res = await this.requestFormData('POST', `/transactions/import/file`, formData);
         if (!res.ok) throw new Error('Błąd podczas importu transakcji');
         return res.json();
     }

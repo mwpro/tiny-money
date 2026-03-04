@@ -20,6 +20,7 @@ public class ImportController : Controller
     public record ImportBankStatementResponse(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates);
 
     [HttpPost("file")]
+    [RequestSizeLimit(1 * 1024 * 1024)]
     [ProducesResponseType(typeof(ImportBankStatementResponse), StatusCodes.Status201Created)]
     public async Task<IActionResult> ImportFile(IFormFile file, [FromForm] string fileType, CancellationToken ct)
     {
