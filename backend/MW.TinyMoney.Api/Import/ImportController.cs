@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,14 +17,14 @@ public class ImportController : Controller
         _importService = importService;
     }
 
-    public record ImportBankStatementRequest(string FileContent, string FileType);
     public record ImportBankStatementResponse(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates);
 
-    [HttpPost("")]
+    [HttpPost("file")]
+    [RequestSizeLimit(1 * 1024 * 1024)]
     [ProducesResponseType(typeof(ImportBankStatementResponse), StatusCodes.Status201Created)]
-    public async Task<IActionResult> ImportBankStatement([FromBody] ImportBankStatementRequest request)
+    public async Task<IActionResult> ImportFile(IFormFile file, [FromForm] string fileType, CancellationToken ct)
     {
-        var result = await _importService.ImportAsync(new ImportRequest(request.FileContent, request.FileType));
+        var result = await _importService.ImportFile(file.OpenReadStream(), fileType, ct);
 
         return result switch
         {

@@ -15,7 +15,7 @@ export interface TransactionsClient {
     editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<Transaction>;
     removeTransaction(transactionId: number): Promise<void>;
     removeTransactions(transactionIds: number[]): Promise<void>;
-    importBankStatement(fileContent: string, fileType: string): Promise<ImportBankStatementResult>;
+    importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
 }
 
 export class TransactionsClientImpl extends ApiBase implements TransactionsClient {
@@ -62,8 +62,12 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
         if (!res.ok) throw new Error('Błąd podczas usuwania transakcji');
     }
 
-    async importBankStatement(fileContent: string, fileType: string): Promise<ImportBankStatementResult> {
-        const res = await this.request('POST', '/transactions/import', {fileContent, fileType});
+    async importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileType', fileType);
+        
+        const res = await this.requestFormData('POST', `/transactions/import/file`, formData);
         if (!res.ok) throw new Error('Błąd podczas importu transakcji');
         return res.json();
     }

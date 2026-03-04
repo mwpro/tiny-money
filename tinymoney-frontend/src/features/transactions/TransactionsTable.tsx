@@ -2,18 +2,13 @@ import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableR
 import {Badge} from "@/components/ui/badge.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuGroup, DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu.tsx";
 import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -99,9 +94,9 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         title={!t.isVerified && t.isPossibleDuplicate ? "Niezweryfikowana · Możliwy duplikat" : !t.isVerified ? "Niezweryfikowana" : t.isPossibleDuplicate ? "Możliwy duplikat" : undefined}>
                         <TableCell>
                             <Checkbox
-                                checked={selectedIds.has(t.id)}
-                                onCheckedChange={(checked) => handleSelectOne(t.id, !!checked)}
-                                aria-label={`Zaznacz transakcję ${t.id}`}
+                                    checked={selectedIds.has(t.id)}
+                                    onCheckedChange={(checked) => handleSelectOne(t.id, !!checked)}
+                                    aria-label={`Zaznacz transakcję ${t.id}`}
                             />
                         </TableCell>
                         <TableCell>
@@ -124,22 +119,8 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
-                                <Button variant="outline" size="sm" onClick={() => onEditClick(t)}
-                                >Edytuj</Button>
-                                <DropdownMenu>
-                                   <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon-sm" aria-label="More Options">
-                                            ...
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuGroup>
-                                            <DropdownMenuItem variant="destructive" onClick={() => onDeleteClick(t)}>
-                                                Usuń
-                                            </DropdownMenuItem>
-                                        </DropdownMenuGroup>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                                <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
                             </ButtonGroup>
                         </TableCell>
                     </TableRow>

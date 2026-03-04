@@ -56,8 +56,8 @@ export const transactionsListPresets: DateRangePreset[] = [
         name: (now) => format(startOfMonth(subMonths(now, 2)), monthYearNameFormat, { locale: pl }), 
         preset: (now) => {
             return ({
-                dateFrom: startOfMonth(subMonths(now, 1)),
-                dateTo: endOfMonth(subMonths(now, 1))
+                dateFrom: startOfMonth(subMonths(now, 2)),
+                dateTo: endOfMonth(subMonths(now, 2))
             });
         }
     },

@@ -22,7 +22,7 @@ function App() {
         }
     }, [isLoading, isAuthenticated, error, loginWithRedirect]);
     
-    if (isLoading || error) {
+    if (isLoading || error || !isAuthenticated) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col">
                 <header className="border-b bg-white">

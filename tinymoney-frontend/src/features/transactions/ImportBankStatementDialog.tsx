@@ -11,26 +11,11 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 const importSchema = z.object({
-    fileType: z.string().refine(v => ["ing", "pekao"].includes(v), { error: "Wybierz typ pliku"}),
-            //.enum(["ing", "pekao"] as const, { error: "Wybierz typ pliku" }),
+    fileType: z.string().refine(v => ["ing", "pekao", "velobank"].includes(v), { error: "Wybierz typ pliku"}),
     file: z.instanceof(FileList).refine(f => f.length > 0, "Wybierz plik"),
 });
 
 type ImportFormValues = z.infer<typeof importSchema>;
-
-const encodings: Record<string, string> = {
-    ing: "windows-1250",
-    pekao: "utf-8",
-};
-
-function readFileAsText(file: File, encoding: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsText(file, encoding);
-    });
-}
 
 export function ImportBankStatementDialog() {
     const [isOpen, setIsOpen] = useState(false);
@@ -48,12 +33,8 @@ export function ImportBankStatementDialog() {
     const fileType = watch("fileType");
 
     const mutation = useMutation({
-        mutationFn: async (data: ImportFormValues) => {
-            const file = data.file[0];
-            const encoding = encodings[data.fileType] ?? "utf-8";
-            const fileContent = await readFileAsText(file, encoding);
-            return transactionsClient.importBankStatement(fileContent, data.fileType);
-        },
+        mutationFn: (data: ImportFormValues) =>
+            transactionsClient.importBankStatementFile(data.file[0], data.fileType),
         onSuccess: (result) => {
             queryClient.invalidateQueries({queryKey: ['transactions']});
             let message = `Zaimportowano ${result.numberOfImportedTransactions} transakcji`;
@@ -85,7 +66,7 @@ export function ImportBankStatementDialog() {
                 <DialogHeader>
                     <DialogTitle>Importuj wyciąg bankowy</DialogTitle>
                     <DialogDescription>
-                        Wybierz typ pliku i załaduj wyciąg w formacie CSV
+                        Wybierz bank i załaduj plik wyciągu
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -102,6 +83,7 @@ export function ImportBankStatementDialog() {
                                     <SelectContent>
                                         <SelectItem value="ing">ING (CSV)</SelectItem>
                                         <SelectItem value="pekao">Pekao (CSV)</SelectItem>
+                                        <SelectItem value="velobank">Velo Bank (PDF)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             )}
@@ -113,16 +95,11 @@ export function ImportBankStatementDialog() {
                         <Label>Plik</Label>
                         <input
                             type="file"
-                            accept=".csv"
+                            accept={fileType === "velobank" ? ".pdf" : ".csv"}
                             className="text-sm file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-muted file:text-foreground hover:file:bg-muted/80 cursor-pointer"
                             {...register("file")}
                         />
                         {errors.file && <span className="text-red-500 text-xs">{errors.file.message as string}</span>}
-                        {fileType && (
-                            <p className="text-xs text-muted-foreground">
-                                Kodowanie: {encodings[fileType]}
-                            </p>
-                        )}
                     </div>
 
                     <DialogFooter>

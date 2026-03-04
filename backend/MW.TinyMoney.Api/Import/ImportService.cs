@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Buffer;
@@ -19,12 +21,12 @@ public class ImportService : IImportService
         WHERE t.transaction_date BETWEEN @minDate AND @maxDate
         """;
 
-    private readonly IEnumerable<IImportParser> _parsers;
+    private readonly IEnumerable<IFileImportParser> _parsers;
     private readonly Transaction.ITransactionStore _transactionStore;
     private readonly MySqlConnectionFactory _connectionFactory;
 
     public ImportService(
-        IEnumerable<IImportParser> parsers,
+        IEnumerable<IFileImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
         MySqlConnectionFactory connectionFactory)
     {
@@ -33,13 +35,21 @@ public class ImportService : IImportService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<ICommandResult<ImportResult>> ImportAsync(ImportRequest request)
+    public async Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct)
     {
-        var parser = _parsers.FirstOrDefault(p => p.CanHandle(request.FileType));
+        var parser = _parsers.FirstOrDefault(p => p.CanHandle(fileType));
         if (parser == null)
-            return new InvalidInputResult<ImportResult>($"Unknown file type: {request.FileType}");
+            return new InvalidInputResult<ImportResult>($"Unknown file type: {fileType}");
 
-        var parsed = parser.Parse(request.FileContent);
+        var parsed = parser.ParseStream(fileStream);
+        return await CreateAndSaveTransactions(parsed, ct);
+    }
+
+    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(
+        IReadOnlyCollection<RawTransaction> parsed, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 

@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MW.TinyMoney.Api.Import.Parsers;
 
-public class PekaoCsvBankStatementParser : IImportParser
+public class PekaoCsvBankStatementParser : IFileImportParser
 {
     private static readonly CultureInfo PolishCulture = CultureInfo.CreateSpecificCulture("pl-PL");
     private static readonly Regex NotInterestingDataFilter = new("[a-zA-Z]", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
@@ -14,7 +16,13 @@ public class PekaoCsvBankStatementParser : IImportParser
     public bool CanHandle(string fileType) =>
         fileType.Equals("pekao", StringComparison.OrdinalIgnoreCase);
 
-    public IReadOnlyList<RawTransaction> Parse(string rawContent)
+    public IReadOnlyCollection<RawTransaction> ParseStream(Stream stream)
+    {
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        return Parse(reader.ReadToEnd());
+    }
+
+    private IReadOnlyList<RawTransaction> Parse(string rawContent)
     {
         var result = new List<RawTransaction>();
         var lines = rawContent.Split('\n').Skip(1).ToList();
