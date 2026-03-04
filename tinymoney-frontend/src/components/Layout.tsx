@@ -1,32 +1,29 @@
-import {Outlet, Link, useLocation} from "react-router-dom"
+import {Link, Outlet, useLocation} from "react-router-dom"
 import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
 import {endOfMonth, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {
     DropdownMenu,
-    DropdownMenuGroup,
     DropdownMenuContent,
-    DropdownMenuTrigger,
-    DropdownMenuItem
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuTrigger
 } from "./ui/dropdown-menu";
-import {ArrowLeftRightIcon, BarChart2Icon, ChevronDownIcon, CoinsIcon, MenuIcon, MoonIcon, SunIcon, WalletIcon} from "lucide-react";
+import {
+    ArrowLeftRightIcon,
+    BarChart2Icon,
+    ChevronDownIcon,
+    CoinsIcon,
+    MenuIcon,
+    MoonIcon,
+    SunIcon,
+    WalletIcon
+} from "lucide-react";
 import {getTransactionsUrl} from "@/lib/utils.ts";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
-
-function useDarkMode() {
-    const [dark, setDark] = useState(() => {
-        const stored = localStorage.getItem('theme');
-        if (stored) return stored === 'dark';
-        return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    });
-    useEffect(() => {
-        document.documentElement.classList.toggle('dark', dark);
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-    }, [dark]);
-    return [dark, () => setDark(d => !d)] as const;
-}
+import {useDarkMode} from "@/lib/UseDarkMode.tsx";
 
 export function Layout() {
     const location = useLocation()
