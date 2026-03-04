@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#2f3f32"/>
+  <!-- Back coin (top-left) — outline only -->
+  <circle cx="12" cy="13" r="8" fill="none" stroke="#f0f4f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Back coin detail: Lucide M7 6h1v4 scaled to this coin -->
+  <path d="M10.67 10.33 H12 V15.67" fill="none" stroke="#f0f4f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Front coin (bottom-right) — bg fill clips back coin, then stroked -->
+  <circle cx="20" cy="19" r="8" fill="#2f3f32" stroke="#f0f4f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Front coin detail: Lucide m16.71 13.88 .7 .71 -2.82 2.82 scaled to this coin -->
+  <path d="M20.95 16.17 L21.88 17.12 L18.12 20.88" fill="none" stroke="#f0f4f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

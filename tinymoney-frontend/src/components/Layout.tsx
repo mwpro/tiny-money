@@ -113,10 +113,10 @@ export function Layout() {
                 <Outlet/>
             </main>
 
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-card z-50 flex flex-col" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-header-bg text-header-fg z-50 flex flex-col" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
             <div className="flex h-16">
                 <Link to="/dashboard"
-                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/dashboard") ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/dashboard") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                     <CoinsIcon className="size-5"/>
                     <span className="leading-tight text-center">tiny<br/>Money</span>
                 </Link>
@@ -125,20 +125,20 @@ export function Layout() {
                     dateFrom: startOfMonth(new Date()),
                     dateTo: endOfMonth(new Date())
                 })}
-                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/transactions") ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/transactions") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                     <ArrowLeftRightIcon className="size-5"/>
                     <span>Transakcje</span>
                 </Link>
 
                 <Link to="/budgets"
-                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/budgets") ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/budgets") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                     <WalletIcon className="size-5"/>
                     <span>Budżet</span>
                 </Link>
 
                 <Sheet open={reportsOpen} onOpenChange={setReportsOpen}>
                     <SheetTrigger asChild>
-                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                             <BarChart2Icon className="size-5"/>
                             <span>Raporty</span>
                         </button>
@@ -161,7 +161,7 @@ export function Layout() {
 
                 <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
                     <SheetTrigger asChild>
-                        <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 text-muted-foreground">
+                        <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 text-header-fg/60">
                             <MenuIcon className="size-5"/>
                             <span>Więcej</span>
                         </button>
