@@ -42,11 +42,14 @@ public class ImportService : IImportService
             return new InvalidInputResult<ImportResult>($"Unknown file type: {fileType}");
 
         var parsed = parser.ParseStream(fileStream);
-        return await CreateAndSaveTransactions(parsed);
+        return await CreateAndSaveTransactions(parsed, ct);
     }
 
-    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(IReadOnlyCollection<RawTransaction> parsed)
+    private async Task<ICommandResult<ImportResult>> CreateAndSaveTransactions(
+        IReadOnlyCollection<RawTransaction> parsed, CancellationToken ct)
     {
+        ct.ThrowIfCancellationRequested();
+        
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
