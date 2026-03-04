@@ -24,12 +24,13 @@ function App() {
     
     if (isLoading || error || !isAuthenticated) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col">
-                <header className="border-b bg-white">
-                    <div className="max-w-7xl mx-auto h-16 flex items-center justify-between">
-                        <div className="flex items-center gap-8 text-center">
-                            <span className="text-xl font-bold tracking-tight">TINY-Money</span>
-                        </div>
+            <div className="min-h-screen bg-background flex flex-col">
+                <header className="border-b bg-header-bg text-header-fg">
+                    <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
+                        <span className="text-lg tracking-tight leading-none">
+                            <span className="font-light font-sans">tiny</span>
+                            <span className="font-serif font-bold"> Money</span>
+                        </span>
                     </div>
                 </header>
 

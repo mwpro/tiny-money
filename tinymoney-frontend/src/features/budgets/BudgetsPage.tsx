@@ -50,27 +50,26 @@ export function BudgetsPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText(`Budżet - ${format(budgetPeriodReferenceDate, monthYearNameFormat, { locale: pl })}`)}</title>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Budżet</h1>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:justify-between sm:items-center">
-                <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
-                <ButtonGroup>
-                    <CopyBudgetDialog currentMonth={budgetPeriod} />
-                    <ButtonGroupSeparator />
-                    <Button asChild>
-                        <Link to={getTransactionsUrl({dateFrom: startOfMonth(budgetPeriodReferenceDate), dateTo: endOfMonth(budgetPeriodReferenceDate)})} target={"_blank"}>
-                            Zobacz transakcje
-                        </Link>
-                    </Button>                    
-                </ButtonGroup>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+                <h1 className="text-2xl font-bold font-serif">Budżet</h1>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <MonthPicker month={budgetPeriod} onChange={handlePeriodChange}/>
+                    <ButtonGroup>
+                        <CopyBudgetDialog currentMonth={budgetPeriod} />
+                        <ButtonGroupSeparator />
+                        <Button asChild>
+                            <Link to={getTransactionsUrl({dateFrom: startOfMonth(budgetPeriodReferenceDate), dateTo: endOfMonth(budgetPeriodReferenceDate)})} target={"_blank"}>
+                                Zobacz transakcje
+                            </Link>
+                        </Button>
+                    </ButtonGroup>
+                </div>
             </div>
 
             {(budgetQuery.isLoading || budgetSuggestionsQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
             {(budgetQuery.isError || budgetSuggestionsQuery.isError) &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {budgetQuery.data && budgetSuggestionsQuery.data &&
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">

@@ -69,7 +69,7 @@ export function SummaryReportPage() {
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText(`Podsumowanie - ${dateRangeDescription}`)}</title>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Raport - podsumowanie</h1>
+                <h1 className="text-2xl font-bold font-serif">Raport - podsumowanie</h1>
             </div>
 
             <div className="flex flex-wrap gap-3 mb-6">
@@ -88,7 +88,7 @@ export function SummaryReportPage() {
             {(reportQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
             {(reportQuery.isError) &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {reportQuery.data && reportQuery.data.periods.length == 0 &&
                 <Alert className="mb-6" variant="default">
                     <AlertTitle>Nie znaleziono transakcji w wybranym przedziale czasowym.</AlertTitle>

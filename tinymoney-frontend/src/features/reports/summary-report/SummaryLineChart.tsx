@@ -11,7 +11,6 @@ import {
     ChartLegend, 
 } from "@/components/ui/chart"
 import {useState} from "react";
-import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 
 interface SummaryLineChartProps {
     reportPeriods: ReportPeriod[],
@@ -72,7 +71,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             type="monotone"
                             name="Przychody"
                             strokeWidth={2}
-                            stroke={SeriesColorPalette[1]}
+                            stroke="#52b788"
                             dot={false}
                             hide={!activeSeries.includes("incomesSum")}
                         />
@@ -81,7 +80,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             type="monotone"
                             name="Wydatki"
                             strokeWidth={2}
-                            stroke={SeriesColorPalette[2]}
+                            stroke="#e07060"
                             dot={false}
                             hide={!activeSeries.includes("expensesSum")}
                         />
@@ -90,7 +89,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             type="monotone"
                             name="Bilans"
                             strokeWidth={2}
-                            stroke={SeriesColorPalette[0]}
+                            stroke="#5e9abf"
                             dot={false}
                             hide={!activeSeries.includes("balance")}
                         />
@@ -99,7 +98,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             type="monotone"
                             name="Budżet"
                             strokeWidth={2}
-                            stroke={SeriesColorPalette[3]}
+                            stroke="#c9a96e"
                             dot={false}
                             hide={!activeSeries.includes("budget")}
                         /> }

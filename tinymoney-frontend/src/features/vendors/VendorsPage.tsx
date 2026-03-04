@@ -41,8 +41,8 @@ export function VendorsPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText("Sprzedawcy")}</title>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Sprzedawcy</h1>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+                <h1 className="text-2xl font-bold font-serif">Sprzedawcy</h1>
                 <VendorEditorDialog vendorToEdit={vendorToEdit} onClose={() => setVendorToEdit(undefined)} />
                 {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data}/> }
             </div>
@@ -63,7 +63,7 @@ export function VendorsPage() {
             {vendorsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
             {vendorsQuery.isError &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {vendorsQuery.data &&
                 <div className="border rounded-md">
                     <Table className={"table-auto"}>

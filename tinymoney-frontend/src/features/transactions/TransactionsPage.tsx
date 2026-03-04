@@ -141,8 +141,8 @@ export function TransactionsPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText(`Transakcje - ${dateRangeDescription}`)}</title>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Lista transakcji</h1>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+                <h1 className="text-2xl font-bold font-serif">Lista transakcji</h1>
                 <div className="flex gap-2">
                     {selectedIds.size > 0 && (
                         <Button variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
@@ -180,8 +180,8 @@ export function TransactionsPage() {
                                 }))
                             }} >
                                 {queryParams.isExpenseFilter == undefined && (<Diff />)}
-                                {queryParams.isExpenseFilter == false && (<Plus className={"text-green-600"} />)}
-                                {queryParams.isExpenseFilter == true && (<Minus className={"text-red-600"} />)}
+                                {queryParams.isExpenseFilter == false && (<Plus />)}
+                                {queryParams.isExpenseFilter == true && (<Minus />)}
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent side={"bottom"}>
@@ -300,7 +300,7 @@ export function TransactionsPage() {
             {(transactionsQuery.isLoading || vendorsQuery.isLoading || subcategoriesQuery.isLoading || tagsQuery.isLoading) &&
                 <div className="p-10">Ładowanie danych...</div>}
             {(transactionsQuery.isError || vendorsQuery.isError || subcategoriesQuery.isError || tagsQuery.isError) &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {transactionsQuery.data && vendorsQuery.data && subcategoriesQuery.data && tagsQuery.data &&
                 <TransactionsTable
                     transactions={transactionsQuery.data} vendors={vendorsQuery.data}

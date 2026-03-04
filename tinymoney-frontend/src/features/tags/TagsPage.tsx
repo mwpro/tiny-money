@@ -40,8 +40,8 @@ export function TagsPage() {
     return (
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText("Tagi")}</title>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Tagi</h1>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+                <h1 className="text-2xl font-bold font-serif">Tagi</h1>
                 <TagEditorDialog tagToEdit={tagToEdit} onClose={() => setTagToEdit(undefined)} />
                 <TagRemovalDialog tagToRemove={tagToRemove}/>
             </div>
@@ -62,7 +62,7 @@ export function TagsPage() {
             {tagsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
             {tagsQuery.isError &&
-                <div className="p-10 text-red-500">Błąd ładowania danych</div>}
+                <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {tagsQuery.data &&
                 <div className="border rounded-md">
                     <Table className={"table-auto"}>

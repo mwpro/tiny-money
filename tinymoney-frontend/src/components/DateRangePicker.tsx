@@ -228,14 +228,14 @@ export function DateRangePicker({dateFrom, dateTo, onChange, presets, monthYearM
                         {presets.map((p, i) => <Badge
                                 key={i}
                                 variant="secondary"
-                                className={`${usedPresetInternal && usedPresetInternal.name === p.name ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"} cursor-pointer`}
+                                className={`${usedPresetInternal && usedPresetInternal.name === p.name ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"} cursor-pointer`}
                                 onClick={() => usePreset(p)}>
                                 {typeof p.name === "string" ? p.name : p.name(new Date())}
                             </Badge>
                         )}
                         <Badge
                             variant="secondary"
-                            className={`${!usedPresetInternal ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"} cursor-pointer`}
+                            className={`${!usedPresetInternal ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"} cursor-pointer`}
                             onClick={() => {
                                 setUsedPresetInternal(undefined);
                             }}>
