@@ -2,11 +2,10 @@ import {BrowserRouter, Routes, Route, Navigate} from "react-router-dom"
 import { Layout } from "@/components/Layout"
 import { TransactionsPage } from "@/features/transactions/TransactionsPage"
 import {useAuth0} from "@auth0/auth0-react";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {BudgetsPage} from "@/features/budgets/BudgetsPage.tsx";
 import {DashboardPage} from "@/features/dashboard/DashboardPage.tsx";
-import {Spinner} from "@/components/ui/spinner.tsx";
-import {AlertCircleIcon} from "lucide-react";
+import {CoinsIcon, AlertCircleIcon} from "lucide-react";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {SummaryReportPage} from "@/features/reports/summary-report/SummaryReportPage.tsx";
 import {TopListReportPage} from "@/features/reports/toplist-report/TopListReportPage.tsx";
@@ -16,65 +15,82 @@ import {VendorsPage} from "@/features/vendors/VendorsPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
+    const [splashVisible, setSplashVisible] = useState(true);
+    const [splashRendered, setSplashRendered] = useState(true);
+
+    useEffect(() => {
+        // Remove the static HTML splash now that React has taken over
+        document.getElementById('splash')?.remove();
+    }, []);
+
+    useEffect(() => {
+        if (!isLoading && !error) {
+            setSplashVisible(false);
+        } else if (isLoading) {
+            setSplashVisible(true);
+            setSplashRendered(true);
+        }
+    }, [isLoading, error]);
+
     useEffect(() => {
         if (!isLoading && !isAuthenticated && !error) {
             loginWithRedirect();
         }
     }, [isLoading, isAuthenticated, error, loginWithRedirect]);
-    
-    if (isLoading || error || !isAuthenticated) {
-        return (
-            <div className="min-h-screen bg-background flex flex-col">
-                <header className="border-b bg-header-bg text-header-fg">
-                    <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
-                        <span className="text-lg tracking-tight leading-none">
-                            <span className="font-light font-sans">tiny</span>
-                            <span className="font-serif font-bold"> Money</span>
-                        </span>
-                    </div>
-                </header>
 
-                <main className="flex-1 py-8">
-                    {isLoading && 
-                        <div className="max-w-7xl mx-auto text-2xl flex items-center flex-col gap-3">
-                            <div>Ładowanie</div>
-                            <Spinner className="size-8" />
-                        </div>}
-                    {error &&
-                        <Alert className="max-w-7xl mx-auto mb-6" variant="destructive">
-                            <AlertCircleIcon />
-                            <AlertTitle>Ups!</AlertTitle>
-                            <AlertDescription>
-                                <p>Wystąpił błąd.</p>
-                                <p>{error.message}</p>
-                            </AlertDescription>
-                        </Alert>}
-                </main>
+    if (error) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center p-8">
+                <Alert className="max-w-md" variant="destructive">
+                    <AlertCircleIcon />
+                    <AlertTitle>Ups!</AlertTitle>
+                    <AlertDescription>
+                        <p>Wystąpił błąd.</p>
+                        <p>{error.message}</p>
+                    </AlertDescription>
+                </Alert>
             </div>
         );
     }
-    
+
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Layout />}>
+        <>
+            {splashRendered && (
+                <div
+                    className={`fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-header-bg text-header-fg transition-opacity duration-500 ${splashVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                    onTransitionEnd={() => { if (!splashVisible) setSplashRendered(false); }}
+                >
+                    <CoinsIcon className="size-14" strokeWidth={1.5} />
+                    <div className="text-2xl tracking-tight leading-none">
+                        <span className="font-light font-sans">tiny</span>
+                        <span className="font-serif font-bold"> Money</span>
+                    </div>
+                </div>
+            )}
 
-                    <Route index element={<Navigate to="/dashboard" replace />} />
+            {isAuthenticated && (
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Layout />}>
 
-                    <Route path="dashboard" element={<DashboardPage />} />
-                    <Route path="transactions" element={<TransactionsPage />} />
-                    <Route path="reports/summary" element={<SummaryReportPage />} />
-                    <Route path="reports/top-list" element={<TopListReportPage />} />
-                    <Route path="reports/sankey" element={<SankeyReportPage />} />
-                    <Route path="budgets" element={<BudgetsPage />} />
-                    <Route path="tags" element={<TagsPage />} />
-                    <Route path="vendors" element={<VendorsPage />} />
-                    
-                    {/*fallback*/}
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Route>
-            </Routes>
-        </BrowserRouter>
+                            <Route index element={<Navigate to="/dashboard" replace />} />
+
+                            <Route path="dashboard" element={<DashboardPage />} />
+                            <Route path="transactions" element={<TransactionsPage />} />
+                            <Route path="reports/summary" element={<SummaryReportPage />} />
+                            <Route path="reports/top-list" element={<TopListReportPage />} />
+                            <Route path="reports/sankey" element={<SankeyReportPage />} />
+                            <Route path="budgets" element={<BudgetsPage />} />
+                            <Route path="tags" element={<TagsPage />} />
+                            <Route path="vendors" element={<VendorsPage />} />
+
+                            {/*fallback*/}
+                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        </Route>
+                    </Routes>
+                </BrowserRouter>
+            )}
+        </>
     )
 }
 
