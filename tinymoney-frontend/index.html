@@ -24,6 +24,17 @@
           rel="stylesheet">
 </head>
 <body>
+<div id="splash" style="position:fixed;inset:0;z-index:9999;background-color:oklch(0.35 0.03 148.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;transition:opacity 0.4s ease">
+    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="oklch(0.95 0.01 144.33)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/>
+        <path d="M18.09 10.37A6 6 0 1 1 10.34 18"/>
+        <path d="M7 6h1v4"/>
+        <line x1="16.71" x2="18.09" y1="13.5" y2="10.37"/>
+    </svg>
+    <div style="font-size:1.5rem;letter-spacing:-0.025em;line-height:1;color:oklch(0.95 0.01 144.33)">
+        <span style="font-family:'Montserrat',sans-serif;font-weight:300">tiny</span><span style="font-family:'Merriweather',serif;font-weight:700"> Money</span>
+    </div>
+</div>
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 </body>
