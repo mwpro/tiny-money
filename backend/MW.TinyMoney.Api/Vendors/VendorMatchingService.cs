@@ -86,14 +86,34 @@ public class VendorMatchingService : IVendorMatchingService
             if (string.IsNullOrWhiteSpace(description))
                 return null;
 
-            var tokens = Tokenize(Preprocess(description));
+            var preprocessed = Preprocess(description);
+            var tokens = Tokenize(preprocessed);
             var scores = new Dictionary<int, int>();
 
+            // Step 1: exact token matching
             foreach (var token in tokens)
             {
                 if (!index.TryGetValue(token, out var entries)) continue;
                 foreach (var (vendorId, score) in entries)
                     scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
+            }
+
+            // Step 2: fallback for shattered words (e.g. "BIEDR ONKA" → "biedronka")
+            // Concatenate all non-stop fragments (keeping short pieces that were filtered
+            // from normal tokenization) and substring-scan the index against the result.
+            if (scores.Count == 0)
+            {
+                var concatenated = preprocessed
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Where(t => !StopTokens.Contains(t))
+                    .Aggregate(string.Empty, (acc, t) => acc + t);
+
+                foreach (var (indexToken, entries) in index)
+                {
+                    if (indexToken.Length >= 4 && concatenated.Contains(indexToken, StringComparison.Ordinal))
+                        foreach (var (vendorId, score) in entries)
+                            scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
+                }
             }
 
             if (scores.Count == 0)
