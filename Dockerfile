@@ -10,8 +10,8 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["backend/MW.TinyMoney.Api/MW.TinyMoney.Api.csproj", "MW.TinyMoney.Api/"]
 COPY ["backend/MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj", "MW.TinyMoney.UnitTests/"]
-RUN dotnet restore "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj"
-RUN dotnet restore "MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj"
+COPY ["backend/MW.TinyMoney.sln", "."]
+RUN dotnet restore
 COPY /backend .
 RUN dotnet test "MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj" --no-restore -c Release
 COPY --from=frontbuild /src/dist /src/MW.TinyMoney.Api/wwwroot
