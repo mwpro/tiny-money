@@ -26,6 +26,9 @@ function App() {
     useEffect(() => {
         if (!isLoading && !error) {
             setSplashVisible(false);
+        } else if (isLoading) {
+            setSplashVisible(true);
+            setSplashRendered(true);
         }
     }, [isLoading, error]);
 
