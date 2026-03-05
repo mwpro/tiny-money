@@ -57,6 +57,19 @@ public class ImportService : IImportService
         if (parsed.Count == 0)
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
+        // TODO: refactor import into a configurable pipeline (builder pattern, async stages):
+        //   1. Parse          – bank-format parsers
+        //   2. Enrich         – vendor matching (current step), category defaults
+        //   3. Deduplicate    – skip already-imported rows
+        //   4. Persist        – bulk insert
+        //
+        // Vendor matching improvement ideas:
+        //   - LLM fallback: if token matcher scores 0, ask LLM to pick the best match
+        //     from the existing vendor list given the raw description.
+        //   - LLM extraction: if LLM also can't match, ask it to extract the merchant
+        //     name from the description and create a new vendor assigned to a suggested
+        //     category (requires a "new vendor" confirmation UI flow).
+
         var now = DateTime.UtcNow;
         var matchVendor = await _vendorMatchingService.CreateMatcher();
         var transactions = parsed.Select(raw =>
