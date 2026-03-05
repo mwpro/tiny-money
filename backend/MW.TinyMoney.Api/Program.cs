@@ -74,6 +74,8 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "MW.TinyMoney API", Version = "v1" });
     });
 
+    services.AddMemoryCache();
+
     services.AddTransient<MySqlConnectionFactory>();
     services.AddTransient<ITagStore, MySqlTagStore>();
     services.AddTransient<IBufferedTransactionStore, MySqlBufferedTransactionStore>();

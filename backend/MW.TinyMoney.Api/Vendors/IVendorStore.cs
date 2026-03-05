@@ -2,6 +2,7 @@
 using Dapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Vendors
@@ -49,10 +50,12 @@ namespace MW.TinyMoney.Api.Vendors
     public class MySqlVendorStore : IVendorStore
     {
         private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+        private readonly IMemoryCache _cache;
 
-        public MySqlVendorStore(MySqlConnectionFactory mySqlConnectionFactory)
+        public MySqlVendorStore(MySqlConnectionFactory mySqlConnectionFactory, IMemoryCache cache)
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
+            _cache = cache;
         }
 
         private const string SaveVendorQuery =
@@ -122,8 +125,8 @@ namespace MW.TinyMoney.Api.Vendors
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
             vendor.Id = await connection.QuerySingleAsync<int>(SaveVendorQuery, vendor);
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
 
         public async Task<IEnumerable<Vendor>> GetVendors()
@@ -154,13 +157,13 @@ namespace MW.TinyMoney.Api.Vendors
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
             await connection.ExecuteAsync(UpdateVendorQuery,
                 new {
                     id = vendorId,
                     name = vendor.Name,
                     defaultSubcategoryId = vendor.DefaultSubcategoryId,
                 });
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
 
         public async Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId)
@@ -176,6 +179,7 @@ namespace MW.TinyMoney.Api.Vendors
             await connection.ExecuteAsync(DeleteVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
 
             await dbTransaction.CommitAsync();
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
 
         public async Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId)
@@ -197,6 +201,7 @@ namespace MW.TinyMoney.Api.Vendors
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
             var id = await connection.QuerySingleAsync<int>(AddVendorAliasQuery, new { vendorId, alias });
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
             return new VendorAlias { Id = id, VendorId = vendorId, Alias = alias };
         }
 
@@ -205,6 +210,7 @@ namespace MW.TinyMoney.Api.Vendors
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
             await connection.ExecuteAsync(DeleteVendorAliasQuery, new { id = aliasId });
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
     }
 }
