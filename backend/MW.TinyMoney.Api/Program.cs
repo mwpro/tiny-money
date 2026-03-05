@@ -79,6 +79,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IBufferedTransactionStore, MySqlBufferedTransactionStore>();
     services.AddTransient<ITransactionStore, MySqlTransactionStore>();
     services.AddTransient<IVendorStore, MySqlVendorStore>();
+    services.AddTransient<IVendorMatchingService, VendorMatchingService>();
     services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
     services.AddTransient<IReportsProvider, MySqlReportsProvider>();
     services.AddTransient<ISankeyReport, SankeyReport>();

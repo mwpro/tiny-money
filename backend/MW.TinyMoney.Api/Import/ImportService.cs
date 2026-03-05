@@ -8,6 +8,7 @@ using Dapper;
 using MW.TinyMoney.Api.Buffer;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Vendors;
 
 namespace MW.TinyMoney.Api.Import;
 
@@ -24,15 +25,18 @@ public class ImportService : IImportService
     private readonly IEnumerable<IFileImportParser> _parsers;
     private readonly Transaction.ITransactionStore _transactionStore;
     private readonly MySqlConnectionFactory _connectionFactory;
+    private readonly IVendorMatchingService _vendorMatchingService;
 
     public ImportService(
         IEnumerable<IFileImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
-        MySqlConnectionFactory connectionFactory)
+        MySqlConnectionFactory connectionFactory,
+        IVendorMatchingService vendorMatchingService)
     {
         _parsers = parsers;
         _transactionStore = transactionStore;
         _connectionFactory = connectionFactory;
+        _vendorMatchingService = vendorMatchingService;
     }
 
     public async Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct)
@@ -54,20 +58,25 @@ public class ImportService : IImportService
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
         var now = DateTime.UtcNow;
-        var transactions = parsed.Select(raw => new Transaction.ApiModels.Transaction
+        var matchVendor = await _vendorMatchingService.CreateMatcher();
+        var transactions = parsed.Select(raw =>
         {
-            Amount = raw.Amount,
-            IsExpense = raw.IsExpense,
-            TransactionDate = raw.TransactionDate,
-            Description = raw.RawDescription,
-            VendorId = ImportPlaceholders.VendorId,
-            SubcategoryId = ImportPlaceholders.SubcategoryId,
-            IsVerified = false,
-            IsPossibleDuplicate = false,
-            CreatedDate = now,
-            CreatedBy = "Import",
-            ModifiedDate = now,
-            TagIds = new List<int>()
+            var matchedVendor = matchVendor(raw.RawDescription);
+            return new Transaction.ApiModels.Transaction
+            {
+                Amount = raw.Amount,
+                IsExpense = raw.IsExpense,
+                TransactionDate = raw.TransactionDate,
+                Description = raw.RawDescription,
+                VendorId = matchedVendor?.Id ?? ImportPlaceholders.VendorId,
+                SubcategoryId = matchedVendor?.DefaultSubcategoryId ?? ImportPlaceholders.SubcategoryId,
+                IsVerified = false,
+                IsPossibleDuplicate = false,
+                CreatedDate = now,
+                CreatedBy = "Import",
+                ModifiedDate = now,
+                TagIds = new List<int>()
+            };
         }).ToList();
 
         await DetectDuplicates(transactions);

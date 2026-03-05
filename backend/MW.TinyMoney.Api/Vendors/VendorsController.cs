@@ -9,14 +9,20 @@ using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Vendors
 {
+    public record VendorAliasDto(int Id, string Alias);
+    public record AddVendorAliasRequest(string Alias);
+    public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId);
+
     [ApiController, Route("/api/vendors"), Authorize]
     public class VendorsController : ControllerBase
     {
         private readonly IVendorStore _vendorStore;
+        private readonly IVendorMatchingService _vendorMatchingService;
 
-        public VendorsController(IVendorStore vendorStore)
+        public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService)
         {
             _vendorStore = vendorStore;
+            _vendorMatchingService = vendorMatchingService;
         }
 
         [HttpGet("")]
@@ -114,6 +120,43 @@ namespace MW.TinyMoney.Api.Vendors
                     }
                 }
             }
+        }
+
+        [HttpGet("suggest")]
+        [ProducesResponseType(typeof(VendorSuggestionDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> SuggestVendor([FromQuery] string description)
+        {
+            var vendor = await _vendorMatchingService.SuggestVendor(description);
+            if (vendor == null)
+                return NoContent();
+            return Ok(new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId));
+        }
+
+        [HttpGet("{vendorId}/aliases")]
+        [ProducesResponseType(typeof(IEnumerable<VendorAliasDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAliases([FromRoute] int vendorId)
+        {
+            var aliases = await _vendorStore.GetVendorAliases(vendorId);
+            return Ok(aliases.Select(a => new VendorAliasDto(a.Id, a.Alias)));
+        }
+
+        [HttpPost("{vendorId}/aliases")]
+        [ProducesResponseType(typeof(VendorAliasDto), StatusCodes.Status201Created)]
+        public async Task<IActionResult> AddAlias([FromRoute] int vendorId, [FromBody] AddVendorAliasRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Alias))
+                return BadRequest("Alias cannot be empty");
+            var created = await _vendorStore.AddVendorAlias(vendorId, request.Alias.Trim());
+            return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(created.Id, created.Alias));
+        }
+
+        [HttpDelete("{vendorId}/aliases/{aliasId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteAlias([FromRoute] int vendorId, [FromRoute] int aliasId)
+        {
+            await _vendorStore.DeleteVendorAlias(aliasId);
+            return NoContent();
         }
     }
 }

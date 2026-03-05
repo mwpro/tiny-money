@@ -1,4 +1,4 @@
-import type {Vendor, VendorDetails} from "@/api/ApiTypes.ts";
+import type {Vendor, VendorAlias, VendorDetails} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 
@@ -8,6 +8,9 @@ export interface VendorsClient {
     addVendor(newVendor: VendorInputs): Promise<void>;
     editVendor(vendorId: number, newVendor: VendorInputs): Promise<void>;
     removeVendor(vendorId: number, vendorIdToMerge: number | undefined): Promise<void>;
+    getVendorAliases(vendorId: number): Promise<VendorAlias[]>;
+    addVendorAlias(vendorId: number, alias: string): Promise<VendorAlias>;
+    deleteVendorAlias(vendorId: number, aliasId: number): Promise<void>;
 }
 
 export class VendorsClientImpl extends ApiBase implements VendorsClient {
@@ -36,5 +39,22 @@ export class VendorsClientImpl extends ApiBase implements VendorsClient {
     async removeVendor(vendorId: number, vendorIdToMerge: number | undefined): Promise<void> {
         const res = await this.request('DELETE', `/vendors/${vendorId}`, {mergeToVendorId: vendorIdToMerge});
         if (!res.ok) throw new Error('Błąd podczas usuwania sprzedawcy');
+    }
+
+    async getVendorAliases(vendorId: number): Promise<VendorAlias[]> {
+        const res = await this.request('GET', `/vendors/${vendorId}/aliases`);
+        if (!res.ok) throw new Error('Błąd pobierania aliasów');
+        return res.json();
+    }
+
+    async addVendorAlias(vendorId: number, alias: string): Promise<VendorAlias> {
+        const res = await this.request('POST', `/vendors/${vendorId}/aliases`, {alias});
+        if (!res.ok) throw new Error('Błąd podczas dodawania aliasu');
+        return res.json();
+    }
+
+    async deleteVendorAlias(vendorId: number, aliasId: number): Promise<void> {
+        const res = await this.request('DELETE', `/vendors/${vendorId}/aliases/${aliasId}`);
+        if (!res.ok) throw new Error('Błąd podczas usuwania aliasu');
     }
 }

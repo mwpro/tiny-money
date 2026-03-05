@@ -13,6 +13,13 @@ namespace MW.TinyMoney.Api.Vendors
         public int DefaultSubcategoryId { get; set; }
     }
 
+    public class VendorAlias
+    {
+        public int Id { get; set; }
+        public int VendorId { get; set; }
+        public string Alias { get; set; }
+    }
+
     public class VendorDetails
     {
         public int Id { get; set; }
@@ -33,6 +40,10 @@ namespace MW.TinyMoney.Api.Vendors
         Task<VendorDetails> GetVendorDetails(int vendorId);
         Task UpdateVendor(int vendorId, Vendor vendor);
         Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId);
+        Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId);
+        Task<IEnumerable<VendorAlias>> GetAllAliases();
+        Task<VendorAlias> AddVendorAlias(int vendorId, string alias);
+        Task DeleteVendorAlias(int aliasId);
     }
 
     public class MySqlVendorStore : IVendorStore
@@ -94,6 +105,18 @@ namespace MW.TinyMoney.Api.Vendors
               WHERE vendor_id = @fromVendorId";
 
         private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
+
+        private const string GetVendorAliasesQuery =
+            "SELECT id, vendor_id AS vendorId, alias FROM vendor_alias WHERE vendor_id = @vendorId";
+
+        private const string GetAllAliasesQuery =
+            "SELECT id, vendor_id AS vendorId, alias FROM vendor_alias";
+
+        private const string AddVendorAliasQuery =
+            "INSERT INTO vendor_alias (vendor_id, alias) VALUES (@vendorId, @alias); SELECT LAST_INSERT_ID();";
+
+        private const string DeleteVendorAliasQuery =
+            "DELETE FROM vendor_alias WHERE id = @id";
         
         public async Task SaveVendor(Vendor vendor)
         {
@@ -145,14 +168,43 @@ namespace MW.TinyMoney.Api.Vendors
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
             await using var dbTransaction = await connection.BeginTransactionAsync();
-            
+
             if (mergeToVendorId.HasValue)
             {
                 await connection.ExecuteAsync(MoveTransactionsBetweenVendors, new { fromVendorId = vendorToDelete.Id, toVendorId = mergeToVendorId.Value }, dbTransaction);
             }
             await connection.ExecuteAsync(DeleteVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
-                
+
             await dbTransaction.CommitAsync();
+        }
+
+        public async Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            return await connection.QueryAsync<VendorAlias>(GetVendorAliasesQuery, new { vendorId });
+        }
+
+        public async Task<IEnumerable<VendorAlias>> GetAllAliases()
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            return await connection.QueryAsync<VendorAlias>(GetAllAliasesQuery);
+        }
+
+        public async Task<VendorAlias> AddVendorAlias(int vendorId, string alias)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            var id = await connection.QuerySingleAsync<int>(AddVendorAliasQuery, new { vendorId, alias });
+            return new VendorAlias { Id = id, VendorId = vendorId, Alias = alias };
+        }
+
+        public async Task DeleteVendorAlias(int aliasId)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(DeleteVendorAliasQuery, new { id = aliasId });
         }
     }
 }
