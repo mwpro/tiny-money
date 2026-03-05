@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.TinyMoney.Api", "MW.TinyMoney.Api\MW.TinyMoney.Api.csproj", "{8D428788-6CD4-4BB5-BEB6-7EF3EA80E998}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.TinyMoney.Api.Tests", "MW.TinyMoney.Api.Tests\MW.TinyMoney.Api.Tests.csproj", "{C3D4E5F6-A7B8-4C9D-8E1F-23456789ABCD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MW.TinyMoney.UnitTests", "MW.TinyMoney.UnitTests\MW.TinyMoney.UnitTests.csproj", "{C3D4E5F6-A7B8-4C9D-8E1F-23456789ABCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

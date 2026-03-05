@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Vendors;
 
-namespace MW.TinyMoney.Api.Tests.Vendors;
+namespace MW.TinyMoney.UnitTests.Vendors;
 
 public class VendorMatchingServiceTests
 {
