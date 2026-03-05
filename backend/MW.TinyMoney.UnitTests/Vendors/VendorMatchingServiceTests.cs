@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Vendors;
+using Xunit;
 
 namespace MW.TinyMoney.UnitTests.Vendors;
 
