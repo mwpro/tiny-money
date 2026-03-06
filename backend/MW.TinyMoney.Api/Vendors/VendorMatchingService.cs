@@ -1,9 +1,6 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -19,21 +16,15 @@ public class VendorMatchingService : IVendorMatchingService
 {
     public const string IndexCacheKey = "vendor_matching_index";
 
-    // Common noise tokens in Polish bank statement descriptions
-    private static readonly HashSet<string> StopTokens = new(
-        File.ReadAllLines("Vendors/StopTokens.txt"),
-        StringComparer.OrdinalIgnoreCase);
-
-    private static readonly IReadOnlyCollection<Regex> StopPatterns = File.ReadAllLines("Vendors/StopPatterns.txt")
-        .Select(pattern => new Regex(pattern.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
-
     private readonly IVendorStore _vendorStore;
     private readonly IMemoryCache _cache;
+    private readonly DescriptionPreprocessor _preprocessor;
 
-    public VendorMatchingService(IVendorStore vendorStore, IMemoryCache cache)
+    public VendorMatchingService(IVendorStore vendorStore, IMemoryCache cache, DescriptionPreprocessor preprocessor)
     {
         _vendorStore = vendorStore;
         _cache = cache;
+        _preprocessor = preprocessor;
     }
 
     public async Task<Vendor?> SuggestVendor(string description)
@@ -42,10 +33,6 @@ public class VendorMatchingService : IVendorMatchingService
         return matcher(description);
     }
 
-    /// <summary>
-    /// Returns a cached synchronous match function built from the current vendor/alias data.
-    /// Rebuild is triggered automatically after any vendor or alias change via cache invalidation.
-    /// </summary>
     public async Task<Func<string, Vendor?>> CreateMatcher()
     {
         if (_cache.TryGetValue(IndexCacheKey, out Func<string, Vendor?> cached))
@@ -54,95 +41,8 @@ public class VendorMatchingService : IVendorMatchingService
         var vendors = (await _vendorStore.GetVendors()).ToList();
         var aliases = (await _vendorStore.GetAllAliases()).ToList();
 
-        var matcher = BuildMatcher(vendors, aliases);
-        _cache.Set(IndexCacheKey, matcher);
-        return matcher;
+        var index = new VendorIndex(vendors, aliases, _preprocessor);
+        _cache.Set(IndexCacheKey, (Func<string, Vendor?>)index.Match);
+        return index.Match;
     }
-
-    private static Func<string, Vendor?> BuildMatcher(
-        IList<Vendor> vendors, IList<VendorAlias> aliases)
-    {
-        // Inverted index: token → [(vendorId, score)]
-        // Alias tokens score 2 (explicit user mapping), vendor name tokens score 1 (implicit)
-        var index = new Dictionary<string, List<(int vendorId, int score)>>(StringComparer.Ordinal);
-
-        void AddToIndex(string text, int vendorId, int score)
-        {
-            foreach (var token in Tokenize(Preprocess(text)))
-            {
-                if (!index.TryGetValue(token, out var list))
-                    index[token] = list = new List<(int, int)>();
-                list.Add((vendorId, score));
-            }
-        }
-
-        foreach (var alias in aliases)
-            AddToIndex(alias.Alias, alias.VendorId, 2);
-        foreach (var vendor in vendors)
-            AddToIndex(vendor.Name, vendor.Id, 1);
-
-        var vendorById = vendors.ToDictionary(v => v.Id);
-
-        return description =>
-        {
-            if (string.IsNullOrWhiteSpace(description))
-                return null;
-
-            var preprocessed = Preprocess(description);
-            var tokens = Tokenize(preprocessed);
-            var scores = new Dictionary<int, int>();
-
-            // Step 1: exact token matching
-            foreach (var token in tokens)
-            {
-                if (!index.TryGetValue(token, out var entries)) continue;
-                foreach (var (vendorId, score) in entries)
-                    scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
-            }
-
-            // Step 2: fallback for shattered words (e.g. "BIEDR ONKA" → "biedronka")
-            // Concatenate all non-stop fragments (keeping short pieces that were filtered
-            // from normal tokenization) and substring-scan the index against the result.
-            if (scores.Count == 0)
-            {
-                var concatenated = preprocessed
-                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                    .Where(t => !StopTokens.Contains(t))
-                    .Aggregate(string.Empty, (acc, t) => acc + t);
-
-                foreach (var (indexToken, entries) in index)
-                {
-                    if (indexToken.Length >= 4 && concatenated.Contains(indexToken, StringComparison.Ordinal))
-                        foreach (var (vendorId, score) in entries)
-                            scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
-                }
-            }
-
-            if (scores.Count == 0)
-                return null;
-
-            var bestId = scores.MaxBy(kv => kv.Value).Key;
-            return vendorById.TryGetValue(bestId, out var vendor) ? vendor : null;
-        };
-    }
-
-    /// <summary>
-    /// Strips banking noise from a description before tokenization:
-    /// dates, card-number patterns, standalone numbers, then normalizes whitespace.
-    /// </summary>
-    private static string Preprocess(string text)
-    {
-        var s = text.ToLowerInvariant().Trim();
-        foreach (var stopPattern in StopPatterns)
-        {
-            s = stopPattern.Replace(s, " ");
-        }
-        return s.Trim();
-    }
-
-    private static IReadOnlyList<string> Tokenize(string preprocessed)
-        => preprocessed
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Where(t => t.Length >= 3 && !StopTokens.Contains(t))
-            .ToList();
 }
