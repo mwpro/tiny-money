@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Infrastructure;
+using MySqlConnector;
 
 namespace MW.TinyMoney.Api.Vendors
 {
@@ -43,7 +44,7 @@ namespace MW.TinyMoney.Api.Vendors
         Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId);
         Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId);
         Task<IEnumerable<VendorAlias>> GetAllAliases();
-        Task<VendorAlias> AddVendorAlias(int vendorId, string alias);
+        Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias);
         Task DeleteVendorAlias(int aliasId);
     }
 
@@ -106,7 +107,8 @@ namespace MW.TinyMoney.Api.Vendors
             @"UPDATE transaction
               SET vendor_id = @toVendorId
               WHERE vendor_id = @fromVendorId";
-
+        
+        private const string DeleteVendorAliasesForVendorQuery = "DELETE FROM vendor_alias WHERE vendor_id = @id";
         private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
 
         private const string GetVendorAliasesQuery =
@@ -176,6 +178,7 @@ namespace MW.TinyMoney.Api.Vendors
             {
                 await connection.ExecuteAsync(MoveTransactionsBetweenVendors, new { fromVendorId = vendorToDelete.Id, toVendorId = mergeToVendorId.Value }, dbTransaction);
             }
+            await connection.ExecuteAsync(DeleteVendorAliasesForVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
             await connection.ExecuteAsync(DeleteVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
 
             await dbTransaction.CommitAsync();
@@ -196,13 +199,21 @@ namespace MW.TinyMoney.Api.Vendors
             return await connection.QueryAsync<VendorAlias>(GetAllAliasesQuery);
         }
 
-        public async Task<VendorAlias> AddVendorAlias(int vendorId, string alias)
+        public async Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            var id = await connection.QuerySingleAsync<int>(AddVendorAliasQuery, new { vendorId, alias });
+            int id;
+            try
+            {
+                id = await connection.QuerySingleAsync<int>(AddVendorAliasQuery, new { vendorId, alias });
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                return Result<VendorAlias>.Conflict($"Alias '{alias}' is already assigned to another vendor");
+            }
             _cache.Remove(VendorMatchingService.IndexCacheKey);
-            return new VendorAlias { Id = id, VendorId = vendorId, Alias = alias };
+            return Result<VendorAlias>.Success(new VendorAlias { Id = id, VendorId = vendorId, Alias = alias });
         }
 
         public async Task DeleteVendorAlias(int aliasId)

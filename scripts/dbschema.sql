@@ -70,9 +70,9 @@ create table vendor_alias
         primary key,
     vendor_id int          not null,
     alias     varchar(255) not null,
+    constraint uq_vendor_alias_alias unique (alias),
     constraint fk_vendor_alias_vendor
         foreign key (vendor_id) references vendor (id)
-            on delete cascade
 )
     charset = latin2;
 

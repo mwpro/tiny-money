@@ -42,29 +42,14 @@ public class VendorIndex
         var preprocessed = _preprocessor.Preprocess(description);
         var scores = new Dictionary<int, int>();
 
-        // Step 1: exact token matching
-        foreach (var token in _preprocessor.Tokenize(preprocessed))
+        var tokens = _preprocessor.Tokenize(preprocessed)
+            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed)).ToList();
+        
+        foreach (var token in tokens)
         {
             if (!_index.TryGetValue(token, out var entries)) continue;
             foreach (var (vendorId, score) in entries)
                 scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
-        }
-
-        // Step 2: fallback for shattered words (e.g. "BIEDR ONKA" → "biedronka")
-        // Concatenate all non-stop fragments and substring-scan the index.
-        if (scores.Count == 0)
-        {
-            var concatenated = preprocessed
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Where(t => !_preprocessor.IsStopToken(t))
-                .Aggregate(string.Empty, (acc, t) => acc + t);
-
-            foreach (var (indexToken, entries) in _index)
-            {
-                if (indexToken.Length >= 4 && concatenated.Contains(indexToken, StringComparison.Ordinal))
-                    foreach (var (vendorId, score) in entries)
-                        scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
-            }
         }
 
         if (scores.Count == 0)

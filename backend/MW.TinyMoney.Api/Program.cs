@@ -79,13 +79,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMemoryCache();
 
-    services.AddSingleton(_ =>
-    {
-        var stopTokens = File.ReadAllLines("Vendors/StopTokens.txt");
-        var stopPatterns = File.ReadAllLines("Vendors/StopPatterns.txt")
-            .Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100)));
-        return new DescriptionPreprocessor(stopTokens, stopPatterns);
-    });
+    services.AddSingleton(_ => DescriptionPreprocessor.CreateFromFiles());
 
     services.AddTransient<MySqlConnectionFactory>();
     services.AddTransient<ITagStore, MySqlTagStore>();

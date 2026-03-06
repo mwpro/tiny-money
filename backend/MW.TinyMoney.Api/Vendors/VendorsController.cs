@@ -147,8 +147,10 @@ namespace MW.TinyMoney.Api.Vendors
         {
             if (string.IsNullOrWhiteSpace(request.Alias))
                 return BadRequest("Alias cannot be empty");
-            var created = await _vendorStore.AddVendorAlias(vendorId, request.Alias.Trim());
-            return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(created.Id, created.Alias));
+            var result = await _vendorStore.AddVendorAlias(vendorId, request.Alias.Trim());
+            if (!result.IsSuccess)
+                return Conflict(result.Error);
+            return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(result.Value!.Id, result.Value.Alias));
         }
 
         [HttpDelete("{vendorId}/aliases/{aliasId}")]

@@ -78,6 +78,14 @@ public class VendorIndexTests
     }
 
     [Fact]
+    public void HandlesShatteredWord_TwoFragments2()
+    {
+        var result = Build([MakeVendor(1, "Bella Napoli")]).Match(" Za\nmówienie 2026-01-16 13:21 w Be lla N apoli.");
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("Bella Napoli");
+    }
+
+    [Fact]
     public void HandlesShatteredWord_ThreeFragmentsWithShortPiece()
     {
         // "BI" is only 2 chars — filtered from tokenization but kept in concatenation
