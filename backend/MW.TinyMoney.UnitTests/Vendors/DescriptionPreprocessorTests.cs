@@ -1,5 +1,5 @@
 using FluentAssertions;
-using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.Vendors;

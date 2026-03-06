@@ -58,10 +58,10 @@ public class ImportService : IImportService
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
         var now = DateTime.UtcNow;
-        var matchVendor = await _vendorMatchingService.CreateMatcher();
+        var matcher = await _vendorMatchingService.CreateMatcher();
         var transactions = parsed.Select(raw =>
         {
-            var matchedVendor = matchVendor(raw.RawDescription);
+            var matchedVendor = matcher.Match(raw.RawDescription, 1).FirstOrDefault();
             return new Transaction.ApiModels.Transaction
             {
                 Amount = raw.Amount,

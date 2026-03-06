@@ -21,6 +21,7 @@ using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 using IngCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.IngCsvBankStatementParser;
 using PekaoCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.PekaoCsvBankStatementParser;
 

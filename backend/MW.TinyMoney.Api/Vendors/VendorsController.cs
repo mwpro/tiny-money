@@ -127,10 +127,10 @@ namespace MW.TinyMoney.Api.Vendors
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SuggestVendor([FromQuery] string description)
         {
-            var vendor = await _vendorMatchingService.SuggestVendor(description);
-            if (vendor == null)
+            var vendors = await _vendorMatchingService.SuggestVendor(description, 5);
+            if (!vendors.Any())
                 return NoContent();
-            return Ok(new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId));
+            return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId)));
         }
 
         [HttpGet("{vendorId}/aliases")]

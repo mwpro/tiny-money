@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace MW.TinyMoney.Api.Vendors;
+namespace MW.TinyMoney.Api.Vendors.Matching;
 
 public class DescriptionPreprocessor
 {
@@ -25,8 +25,8 @@ public class DescriptionPreprocessor
 
     public static DescriptionPreprocessor CreateFromFiles()
     {
-        var stopTokens = File.ReadAllLines("Vendors/StopTokens.txt");
-        var stopPatterns = File.ReadAllLines("Vendors/StopPatterns.txt");
+        var stopTokens = File.ReadAllLines("Vendors/Matching/StopTokens.txt");
+        var stopPatterns = File.ReadAllLines("Vendors/Matching/StopPatterns.txt");
         return new DescriptionPreprocessor(stopTokens, stopPatterns);
     }
 

@@ -1,5 +1,8 @@
 and
 anulowanie
+blik
+com
+dla
 for
 gmbh
 inc
@@ -15,6 +18,7 @@ odbiorca
 oo
 operacja
 operacja
+payu
 peopay
 pl
 platnosc
@@ -29,12 +33,17 @@ płatności
 realizacja
 rzecz
 sa
+sklep
 sp
+store
 the
+tpay
 transakcja
 tytułem
 uzyciu
 via
+warszawa
+www
 wychodzacy
 wykonanej
 z

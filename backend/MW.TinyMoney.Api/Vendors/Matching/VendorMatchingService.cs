@@ -1,15 +1,17 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Vendors;
 
 public interface IVendorMatchingService
 {
-    Task<Vendor?> SuggestVendor(string description);
-    Task<Func<string, Vendor?>> CreateMatcher();
+    Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit);
+    Task<VendorIndex> CreateMatcher();
 }
 
 public class VendorMatchingService : IVendorMatchingService
@@ -27,22 +29,22 @@ public class VendorMatchingService : IVendorMatchingService
         _preprocessor = preprocessor;
     }
 
-    public async Task<Vendor?> SuggestVendor(string description)
+    public async Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit)
     {
-        var matcher = await CreateMatcher();
-        return matcher(description);
+        var index = await CreateMatcher();
+        return index.Match(description, limit);
     }
 
-    public async Task<Func<string, Vendor?>> CreateMatcher()
+    public async Task<VendorIndex> CreateMatcher()
     {
-        if (_cache.TryGetValue(IndexCacheKey, out Func<string, Vendor?> cached))
+        if (_cache.TryGetValue(IndexCacheKey, out VendorIndex cached))
             return cached!;
 
         var vendors = (await _vendorStore.GetVendors()).ToList();
         var aliases = (await _vendorStore.GetAllAliases()).ToList();
 
         var index = new VendorIndex(vendors, aliases, _preprocessor);
-        _cache.Set(IndexCacheKey, (Func<string, Vendor?>)index.Match);
-        return index.Match;
+        _cache.Set(IndexCacheKey, index);
+        return index;
     }
 }

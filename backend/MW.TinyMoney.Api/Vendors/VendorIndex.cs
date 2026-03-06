@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Vendors;
 
@@ -34,10 +35,10 @@ public class VendorIndex
         }
     }
 
-    public Vendor? Match(string description)
+    public IEnumerable<Vendor> Match(string description, int limit = 1)
     {
         if (string.IsNullOrWhiteSpace(description))
-            return null;
+            return [];
 
         var preprocessed = _preprocessor.Preprocess(description);
         var scores = new Dictionary<int, int>();
@@ -53,9 +54,13 @@ public class VendorIndex
         }
 
         if (scores.Count == 0)
-            return null;
+            return [];
 
-        var bestId = scores.MaxBy(kv => kv.Value).Key;
-        return _vendorById.TryGetValue(bestId, out var vendor) ? vendor : null;
+        return scores
+            .OrderByDescending(kv => kv.Value)
+            .Select(bestId => _vendorById.GetValueOrDefault(bestId.Key))
+            .Where(v => v != null)
+            .Take(limit)
+            .ToList();
     }
 }
