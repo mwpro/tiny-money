@@ -11,4 +11,12 @@
     <PackageReference Include="PdfPig" Version="0.1.13" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Vendors\StopTokens.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Vendors\StopPatterns.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -19,13 +20,12 @@ public class VendorMatchingService : IVendorMatchingService
     public const string IndexCacheKey = "vendor_matching_index";
 
     // Common noise tokens in Polish bank statement descriptions
-    private static readonly HashSet<string> StopTokens = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "pl", "sp", "sa", "z", "oo", "ltd", "gmbh", "inc",
-        "zakup", "przy", "uzyciu", "karty", "karta", "przelew",
-        "wychodzacy", "przychodzacy", "numer", "transakcja",
-        "platnosc", "operacja", "via", "the", "and", "for", "pln"
-    };
+    private static readonly HashSet<string> StopTokens = new(
+        File.ReadAllLines("Vendors/StopTokens.txt"),
+        StringComparer.OrdinalIgnoreCase);
+
+    private static readonly IReadOnlyCollection<Regex> StopPatterns = File.ReadAllLines("Vendors/StopPatterns.txt")
+        .Select(pattern => new Regex(pattern.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
 
     private readonly IVendorStore _vendorStore;
     private readonly IMemoryCache _cache;
@@ -133,11 +133,11 @@ public class VendorMatchingService : IVendorMatchingService
     private static string Preprocess(string text)
     {
         var s = text.ToLowerInvariant().Trim();
-        s = Regex.Replace(s, @"\b\d{1,2}[./\-]\d{1,2}[./\-]\d{2,4}\b", " "); // dates
-        s = Regex.Replace(s, @"(\d{4}[\s*xX]+){3}\d{4}", " ");                // card numbers
-        s = Regex.Replace(s, @"\b\d+[,.]?\d*\b", " ");                         // amounts/codes
-        s = Regex.Replace(s, @"[^\w\s]", " ");                                  // punctuation
-        return Regex.Replace(s, @"\s+", " ").Trim();
+        foreach (var stopPattern in StopPatterns)
+        {
+            s = stopPattern.Replace(s, " ");
+        }
+        return s.Trim();
     }
 
     private static IReadOnlyList<string> Tokenize(string preprocessed)
