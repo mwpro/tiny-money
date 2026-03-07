@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +48,7 @@ public class VendorMatcher : IVendorMatcher
         var scores = new Dictionary<int, int>();
 
         var tokens = _preprocessor.Tokenize(preprocessed)
-            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed)).ToList();
+            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed));
         
         foreach (var token in tokens)
         {

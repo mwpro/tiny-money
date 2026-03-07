@@ -124,7 +124,7 @@ namespace MW.TinyMoney.Api.Vendors
         }
 
         [HttpGet("suggest")]
-        [ProducesResponseType(typeof(VendorSuggestionDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SuggestVendor([FromQuery] string description)
         {
@@ -158,7 +158,7 @@ namespace MW.TinyMoney.Api.Vendors
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteAlias([FromRoute] int vendorId, [FromRoute] int aliasId)
         {
-            await _vendorStore.DeleteVendorAlias(aliasId);
+            await _vendorStore.DeleteVendorAlias(vendorId, aliasId);
             return NoContent();
         }
     }

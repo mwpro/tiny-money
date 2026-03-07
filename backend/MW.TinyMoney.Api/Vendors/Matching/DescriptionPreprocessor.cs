@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,7 +18,7 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
     private const int MinTokenLength = 3;
     private const int MaxShatterPieces = 3;
     
-    private readonly Regex? _stopWordsPattern;
+    private readonly Regex _stopWordsPattern;
     private readonly IReadOnlyCollection<Regex> _stopPatterns;
 
     public DescriptionPreprocessor(IEnumerable<string> stopTokens, IEnumerable<string> stopPatterns)

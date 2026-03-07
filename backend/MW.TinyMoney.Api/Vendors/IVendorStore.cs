@@ -46,7 +46,7 @@ namespace MW.TinyMoney.Api.Vendors
         Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId);
         Task<IEnumerable<VendorAlias>> GetAllAliases();
         Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias);
-        Task DeleteVendorAlias(int aliasId);
+        Task DeleteVendorAlias(int vendorId, int aliasId);
     }
 
     public class MySqlVendorStore : IVendorStore
@@ -154,7 +154,7 @@ namespace MW.TinyMoney.Api.Vendors
         private const string DeleteVendorAliasQuery =
             """
             DELETE FROM vendor_alias 
-            WHERE id = @id
+            WHERE id = @aliasId AND vendor_id = @vendorId
             """;
         
         public async Task SaveVendor(Vendor vendor)
@@ -250,11 +250,11 @@ namespace MW.TinyMoney.Api.Vendors
             return Result<VendorAlias>.Success(new VendorAlias { Id = id, VendorId = vendorId, Alias = alias });
         }
 
-        public async Task DeleteVendorAlias(int aliasId)
+        public async Task DeleteVendorAlias(int vendorId, int aliasId)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            await connection.ExecuteAsync(DeleteVendorAliasQuery, new { id = aliasId });
+            await connection.ExecuteAsync(DeleteVendorAliasQuery, new { vendorId = vendorId, aliasId = aliasId });
             _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
     }

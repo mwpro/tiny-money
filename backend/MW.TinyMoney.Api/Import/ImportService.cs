@@ -8,7 +8,6 @@ using Dapper;
 using MW.TinyMoney.Api.Buffer;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
-using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Import;

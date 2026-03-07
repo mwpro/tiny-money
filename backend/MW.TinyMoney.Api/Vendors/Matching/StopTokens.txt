@@ -17,7 +17,6 @@ numer
 odbiorca
 oo
 operacja
-operacja
 payu
 peopay
 pl
