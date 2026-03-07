@@ -1,17 +1,15 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using MW.TinyMoney.Api.Vendors.Matching;
 
-namespace MW.TinyMoney.Api.Vendors;
+namespace MW.TinyMoney.Api.Vendors.Matching;
 
 public interface IVendorMatchingService
 {
     Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit);
-    Task<VendorIndex> CreateMatcher();
+    Task<IVendorMatcher> CreateMatcher();
 }
 
 public class VendorMatchingService : IVendorMatchingService
@@ -20,9 +18,9 @@ public class VendorMatchingService : IVendorMatchingService
 
     private readonly IVendorStore _vendorStore;
     private readonly IMemoryCache _cache;
-    private readonly DescriptionPreprocessor _preprocessor;
+    private readonly IDescriptionPreprocessor _preprocessor;
 
-    public VendorMatchingService(IVendorStore vendorStore, IMemoryCache cache, DescriptionPreprocessor preprocessor)
+    public VendorMatchingService(IVendorStore vendorStore, IMemoryCache cache, IDescriptionPreprocessor preprocessor)
     {
         _vendorStore = vendorStore;
         _cache = cache;
@@ -31,20 +29,20 @@ public class VendorMatchingService : IVendorMatchingService
 
     public async Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit)
     {
-        var index = await CreateMatcher();
-        return index.Match(description, limit);
+        var matcher = await CreateMatcher();
+        return matcher.Match(description, limit);
     }
 
-    public async Task<VendorIndex> CreateMatcher()
+    public async Task<IVendorMatcher> CreateMatcher()
     {
-        if (_cache.TryGetValue(IndexCacheKey, out VendorIndex cached))
+        if (_cache.TryGetValue<IVendorMatcher>(IndexCacheKey, out var cached))
             return cached!;
 
         var vendors = (await _vendorStore.GetVendors()).ToList();
         var aliases = (await _vendorStore.GetAllAliases()).ToList();
 
-        var index = new VendorIndex(vendors, aliases, _preprocessor);
-        _cache.Set(IndexCacheKey, index);
-        return index;
+        var matcher = new VendorMatcher(vendors, aliases, _preprocessor);
+        _cache.Set(IndexCacheKey, matcher);
+        return matcher;
     }
 }

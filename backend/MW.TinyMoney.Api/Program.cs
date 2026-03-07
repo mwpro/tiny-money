@@ -80,7 +80,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMemoryCache();
 
-    services.AddSingleton(_ => DescriptionPreprocessor.CreateFromFiles());
+    services.AddSingleton<IDescriptionPreprocessor>(_ => DescriptionPreprocessor.CreateFromFiles());
 
     services.AddTransient<MySqlConnectionFactory>();
     services.AddTransient<ITagStore, MySqlTagStore>();

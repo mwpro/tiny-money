@@ -6,13 +6,18 @@ using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Vendors;
 
-public class VendorIndex
+public interface IVendorMatcher
+{
+    IEnumerable<Vendor> Match(string description, int limit = 1);
+}
+
+public class VendorMatcher : IVendorMatcher
 {
     private readonly Dictionary<string, List<(int vendorId, int score)>> _index;
     private readonly Dictionary<int, Vendor> _vendorById;
-    private readonly DescriptionPreprocessor _preprocessor;
+    private readonly IDescriptionPreprocessor _preprocessor;
 
-    public VendorIndex(IList<Vendor> vendors, IList<VendorAlias> aliases, DescriptionPreprocessor preprocessor)
+    public VendorMatcher(IReadOnlyCollection<Vendor> vendors, IReadOnlyCollection<VendorAlias> aliases, IDescriptionPreprocessor preprocessor)
     {
         _preprocessor = preprocessor;
         _vendorById = vendors.ToDictionary(v => v.Id);

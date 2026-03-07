@@ -7,7 +7,14 @@ using System.Text.RegularExpressions;
 
 namespace MW.TinyMoney.Api.Vendors.Matching;
 
-public class DescriptionPreprocessor
+public interface IDescriptionPreprocessor
+{
+    string Preprocess(string text);
+    IReadOnlyCollection<string> Tokenize(string preprocessed);
+    IReadOnlyCollection<string> GenerateShatteredCombinations(string preprocessed);
+}
+
+public class DescriptionPreprocessor : IDescriptionPreprocessor
 {
     private const int MinTokenLength = 3;
     

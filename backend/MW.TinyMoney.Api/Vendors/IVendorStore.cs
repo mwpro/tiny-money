@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Vendors.Matching;
 using MySqlConnector;
 
 namespace MW.TinyMoney.Api.Vendors
@@ -60,17 +61,22 @@ namespace MW.TinyMoney.Api.Vendors
         }
 
         private const string SaveVendorQuery =
-              @"INSERT INTO vendor (name, default_subcategory_id)
-                VALUES(@name, @defaultSubcategoryId);
-                SELECT LAST_INSERT_ID();";
+            """
+            INSERT INTO vendor (name, default_subcategory_id)
+            VALUES(@name, @defaultSubcategoryId);
+            SELECT LAST_INSERT_ID();
+            """;
 
         private const string GetVendorsQuery =
-              @"SELECT id, name, default_subcategory_id as defaultSubcategoryId
-                FROM vendor";
+            """
+            SELECT id, name, default_subcategory_id as defaultSubcategoryId
+            FROM vendor
+            """;
 
 
         private const string GetVendorsDetailsQuery =
-            @"SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
+            """
+            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
                    s.name as subcategoryName,
                    c.name as categoryName,
                    c.is_income as isIncomeCategory,
@@ -81,10 +87,12 @@ namespace MW.TinyMoney.Api.Vendors
             LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
             LEFT JOIN category c on s.parent_category_id = c.id
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
-            ORDER BY v.name";
+            ORDER BY v.name
+            """;
         
         private const string GetVendorDetailsQuery =
-            @"SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
+            """
+            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
                    s.name as subcategoryName,
                    c.name as categoryName,
                    c.is_income as isIncomeCategory,
@@ -96,32 +104,58 @@ namespace MW.TinyMoney.Api.Vendors
             LEFT JOIN category c on s.parent_category_id = c.id
             WHERE v.id = @vendorId
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
-            ORDER BY v.name";
+            ORDER BY v.name
+            """;
 
         private const string UpdateVendorQuery = 
-            @"UPDATE vendor
-                set name = @name, default_subcategory_id = @defaultSubcategoryId 
-                where id = @id;";
+            """
+            UPDATE vendor
+            SET name = @name, default_subcategory_id = @defaultSubcategoryId 
+            WHERE id = @id;
+            """;
 
         private const string MoveTransactionsBetweenVendors =
-            @"UPDATE transaction
-              SET vendor_id = @toVendorId
-              WHERE vendor_id = @fromVendorId";
+            """
+            UPDATE transaction
+            SET vendor_id = @toVendorId
+            WHERE vendor_id = @fromVendorId
+            """;
         
-        private const string DeleteVendorAliasesForVendorQuery = "DELETE FROM vendor_alias WHERE vendor_id = @id";
-        private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
+        private const string DeleteVendorAliasesForVendorQuery = 
+            """
+            DELETE FROM vendor_alias 
+            WHERE vendor_id = @id
+            """;
+        private const string DeleteVendorQuery = 
+            """
+            DELETE FROM vendor 
+            WHERE id = @id
+            """;
 
         private const string GetVendorAliasesQuery =
-            "SELECT id, vendor_id AS vendorId, alias FROM vendor_alias WHERE vendor_id = @vendorId";
+            """
+            SELECT id, vendor_id AS vendorId, alias FROM vendor_alias 
+            WHERE vendor_id = @vendorId
+            """;
 
         private const string GetAllAliasesQuery =
-            "SELECT id, vendor_id AS vendorId, alias FROM vendor_alias";
+            """
+            SELECT id, vendor_id AS vendorId, alias 
+            FROM vendor_alias
+            """;
 
         private const string AddVendorAliasQuery =
-            "INSERT INTO vendor_alias (vendor_id, alias) VALUES (@vendorId, @alias); SELECT LAST_INSERT_ID();";
+            """
+            INSERT INTO vendor_alias (vendor_id, alias) 
+            VALUES (@vendorId, @alias); 
+            SELECT LAST_INSERT_ID();
+            """;
 
         private const string DeleteVendorAliasQuery =
-            "DELETE FROM vendor_alias WHERE id = @id";
+            """
+            DELETE FROM vendor_alias 
+            WHERE id = @id
+            """;
         
         public async Task SaveVendor(Vendor vendor)
         {
