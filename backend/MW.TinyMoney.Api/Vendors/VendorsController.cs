@@ -6,17 +6,25 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Vendors
 {
+    public record VendorAliasDto(int Id, string Alias);
+    public record VendorWithAliasesDto(VendorDetails Details, IEnumerable<VendorAliasDto> Aliases);
+    public record AddVendorAliasRequest(string Alias);
+    public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId);
+
     [ApiController, Route("/api/vendors"), Authorize]
     public class VendorsController : ControllerBase
     {
         private readonly IVendorStore _vendorStore;
+        private readonly IVendorMatchingService _vendorMatchingService;
 
-        public VendorsController(IVendorStore vendorStore)
+        public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService)
         {
             _vendorStore = vendorStore;
+            _vendorMatchingService = vendorMatchingService;
         }
 
         [HttpGet("")]
@@ -77,7 +85,7 @@ namespace MW.TinyMoney.Api.Vendors
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> DeleteVendor([FromRoute] int vendorId, [FromBody] DeleteVendorRequest deleteVendorRequest)
         {
-            var vendorToDelete = await _vendorStore.GetVendorDetails(vendorId);
+            var (vendorToDelete, _) = await _vendorStore.GetVendorWithAliases(vendorId);
             if (vendorToDelete == null)
             {
                 return NotFound();
@@ -106,7 +114,7 @@ namespace MW.TinyMoney.Api.Vendors
                         ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be different than deleted vendor");
                         return;
                     }
-                    var vendorToMerge = await _vendorStore.GetVendorDetails(deleteVendorRequest.MergeToVendorId.Value);
+                    var (vendorToMerge, _) = await _vendorStore.GetVendorWithAliases(deleteVendorRequest.MergeToVendorId.Value);
                     if (vendorToMerge == null)
                     {
                         ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Vendor selected for merge does not exist");
@@ -114,6 +122,48 @@ namespace MW.TinyMoney.Api.Vendors
                     }
                 }
             }
+        }
+
+        [HttpGet("suggest")]
+        [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> SuggestVendor([FromQuery] string description)
+        {
+            var vendors = await _vendorMatchingService.SuggestVendor(description, 5);
+            if (!vendors.Any())
+                return NoContent();
+            return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId)));
+        }
+
+        [HttpGet("{vendorId}")]
+        [ProducesResponseType(typeof(VendorWithAliasesDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetVendor([FromRoute] int vendorId)
+        {
+            var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
+            if (vendor is null)
+                return NotFound();
+            return Ok(new VendorWithAliasesDto(vendor.Details, vendor.Aliases.Select(a => new VendorAliasDto(a.Id, a.Alias))));
+        }
+
+        [HttpPost("{vendorId}/aliases")]
+        [ProducesResponseType(typeof(VendorAliasDto), StatusCodes.Status201Created)]
+        public async Task<IActionResult> AddAlias([FromRoute] int vendorId, [FromBody] AddVendorAliasRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Alias))
+                return BadRequest("Alias cannot be empty");
+            var result = await _vendorStore.AddVendorAlias(vendorId, request.Alias.Trim());
+            if (!result.IsSuccess)
+                return Conflict(result.Error);
+            return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(result.Value!.Id, result.Value.Alias));
+        }
+
+        [HttpDelete("{vendorId}/aliases/{aliasId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteAlias([FromRoute] int vendorId, [FromRoute] int aliasId)
+        {
+            await _vendorStore.DeleteVendorAlias(vendorId, aliasId);
+            return NoContent();
         }
     }
 }

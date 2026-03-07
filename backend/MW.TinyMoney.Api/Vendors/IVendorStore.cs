@@ -2,7 +2,10 @@
 using Dapper;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Vendors.Matching;
+using MySqlConnector;
 
 namespace MW.TinyMoney.Api.Vendors
 {
@@ -11,6 +14,13 @@ namespace MW.TinyMoney.Api.Vendors
         public int Id { get; set; }
         public string Name { get; set; }
         public int DefaultSubcategoryId { get; set; }
+    }
+
+    public class VendorAlias
+    {
+        public int Id { get; set; }
+        public int VendorId { get; set; }
+        public string Alias { get; set; }
     }
 
     public class VendorDetails
@@ -25,37 +35,49 @@ namespace MW.TinyMoney.Api.Vendors
         public DateTime? LastTransactionDate { get; set; }
     }
 
+    public record VendorWithAliases(VendorDetails Details, IEnumerable<VendorAlias> Aliases);
+
     public interface IVendorStore
     {
         Task SaveVendor(Vendor vendor);
         Task<IEnumerable<Vendor>> GetVendors();
         Task<IEnumerable<VendorDetails>> GetDetailedVendors();
-        Task<VendorDetails> GetVendorDetails(int vendorId);
+        Task<VendorWithAliases> GetVendorWithAliases(int vendorId);
         Task UpdateVendor(int vendorId, Vendor vendor);
         Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId);
+        Task<IEnumerable<VendorAlias>> GetAllAliases();
+        Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias);
+        Task DeleteVendorAlias(int vendorId, int aliasId);
     }
 
     public class MySqlVendorStore : IVendorStore
     {
         private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+        private readonly IMemoryCache _cache;
 
-        public MySqlVendorStore(MySqlConnectionFactory mySqlConnectionFactory)
+        public MySqlVendorStore(MySqlConnectionFactory mySqlConnectionFactory, IMemoryCache cache)
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
+            _cache = cache;
         }
 
         private const string SaveVendorQuery =
-              @"INSERT INTO vendor (name, default_subcategory_id)
-                VALUES(@name, @defaultSubcategoryId);
-                SELECT LAST_INSERT_ID();";
+            """
+            INSERT INTO vendor (name, default_subcategory_id)
+            VALUES(@name, @defaultSubcategoryId);
+            SELECT LAST_INSERT_ID();
+            """;
 
         private const string GetVendorsQuery =
-              @"SELECT id, name, default_subcategory_id as defaultSubcategoryId
-                FROM vendor";
+            """
+            SELECT id, name, default_subcategory_id as defaultSubcategoryId
+            FROM vendor
+            """;
 
 
         private const string GetVendorsDetailsQuery =
-            @"SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
+            """
+            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
                    s.name as subcategoryName,
                    c.name as categoryName,
                    c.is_income as isIncomeCategory,
@@ -66,10 +88,38 @@ namespace MW.TinyMoney.Api.Vendors
             LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
             LEFT JOIN category c on s.parent_category_id = c.id
             GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
-            ORDER BY v.name";
+            ORDER BY v.name
+            """;
         
-        private const string GetVendorDetailsQuery =
-            @"SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
+
+        private const string UpdateVendorQuery = 
+            """
+            UPDATE vendor
+            SET name = @name, default_subcategory_id = @defaultSubcategoryId 
+            WHERE id = @id;
+            """;
+
+        private const string MoveTransactionsBetweenVendors =
+            """
+            UPDATE transaction
+            SET vendor_id = @toVendorId
+            WHERE vendor_id = @fromVendorId
+            """;
+        
+        private const string DeleteVendorAliasesForVendorQuery = 
+            """
+            DELETE FROM vendor_alias 
+            WHERE vendor_id = @id
+            """;
+        private const string DeleteVendorQuery = 
+            """
+            DELETE FROM vendor 
+            WHERE id = @id
+            """;
+
+        private const string GetVendorWithAliasesQuery =
+            """
+            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
                    s.name as subcategoryName,
                    c.name as categoryName,
                    c.is_income as isIncomeCategory,
@@ -80,27 +130,35 @@ namespace MW.TinyMoney.Api.Vendors
             LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
             LEFT JOIN category c on s.parent_category_id = c.id
             WHERE v.id = @vendorId
-            GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
-            ORDER BY v.name";
+            GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income;
+            SELECT id, vendor_id AS vendorId, alias FROM vendor_alias WHERE vendor_id = @vendorId;
+            """;
 
-        private const string UpdateVendorQuery = 
-            @"UPDATE vendor
-                set name = @name, default_subcategory_id = @defaultSubcategoryId 
-                where id = @id;";
+        private const string GetAllAliasesQuery =
+            """
+            SELECT id, vendor_id AS vendorId, alias 
+            FROM vendor_alias
+            """;
 
-        private const string MoveTransactionsBetweenVendors =
-            @"UPDATE transaction
-              SET vendor_id = @toVendorId
-              WHERE vendor_id = @fromVendorId";
+        private const string AddVendorAliasQuery =
+            """
+            INSERT INTO vendor_alias (vendor_id, alias) 
+            VALUES (@vendorId, @alias); 
+            SELECT LAST_INSERT_ID();
+            """;
 
-        private const string DeleteVendorQuery = "DELETE FROM vendor WHERE id = @id";
+        private const string DeleteVendorAliasQuery =
+            """
+            DELETE FROM vendor_alias 
+            WHERE id = @aliasId AND vendor_id = @vendorId
+            """;
         
         public async Task SaveVendor(Vendor vendor)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
             vendor.Id = await connection.QuerySingleAsync<int>(SaveVendorQuery, vendor);
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
 
         public async Task<IEnumerable<Vendor>> GetVendors()
@@ -119,25 +177,29 @@ namespace MW.TinyMoney.Api.Vendors
             return await connection.QueryAsync<VendorDetails>(GetVendorsDetailsQuery);
         }
 
-        public async Task<VendorDetails> GetVendorDetails(int vendorId)
+        public async Task<VendorWithAliases> GetVendorWithAliases(int vendorId)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
-            return await connection.QuerySingleOrDefaultAsync<VendorDetails>(GetVendorDetailsQuery, new {vendorId = vendorId});
+            await using var multi = await connection.QueryMultipleAsync(GetVendorWithAliasesQuery, new { vendorId });
+            var details = await multi.ReadSingleOrDefaultAsync<VendorDetails>();
+            if (details is null)
+                return null;
+            var aliases = await multi.ReadAsync<VendorAlias>();
+            return new VendorWithAliases(details, aliases);
         }
 
         public async Task UpdateVendor(int vendorId, Vendor vendor)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
             await connection.ExecuteAsync(UpdateVendorQuery,
                 new {
                     id = vendorId,
                     name = vendor.Name,
                     defaultSubcategoryId = vendor.DefaultSubcategoryId,
                 });
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
 
         public async Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId)
@@ -145,14 +207,48 @@ namespace MW.TinyMoney.Api.Vendors
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
             await using var dbTransaction = await connection.BeginTransactionAsync();
-            
+
             if (mergeToVendorId.HasValue)
             {
                 await connection.ExecuteAsync(MoveTransactionsBetweenVendors, new { fromVendorId = vendorToDelete.Id, toVendorId = mergeToVendorId.Value }, dbTransaction);
             }
+            await connection.ExecuteAsync(DeleteVendorAliasesForVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
             await connection.ExecuteAsync(DeleteVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
-                
+
             await dbTransaction.CommitAsync();
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
+        }
+
+        public async Task<IEnumerable<VendorAlias>> GetAllAliases()
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            return await connection.QueryAsync<VendorAlias>(GetAllAliasesQuery);
+        }
+
+        public async Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            int id;
+            try
+            {
+                id = await connection.QuerySingleAsync<int>(AddVendorAliasQuery, new { vendorId, alias });
+            }
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                return Result<VendorAlias>.Conflict($"Alias '{alias}' is already assigned to another vendor");
+            }
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
+            return Result<VendorAlias>.Success(new VendorAlias { Id = id, VendorId = vendorId, Alias = alias });
+        }
+
+        public async Task DeleteVendorAlias(int vendorId, int aliasId)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(DeleteVendorAliasQuery, new { vendorId = vendorId, aliasId = aliasId });
+            _cache.Remove(VendorMatchingService.IndexCacheKey);
         }
     }
 }

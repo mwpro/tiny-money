@@ -18,6 +18,7 @@ using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 using IngCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.IngCsvBankStatementParser;
 using PekaoCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.PekaoCsvBankStatementParser;
 
@@ -74,11 +75,16 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "MW.TinyMoney API", Version = "v1" });
     });
 
+    services.AddMemoryCache();
+
+    services.AddSingleton<IDescriptionPreprocessor>(_ => DescriptionPreprocessor.CreateFromFiles());
+
     services.AddTransient<MySqlConnectionFactory>();
     services.AddTransient<ITagStore, MySqlTagStore>();
     services.AddTransient<IBufferedTransactionStore, MySqlBufferedTransactionStore>();
     services.AddTransient<ITransactionStore, MySqlTransactionStore>();
     services.AddTransient<IVendorStore, MySqlVendorStore>();
+    services.AddTransient<IVendorMatchingService, VendorMatchingService>();
     services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
     services.AddTransient<IReportsProvider, MySqlReportsProvider>();
     services.AddTransient<ISankeyReport, SankeyReport>();

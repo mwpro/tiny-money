@@ -28,4 +28,6 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: dotnet build
-        working-directory: backend/MW.TinyMoney.Api
+        working-directory: backend
+      - run: dotnet test --logger "console;verbosity=normal"
+        working-directory: backend/MW.TinyMoney.UnitTests

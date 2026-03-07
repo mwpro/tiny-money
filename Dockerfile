@@ -9,8 +9,11 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS apibuild
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["backend/MW.TinyMoney.Api/MW.TinyMoney.Api.csproj", "MW.TinyMoney.Api/"]
-RUN dotnet restore "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj"
+COPY ["backend/MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj", "MW.TinyMoney.UnitTests/"]
+COPY ["backend/MW.TinyMoney.sln", "."]
+RUN dotnet restore
 COPY /backend .
+RUN dotnet test "MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj" --no-restore -c Release
 COPY --from=frontbuild /src/dist /src/MW.TinyMoney.Api/wwwroot
 RUN dotnet publish "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
