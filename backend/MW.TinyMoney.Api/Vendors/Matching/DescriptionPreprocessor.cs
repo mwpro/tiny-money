@@ -17,6 +17,7 @@ public interface IDescriptionPreprocessor
 public class DescriptionPreprocessor : IDescriptionPreprocessor
 {
     private const int MinTokenLength = 3;
+    private const int MaxShatterPieces = 3;
     
     private readonly Regex? _stopWordsPattern;
     private readonly IReadOnlyCollection<Regex> _stopPatterns;
@@ -52,8 +53,6 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Where(t => t.Length >= MinTokenLength)
             .ToList();
-
-    private const int MaxShatterPieces = 3;
     
     public IReadOnlyCollection<string> GenerateShatteredCombinations(string preprocessed)
     {

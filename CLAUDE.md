@@ -76,9 +76,11 @@ Import staging area for bank statement parsing — transactions land in a buffer
 
 Changes are made via PRs to `master`.
 
-After making code changes, always verify compilation before finishing:
-- **Backend**: `cd backend/MW.TinyMoney.Api && dotnet build`
+After making code changes, always verify compilation and tests before finishing:
+- **Backend - build**: `cd backend && dotnet build`
+- **Backend - tests**: `cd backend && dotnet test`
 - **Frontend**: `cd tinymoney-frontend && npm run build`
+- **Frontend - tests**: no tests so far
 
 Fix any errors before considering the task done.
 
