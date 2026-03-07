@@ -24,10 +24,9 @@ public class StubVendorStore : IVendorStore
 
     public Task SaveVendor(Vendor vendor) => throw new NotImplementedException();
     public Task<IEnumerable<VendorDetails>> GetDetailedVendors() => throw new NotImplementedException();
-    public Task<VendorDetails> GetVendorDetails(int vendorId) => throw new NotImplementedException();
+    public Task<VendorWithAliases> GetVendorWithAliases(int vendorId) => throw new NotImplementedException();
     public Task UpdateVendor(int vendorId, Vendor vendor) => throw new NotImplementedException();
     public Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId) => throw new NotImplementedException();
-    public Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId) => throw new NotImplementedException();
     public Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias) => throw new NotImplementedException();
     public Task DeleteVendorAlias(int vendorId, int aliasId) => throw new NotImplementedException();
 }

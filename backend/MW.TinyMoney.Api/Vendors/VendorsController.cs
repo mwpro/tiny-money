@@ -11,6 +11,7 @@ using MW.TinyMoney.Api.Vendors.Matching;
 namespace MW.TinyMoney.Api.Vendors
 {
     public record VendorAliasDto(int Id, string Alias);
+    public record VendorWithAliasesDto(VendorDetails Details, IEnumerable<VendorAliasDto> Aliases);
     public record AddVendorAliasRequest(string Alias);
     public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId);
 
@@ -84,7 +85,7 @@ namespace MW.TinyMoney.Api.Vendors
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> DeleteVendor([FromRoute] int vendorId, [FromBody] DeleteVendorRequest deleteVendorRequest)
         {
-            var vendorToDelete = await _vendorStore.GetVendorDetails(vendorId);
+            var (vendorToDelete, _) = await _vendorStore.GetVendorWithAliases(vendorId);
             if (vendorToDelete == null)
             {
                 return NotFound();
@@ -113,7 +114,7 @@ namespace MW.TinyMoney.Api.Vendors
                         ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be different than deleted vendor");
                         return;
                     }
-                    var vendorToMerge = await _vendorStore.GetVendorDetails(deleteVendorRequest.MergeToVendorId.Value);
+                    var (vendorToMerge, _) = await _vendorStore.GetVendorWithAliases(deleteVendorRequest.MergeToVendorId.Value);
                     if (vendorToMerge == null)
                     {
                         ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Vendor selected for merge does not exist");
@@ -134,12 +135,15 @@ namespace MW.TinyMoney.Api.Vendors
             return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId)));
         }
 
-        [HttpGet("{vendorId}/aliases")]
-        [ProducesResponseType(typeof(IEnumerable<VendorAliasDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAliases([FromRoute] int vendorId)
+        [HttpGet("{vendorId}")]
+        [ProducesResponseType(typeof(VendorWithAliasesDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetVendor([FromRoute] int vendorId)
         {
-            var aliases = await _vendorStore.GetVendorAliases(vendorId);
-            return Ok(aliases.Select(a => new VendorAliasDto(a.Id, a.Alias)));
+            var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
+            if (vendor is null)
+                return NotFound();
+            return Ok(new VendorWithAliasesDto(vendor.Details, vendor.Aliases.Select(a => new VendorAliasDto(a.Id, a.Alias))));
         }
 
         [HttpPost("{vendorId}/aliases")]

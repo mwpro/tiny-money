@@ -1,4 +1,4 @@
-import type {Vendor, VendorAlias, VendorDetails} from "@/api/ApiTypes.ts";
+import type {Vendor, VendorAlias, VendorDetails, VendorWithAliases} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 
@@ -8,7 +8,7 @@ export interface VendorsClient {
     addVendor(newVendor: VendorInputs): Promise<void>;
     editVendor(vendorId: number, newVendor: VendorInputs): Promise<void>;
     removeVendor(vendorId: number, vendorIdToMerge: number | undefined): Promise<void>;
-    getVendorAliases(vendorId: number): Promise<VendorAlias[]>;
+    getVendor(vendorId: number): Promise<VendorWithAliases>;
     addVendorAlias(vendorId: number, alias: string): Promise<VendorAlias>;
     deleteVendorAlias(vendorId: number, aliasId: number): Promise<void>;
 }
@@ -41,9 +41,9 @@ export class VendorsClientImpl extends ApiBase implements VendorsClient {
         if (!res.ok) throw new Error('Błąd podczas usuwania sprzedawcy');
     }
 
-    async getVendorAliases(vendorId: number): Promise<VendorAlias[]> {
-        const res = await this.request('GET', `/vendors/${vendorId}/aliases`);
-        if (!res.ok) throw new Error('Błąd pobierania aliasów');
+    async getVendor(vendorId: number): Promise<VendorWithAliases> {
+        const res = await this.request('GET', `/vendors/${vendorId}`);
+        if (!res.ok) throw new Error('Błąd pobierania sprzedawcy');
         return res.json();
     }
 

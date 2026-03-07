@@ -1,7 +1,7 @@
 import {useEffect, useRef, useState} from "react"
 import {Controller, useForm} from "react-hook-form"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
-import {type VendorDetails} from "@/api/ApiTypes.ts"
+import {type VendorDetails, type VendorWithAliases} from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
@@ -78,16 +78,21 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
         ...dictionariesConfig
     })
 
-    const aliasesQuery = useQuery({
-        queryKey: ['vendor-aliases', vendorToEdit?.id],
-        queryFn: () => vendorsClient.getVendorAliases(vendorToEdit!.id),
+    const vendorQueryKey = ['vendor', vendorToEdit?.id]
+    
+    const vendorQuery = useQuery({
+        queryKey: vendorQueryKey,
+        queryFn: () => vendorsClient.getVendor(vendorToEdit!.id),
         enabled: !!vendorToEdit,
     })
 
     const addAliasMutation = useMutation({
         mutationFn: (alias: string) => vendorsClient.addVendorAlias(vendorToEdit!.id, alias),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['vendor-aliases', vendorToEdit?.id]})
+        onSuccess: (created) => {
+            queryClient.setQueryData(vendorQueryKey, (prev: VendorWithAliases) => ({
+                ...prev,
+                aliases: [...prev.aliases, created]
+            }))
             setNewAlias("")
             newAliasInputRef.current?.focus()
         },
@@ -96,8 +101,11 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
 
     const deleteAliasMutation = useMutation({
         mutationFn: (aliasId: number) => vendorsClient.deleteVendorAlias(vendorToEdit!.id, aliasId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['vendor-aliases', vendorToEdit?.id]})
+        onSuccess: (_, aliasId) => {
+            queryClient.setQueryData(vendorQueryKey, (prev: VendorWithAliases) => ({
+                ...prev,
+                aliases: prev.aliases.filter(a => a.id !== aliasId)
+            }))
         },
         onError: (error) => toast.error("Błąd: " + error.message)
     })
@@ -192,7 +200,7 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
                                 Jeśli opis transakcji zawiera dane słowo kluczowe, sprzedawca zostanie przypisany automatycznie podczas importu.
                             </p>
                             <div className="flex flex-wrap gap-1 min-h-6">
-                                {aliasesQuery.data?.map(a => (
+                                {vendorQuery.data?.aliases.map(a => (
                                     <span key={a.id}
                                           className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-xs font-medium">
                                         {a.alias}
@@ -206,7 +214,7 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
                                         </button>
                                     </span>
                                 ))}
-                                {aliasesQuery.data?.length === 0 && (
+                                {vendorQuery.data?.aliases.length === 0 && (
                                     <span className="text-xs text-muted-foreground">Brak słów kluczowych</span>
                                 )}
                             </div>

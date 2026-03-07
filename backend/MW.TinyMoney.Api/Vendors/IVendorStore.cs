@@ -35,15 +35,16 @@ namespace MW.TinyMoney.Api.Vendors
         public DateTime? LastTransactionDate { get; set; }
     }
 
+    public record VendorWithAliases(VendorDetails Details, IEnumerable<VendorAlias> Aliases);
+
     public interface IVendorStore
     {
         Task SaveVendor(Vendor vendor);
         Task<IEnumerable<Vendor>> GetVendors();
         Task<IEnumerable<VendorDetails>> GetDetailedVendors();
-        Task<VendorDetails> GetVendorDetails(int vendorId);
+        Task<VendorWithAliases> GetVendorWithAliases(int vendorId);
         Task UpdateVendor(int vendorId, Vendor vendor);
         Task DeleteVendor(VendorDetails vendorToDelete, int? mergeToVendorId);
-        Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId);
         Task<IEnumerable<VendorAlias>> GetAllAliases();
         Task<Result<VendorAlias>> AddVendorAlias(int vendorId, string alias);
         Task DeleteVendorAlias(int vendorId, int aliasId);
@@ -90,22 +91,6 @@ namespace MW.TinyMoney.Api.Vendors
             ORDER BY v.name
             """;
         
-        private const string GetVendorDetailsQuery =
-            """
-            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
-                   s.name as subcategoryName,
-                   c.name as categoryName,
-                   c.is_income as isIncomeCategory,
-                   COUNT(t.id) AS numberOfTransactions,
-                   MAX(t.transaction_date) AS lastTransactionDate
-            FROM vendor v
-            LEFT JOIN transaction t ON v.id = t.vendor_id
-            LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
-            LEFT JOIN category c on s.parent_category_id = c.id
-            WHERE v.id = @vendorId
-            GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income
-            ORDER BY v.name
-            """;
 
         private const string UpdateVendorQuery = 
             """
@@ -132,10 +117,21 @@ namespace MW.TinyMoney.Api.Vendors
             WHERE id = @id
             """;
 
-        private const string GetVendorAliasesQuery =
+        private const string GetVendorWithAliasesQuery =
             """
-            SELECT id, vendor_id AS vendorId, alias FROM vendor_alias 
-            WHERE vendor_id = @vendorId
+            SELECT v.id, v.name, default_subcategory_id as defaultSubcategoryId,
+                   s.name as subcategoryName,
+                   c.name as categoryName,
+                   c.is_income as isIncomeCategory,
+                   COUNT(t.id) AS numberOfTransactions,
+                   MAX(t.transaction_date) AS lastTransactionDate
+            FROM vendor v
+            LEFT JOIN transaction t ON v.id = t.vendor_id
+            LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
+            LEFT JOIN category c on s.parent_category_id = c.id
+            WHERE v.id = @vendorId
+            GROUP BY v.id, v.name, v.default_subcategory_id, s.name, c.name, c.is_income;
+            SELECT id, vendor_id AS vendorId, alias FROM vendor_alias WHERE vendor_id = @vendorId;
             """;
 
         private const string GetAllAliasesQuery =
@@ -181,12 +177,16 @@ namespace MW.TinyMoney.Api.Vendors
             return await connection.QueryAsync<VendorDetails>(GetVendorsDetailsQuery);
         }
 
-        public async Task<VendorDetails> GetVendorDetails(int vendorId)
+        public async Task<VendorWithAliases> GetVendorWithAliases(int vendorId)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            
-            return await connection.QuerySingleOrDefaultAsync<VendorDetails>(GetVendorDetailsQuery, new {vendorId = vendorId});
+            await using var multi = await connection.QueryMultipleAsync(GetVendorWithAliasesQuery, new { vendorId });
+            var details = await multi.ReadSingleOrDefaultAsync<VendorDetails>();
+            if (details is null)
+                return null;
+            var aliases = await multi.ReadAsync<VendorAlias>();
+            return new VendorWithAliases(details, aliases);
         }
 
         public async Task UpdateVendor(int vendorId, Vendor vendor)
@@ -217,13 +217,6 @@ namespace MW.TinyMoney.Api.Vendors
 
             await dbTransaction.CommitAsync();
             _cache.Remove(VendorMatchingService.IndexCacheKey);
-        }
-
-        public async Task<IEnumerable<VendorAlias>> GetVendorAliases(int vendorId)
-        {
-            await using var connection = _mySqlConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
-            return await connection.QueryAsync<VendorAlias>(GetVendorAliasesQuery, new { vendorId });
         }
 
         public async Task<IEnumerable<VendorAlias>> GetAllAliases()
