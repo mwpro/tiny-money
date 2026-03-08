@@ -51,6 +51,7 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
         => preprocessed
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Where(t => t.Length >= MinTokenLength)
+            .Distinct()
             .ToList();
     
     public IReadOnlyCollection<string> GenerateShatteredCombinations(string preprocessed)

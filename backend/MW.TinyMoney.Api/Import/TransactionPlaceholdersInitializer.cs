@@ -7,11 +7,11 @@ using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Import;
 
-public class ImportPlaceholdersInitializer : IHostedService
+public class TransactionPlaceholdersInitializer : IHostedService
 {
     private readonly MySqlConnectionFactory _connectionFactory;
 
-    public ImportPlaceholdersInitializer(MySqlConnectionFactory connectionFactory)
+    public TransactionPlaceholdersInitializer(MySqlConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
@@ -34,7 +34,7 @@ public class ImportPlaceholdersInitializer : IHostedService
                 "Please seed the 'Unknown' vendor and 'Uncategorized' subcategory.");
         }
 
-        ImportPlaceholders.Setup(vendorId.Value, subcategoryId.Value);
+        TransactionPlaceholders.Setup(vendorId.Value, subcategoryId.Value);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

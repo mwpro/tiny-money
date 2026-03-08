@@ -184,6 +184,15 @@ export interface TopEntry {
     numberOfTransactions: number
 }
 
+export type SuggestedAlias = { alias: string; vendorId: number };
+
+export type TransactionMutationResponse = {
+    transaction: Transaction;
+    newVendor?: VendorUpsert;
+    newTags?: TagUpsert[];
+    suggestedAlias?: SuggestedAlias | null;
+};
+
 export type NewTransaction = {
     amount: number;
     isExpense: boolean;

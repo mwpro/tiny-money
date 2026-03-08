@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
-using MW.TinyMoney.UnitTests.VendorsMatching.Helpers;
+using MW.TinyMoney.UnitTests.Stubs;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.VendorsMatching;
@@ -16,7 +16,9 @@ public class VendorMatchingServiceTests
     [Fact]
     public async Task CachesIndex_StoreQueriedOnlyOnce()
     {
-        var store = new StubVendorStore([MakeVendor(1, "Stonka")]);
+        var store = new VendorStoreStub();
+        store.Vendors = [MakeVendor(1, "Stonka")];
+        store.Aliases = [];
         var cache = new MemoryCache(new MemoryCacheOptions());
         var svc = new VendorMatchingService(store, cache, new DescriptionPreprocessorMock());
 

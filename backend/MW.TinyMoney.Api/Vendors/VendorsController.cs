@@ -20,11 +20,13 @@ namespace MW.TinyMoney.Api.Vendors
     {
         private readonly IVendorStore _vendorStore;
         private readonly IVendorMatchingService _vendorMatchingService;
+        private readonly IDescriptionPreprocessor _preprocessor;
 
-        public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService)
+        public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService, IDescriptionPreprocessor preprocessor)
         {
             _vendorStore = vendorStore;
             _vendorMatchingService = vendorMatchingService;
+            _preprocessor = preprocessor;
         }
 
         [HttpGet("")]
@@ -152,7 +154,21 @@ namespace MW.TinyMoney.Api.Vendors
         {
             if (string.IsNullOrWhiteSpace(request.Alias))
                 return BadRequest("Alias cannot be empty");
-            var result = await _vendorStore.AddVendorAlias(vendorId, request.Alias.Trim());
+
+            var alias = request.Alias.Trim();
+            var aliasTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(alias));
+            if (!aliasTokens.Any())
+                return BadRequest("Alias contains only words that are too short to be used for matching");
+
+            var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
+            if (vendor is null)
+                return NotFound();
+
+            var vendorNameTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(vendor.Details.Name));
+            if (new HashSet<string>(aliasTokens).SetEquals(vendorNameTokens))
+                return BadRequest("Alias cannot have the same keywords as the vendor name");
+
+            var result = await _vendorStore.AddVendorAlias(vendorId, alias);
             if (!result.IsSuccess)
                 return Conflict(result.Error);
             return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(result.Value!.Id, result.Value.Alias));

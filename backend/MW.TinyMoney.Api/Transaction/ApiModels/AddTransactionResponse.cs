@@ -3,6 +3,8 @@ using MW.TinyMoney.Api.Buffer.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction.ApiModels
 {
+    public record SuggestedAliasDto(string Alias, int VendorId);
+
     public class AddTransactionResponse
     {
         public AddTransactionResponse()
@@ -13,5 +15,6 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public Transaction Transaction { get; set; }
         public IList<TagDto> NewTags { get; set; }
         public VendorDto NewVendor { get; set; }
+        public SuggestedAliasDto SuggestedAlias { get; set; }
     }
 }

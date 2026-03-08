@@ -9,6 +9,7 @@ public interface IVendorMatchingService
 {
     Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit);
     Task<IVendorMatcher> CreateMatcher();
+    Task<string> SuggestAlias(int vendorId, string description);
 }
 
 public class VendorMatchingService : IVendorMatchingService
@@ -43,5 +44,17 @@ public class VendorMatchingService : IVendorMatchingService
         var matcher = new VendorMatcher(vendors, aliases, _preprocessor);
         _cache.Set(IndexCacheKey, matcher);
         return matcher;
+    }
+
+    public async Task<string> SuggestAlias(int vendorId, string description)
+    {
+        var matcher = await CreateMatcher();
+        if (matcher.MatchesVendor(vendorId, description))
+            return null;
+        var preprocessed = _preprocessor.Preprocess(description);
+        var tokenized = string.Join(" ", _preprocessor.Tokenize(preprocessed));
+        if (string.IsNullOrWhiteSpace(tokenized))
+            return null;
+        return tokenized;
     }
 }

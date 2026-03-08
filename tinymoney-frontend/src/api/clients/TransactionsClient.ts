@@ -1,7 +1,7 @@
 import type {
     ImportBankStatementResult,
     NewTransaction,
-    Transaction,
+    TransactionMutationResponse,
     TransactionQueryParams,
     TransactionsResponse
 } from "@/api/ApiTypes.ts";
@@ -11,8 +11,8 @@ import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface TransactionsClient {
     getTransactions(params: TransactionQueryParams): Promise<TransactionsResponse>;
-    addTransaction(newTransaction: NewTransaction): Promise<Transaction>;
-    editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<Transaction>;
+    addTransaction(newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
+    editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
     removeTransaction(transactionId: number): Promise<void>;
     removeTransactions(transactionIds: number[]): Promise<void>;
     importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
@@ -40,13 +40,13 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
         return res.json();
     }
 
-    async addTransaction(newTransaction: NewTransaction): Promise<Transaction> {
+    async addTransaction(newTransaction: NewTransaction): Promise<TransactionMutationResponse> {
         const res = await this.request('POST', '/transactions', newTransaction);
         if (!res.ok) throw new Error('Błąd podczas dodawania transakcji');
         return res.json();
     }
 
-    async editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<Transaction> {
+    async editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<TransactionMutationResponse> {
         const res = await this.request('POST', `/transactions/${transactionId}`, newTransaction);
         if (!res.ok) throw new Error('Błąd podczas zapisywania transakcji');
         return res.json();
