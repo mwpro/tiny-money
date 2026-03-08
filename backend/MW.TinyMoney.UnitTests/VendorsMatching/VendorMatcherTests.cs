@@ -10,7 +10,7 @@ public class VendorMatcherTests
 {
     private readonly DescriptionPreprocessorMock _descriptionPreprocessorMock = new DescriptionPreprocessorMock();
 
-    private VendorMatcher Build(IReadOnlyCollection<Vendor> vendors, IReadOnlyCollection<VendorAlias>? aliases = null)
+    private VendorMatcher Build(IReadOnlyCollection<Vendor> vendors, IReadOnlyCollection<VendorAlias> aliases = null)
         => new(vendors, aliases ?? [], _descriptionPreprocessorMock);
 
     private static Vendor MakeVendor(int id, string name) =>
@@ -91,7 +91,7 @@ public class VendorMatcherTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void ReturnsNull_ForEmptyOrWhitespace(string? description)
+    public void ReturnsNull_ForEmptyOrWhitespace(string description)
     {
         Build([MakeVendor(1, "Stonka")]).Match(description!).Should().BeEmpty();
     }
