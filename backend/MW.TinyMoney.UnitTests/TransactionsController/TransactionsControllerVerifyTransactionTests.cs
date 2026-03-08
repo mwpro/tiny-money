@@ -85,7 +85,7 @@ public class TransactionsControllerVerifyTransactionTests
     [Fact]
     public async Task SuggestsAlias_WhenImportedAndDescriptionDoesNotMatch()
     {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction();
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: RealVendorId);
         _vendorMatchingService.SuggestAliasResult = "some description";
 
         var response = (await _controller.VerifyTransaction(1))
@@ -94,7 +94,7 @@ public class TransactionsControllerVerifyTransactionTests
             .Subject;
 
         response.SuggestedAlias.Should().NotBeNull();
-        response.SuggestedAlias!.Alias.Should().Be("some description");
+        response.SuggestedAlias.Alias.Should().Be("some description");
         response.SuggestedAlias.VendorId.Should().Be(RealVendorId);
     }
 
