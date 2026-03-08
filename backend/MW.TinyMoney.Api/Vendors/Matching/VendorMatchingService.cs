@@ -9,6 +9,8 @@ public interface IVendorMatchingService
 {
     Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit);
     Task<IVendorMatcher> CreateMatcher();
+    void InvalidateCache();
+    Task<string> SuggestAlias(int vendorId, string description);
 }
 
 public class VendorMatchingService : IVendorMatchingService
@@ -43,5 +45,21 @@ public class VendorMatchingService : IVendorMatchingService
         var matcher = new VendorMatcher(vendors, aliases, _preprocessor);
         _cache.Set(IndexCacheKey, matcher);
         return matcher;
+    }
+
+    public void InvalidateCache()
+    {
+        _cache.Remove(IndexCacheKey);
+    }
+
+    public async Task<string> SuggestAlias(int vendorId, string description)
+    {
+        var matcher = await CreateMatcher();
+        if (matcher.MatchesVendor(vendorId, description))
+            return null;
+        var preprocessed = _preprocessor.Preprocess(description);
+        if (string.IsNullOrWhiteSpace(preprocessed))
+            return null;
+        return preprocessed;
     }
 }

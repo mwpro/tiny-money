@@ -9,6 +9,7 @@ using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Transaction
 {
@@ -18,12 +19,14 @@ namespace MW.TinyMoney.Api.Transaction
         private readonly ITransactionStore _transactionStore;
         private readonly IVendorStore _vendorStore;
         private readonly ITagStore _tagStore;
+        private readonly IVendorMatchingService _vendorMatchingService;
 
-        public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore)
+        public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore, IVendorMatchingService vendorMatchingService)
         {
             _transactionStore = transactionStore;
             _vendorStore = vendorStore;
             _tagStore = tagStore;
+            _vendorMatchingService = vendorMatchingService;
         }
 
         [HttpGet("")]
@@ -93,6 +96,7 @@ namespace MW.TinyMoney.Api.Transaction
                     DefaultSubcategoryId = updatedTransaction.SubcategoryId
                 };
                 await _vendorStore.SaveVendor(vendor);
+                _vendorMatchingService.InvalidateCache();
                 updatedTransaction.Vendor.Id = vendor.Id;
                 updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
                 response.NewVendor = updatedTransaction.Vendor;
@@ -129,6 +133,15 @@ namespace MW.TinyMoney.Api.Transaction
             await _transactionStore.UpdateTransaction(transaction);
 
             response.Transaction = transaction;
+
+            if (autoVerify && transaction.CreatedBy == ImportPlaceholders.ImportCreatedBy
+                && !string.IsNullOrWhiteSpace(transaction.Description))
+            {
+                var suggestedAlias = await _vendorMatchingService.SuggestAlias(
+                    transaction.VendorId, transaction.Description);
+                if (suggestedAlias != null)
+                    response.SuggestedAlias = new SuggestedAliasDto(suggestedAlias, transaction.VendorId);
+            }
 
             return Ok(response);
         }
@@ -167,7 +180,7 @@ namespace MW.TinyMoney.Api.Transaction
             {
                 Amount = addTransactionDto.Amount,
                 CreatedDate = DateTime.UtcNow,
-                CreatedBy = "API",
+                CreatedBy = ImportPlaceholders.ApiCreatedBy,
                 Description = addTransactionDto.Description,
                 IsExpense = addTransactionDto.IsExpense,
                 ModifiedDate = DateTime.UtcNow,

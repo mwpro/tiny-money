@@ -8,6 +8,7 @@ namespace MW.TinyMoney.Api.Vendors;
 public interface IVendorMatcher
 {
     IEnumerable<Vendor> Match(string description, int limit = 1);
+    bool MatchesVendor(int vendorId, string description);
 }
 
 public class VendorMatcher : IVendorMatcher
@@ -37,6 +38,24 @@ public class VendorMatcher : IVendorMatcher
                 _index[token] = list = new List<(int, int)>();
             list.Add((vendorId, score));
         }
+    }
+
+    public bool MatchesVendor(int vendorId, string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return false;
+
+        var preprocessed = _preprocessor.Preprocess(description);
+        var tokens = _preprocessor.Tokenize(preprocessed)
+            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed));
+
+        foreach (var token in tokens)
+        {
+            if (_index.TryGetValue(token, out var entries) && entries.Any(e => e.vendorId == vendorId))
+                return true;
+        }
+
+        return false;
     }
 
     public IEnumerable<Vendor> Match(string description, int limit = 1)

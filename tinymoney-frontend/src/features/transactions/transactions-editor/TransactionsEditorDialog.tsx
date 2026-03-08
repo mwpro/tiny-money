@@ -5,7 +5,9 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
 import {
     type NewTransaction,
-    type Transaction
+    type SuggestedAlias,
+    type Transaction,
+    type TransactionMutationResponse
 } from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
@@ -33,6 +35,7 @@ import {dateFormat} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
+import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
 
@@ -43,6 +46,7 @@ interface TransactionEditorDialogProps {
 
 export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
     const queryClient = useQueryClient()
     const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     
@@ -121,12 +125,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         mutationFn: (newTransaction: NewTransaction) => transactionToEdit
             ? transactionsClient.editTransaction(transactionToEdit.id, newTransaction)
             : transactionsClient.addTransaction(newTransaction),
-        onSuccess: () => {
+        onSuccess: (data: TransactionMutationResponse) => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors']})
             queryClient.invalidateQueries({queryKey: ['categories']})
             queryClient.invalidateQueries({queryKey: ['tags']})
             if (transactionToEdit) {
+                if (data.suggestedAlias) {
+                    setPendingAlias(data.suggestedAlias)
+                }
                 reset();
                 setIsOpen(false);
             } else {
@@ -143,6 +150,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         mutation.mutate(data)
     }
     return (
+        <>
+        <AliasProposalDialog
+            suggestedAlias={pendingAlias}
+            transactionDescription={transactionToEdit?.description}
+            vendors={vendorsQuery.data ?? []}
+            onClose={() => setPendingAlias(null)}
+        />
         <Dialog open={isOpen} onOpenChange={(v) => {
             setIsOpen(v);
             reset();
@@ -345,5 +359,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
                 </form>
             </DialogContent>
         </Dialog>
+        </>
     )
 }

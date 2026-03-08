@@ -108,4 +108,42 @@ public class VendorMatcherTests
     {
         Build([]).Match("STONKA POZNAN").Should().BeEmpty();
     }
+
+    [Fact]
+    public void MatchesVendor_ReturnsTrueWhenDescriptionTokenMatchesVendorName()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, "Stonka Poznan");
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MatchesVendor_ReturnsTrueWhenDescriptionTokenMatchesVendorAlias()
+    {
+        var result = Build([MakeVendor(1, "Stonka")], [MakeAlias(1, "Jan Kowalski")])
+            .MatchesVendor(1, "Jan Kowalski Bemowo");
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void MatchesVendor_ReturnsFalseWhenNoTokensOverlapVendor()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, "Biedronka Warszawa");
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void MatchesVendor_ReturnsFalseForVendorNotInIndex()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).MatchesVendor(99, "Stonka Poznan");
+        result.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void MatchesVendor_ReturnsFalseForEmptyDescription(string? description)
+    {
+        Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, description!).Should().BeFalse();
+    }
 }

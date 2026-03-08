@@ -84,9 +84,15 @@ After making code changes, always verify compilation and tests before finishing:
 
 Fix any errors before considering the task done.
 
+When adding backend features, write corresponding unit tests in `backend/MW.TinyMoney.UnitTests/`.
+
 ## Commit Style
 
 Do NOT add `Co-Authored-By: Claude` or any AI attribution lines to commits. The presence of `CLAUDE.md` in the repository is sufficient to indicate AI usage in the project.
+
+## Planning
+
+When in plan mode, interview the user in detail using the AskUserQuestion tool before finalizing the plan. Ask about technical implementation, UI/UX, edge cases, concerns, and tradeoffs. Don't ask obvious questions — dig into the hard parts the user might not have considered. Do at least two rounds of interview.
 
 ## Key Conventions
 

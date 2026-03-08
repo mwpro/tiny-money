@@ -9,10 +9,15 @@ namespace MW.TinyMoney.UnitTests.VendorsMatching.Helpers;
 public class StubVendorStore : IVendorStore
 {
     private readonly IEnumerable<Vendor> _vendors;
+    private readonly IEnumerable<VendorAlias> _aliases;
 
     public int GetVendorsCallCount { get; private set; }
 
-    public StubVendorStore(IEnumerable<Vendor> vendors) => _vendors = vendors;
+    public StubVendorStore(IEnumerable<Vendor> vendors, IEnumerable<VendorAlias> aliases = null)
+    {
+        _vendors = vendors;
+        _aliases = aliases ?? [];
+    }
 
     public Task<IEnumerable<Vendor>> GetVendors()
     {
@@ -20,7 +25,7 @@ public class StubVendorStore : IVendorStore
         return Task.FromResult(_vendors);
     }
 
-    public Task<IEnumerable<VendorAlias>> GetAllAliases() => Task.FromResult<IEnumerable<VendorAlias>>([]);
+    public Task<IEnumerable<VendorAlias>> GetAllAliases() => Task.FromResult(_aliases);
 
     public Task SaveVendor(Vendor vendor) => throw new NotImplementedException();
     public Task<IEnumerable<VendorDetails>> GetDetailedVendors() => throw new NotImplementedException();

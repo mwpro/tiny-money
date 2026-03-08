@@ -73,7 +73,7 @@ public class ImportService : IImportService
                 IsVerified = false,
                 IsPossibleDuplicate = false,
                 CreatedDate = now,
-                CreatedBy = "Import",
+                CreatedBy = ImportPlaceholders.ImportCreatedBy,
                 ModifiedDate = now,
                 TagIds = new List<int>()
             };
