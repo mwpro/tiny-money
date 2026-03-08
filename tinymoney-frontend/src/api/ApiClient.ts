@@ -12,4 +12,6 @@ export type ApiClient = {
     categoriesClient: CategoriesClient
     budgetClient: BudgetClient
     reportsClient: ReportsClient
+    unknownVendorId: number
+    uncategorizedSubcategoryId: number
 }

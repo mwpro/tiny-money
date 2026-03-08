@@ -16,7 +16,7 @@ public class TransactionsControllerUpdateTransactionTests
     private const int UnknownVendorId = 99;
     private const int VendorA = 1;
     private const int VendorB = 2;
-    private const int UncategorizedSubcategoryId = 99; // matches TransactionPlaceholders.Setup(UnknownVendorId, 99)
+    private const int UncategorizedSubcategoryId = 999; 
     private const int RealSubcategoryId = 1;
 
     private readonly TransactionStoreStub _transactionStore;
@@ -26,7 +26,7 @@ public class TransactionsControllerUpdateTransactionTests
 
     public TransactionsControllerUpdateTransactionTests()
     {
-        TransactionPlaceholders.Setup(UnknownVendorId, 99);
+        TransactionPlaceholders.Setup(UnknownVendorId, UncategorizedSubcategoryId);
         
         _transactionStore = new TransactionStoreStub();
         var vendorStore = new VendorStoreStub();

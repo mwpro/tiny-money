@@ -1,5 +1,6 @@
-import {useQuery} from "@tanstack/react-query"
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {
+    type SuggestedAlias,
     type Tag,
     type Transaction,
     type TransactionQueryParams,
@@ -8,6 +9,7 @@ import {
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
+import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {BulkTransactionRemovalDialog} from "@/features/transactions/BulkTransactionRemovalDialog.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
@@ -25,6 +27,7 @@ import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
+import {toast} from "sonner";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
 import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark, Trash2} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
@@ -48,12 +51,15 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 }
 
 export function TransactionsPage() {
-    const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
+    const { transactionsClient, vendorsClient, categoriesClient, tagsClient, unknownVendorId, uncategorizedSubcategoryId } = useApiClient();
+    const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+    const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
+    const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
     const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => buildTransactionQueryParamsFromSearchParams(searchParams)); 
     const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
@@ -100,6 +106,18 @@ export function TransactionsPage() {
     useEffect(() => {
         setQueryParams(buildTransactionQueryParamsFromSearchParams(searchParams));
     }, [searchParams]);
+
+    const verifyMutation = useMutation({
+        mutationFn: (t: Transaction) => transactionsClient.verifyTransaction(t.id),
+        onSuccess: (data, t) => {
+            queryClient.invalidateQueries({ queryKey: ['transactions'] })
+            if (data.suggestedAlias) {
+                setPendingAlias(data.suggestedAlias)
+                setPendingDescription(t.description ?? undefined)
+            }
+        },
+        onError: (error: Error) => toast.error('Błąd: ' + error.message),
+    })
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
     const vendorsQuery = useQuery({
@@ -154,6 +172,12 @@ export function TransactionsPage() {
                     <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 </div>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
+                <AliasProposalDialog
+                    suggestedAlias={pendingAlias}
+                    transactionDescription={pendingDescription}
+                    vendors={vendorsQuery.data ?? []}
+                    onClose={() => { setPendingAlias(null); setPendingDescription(undefined) }}
+                />
                 <BulkTransactionRemovalDialog
                     transactionIds={Array.from(selectedIds)}
                     isOpen={bulkDeleteOpen}
@@ -306,7 +330,11 @@ export function TransactionsPage() {
                     transactions={transactionsQuery.data} vendors={vendorsQuery.data}
                     subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
-                    selectedIds={selectedIds} onSelectionChange={setSelectedIds}/>
+                    selectedIds={selectedIds} onSelectionChange={setSelectedIds}
+                    onVerifyClick={t => verifyMutation.mutate(t)}
+                    verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}
+                    unknownVendorId={unknownVendorId}
+                    uncategorizedSubcategoryId={uncategorizedSubcategoryId}/>
             }
         </div>
     )

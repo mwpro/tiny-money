@@ -25,6 +25,8 @@ export function ApiClientProvider(props: ApiClientProviderProps) {
         categoriesClient: new CategoriesClientImpl(auth, props.configuration.apiUrl),
         budgetClient: new BudgetClientImpl(auth, props.configuration.apiUrl),
         reportsClient: new ReportsClientImpl(auth, props.configuration.apiUrl),
+        unknownVendorId: props.configuration.unknownVendorId,
+        uncategorizedSubcategoryId: props.configuration.uncategorizedSubcategoryId,
     };
 
     return (<ApiClientContext.Provider value={apiClient}>

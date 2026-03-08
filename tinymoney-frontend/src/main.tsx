@@ -12,6 +12,8 @@ export interface Configuration{
     auth0Domain: string,
     auth0ClientId: string,
     auth0Audience: string,
+    unknownVendorId: number,
+    uncategorizedSubcategoryId: number,
 }
 
 const config: Configuration = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
