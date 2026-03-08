@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Vendors;
 
-namespace MW.TinyMoney.UnitTests.Stubs;
+namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class VendorStoreStub : IVendorStore
 {

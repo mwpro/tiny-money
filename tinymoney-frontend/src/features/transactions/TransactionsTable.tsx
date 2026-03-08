@@ -8,7 +8,8 @@ import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
-import {SquarePen, Trash2} from "lucide-react";
+import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
+import {useConfiguration} from "@/ConfigurationContext.tsx";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -17,12 +18,15 @@ interface TransactionsTableProps {
     tags: Tag[],
     onDeleteClick: (transaction: Transaction) => void
     onEditClick: (transaction: Transaction) => void
+    onVerifyClick: (transaction: Transaction) => void
+    verifyingTransactionId?: number
     selectedIds: Set<number>;
     onSelectionChange: (ids: Set<number>) => void;
 }
 
 
-export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, selectedIds, onSelectionChange}: TransactionsTableProps) {
+export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
+    const { unknownVendorId, uncategorizedSubcategoryId } = useConfiguration();
     const getVendorName = (id: number) => {
         return vendors.find(v => v.id === id)?.name || "-"
     }
@@ -119,6 +123,17 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
+                                {!t.isVerified && t.vendorId !== unknownVendorId && t.subcategoryId !== uncategorizedSubcategoryId && (
+                                    <Button
+                                        variant="outline" size="sm"
+                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
+                                        onClick={() => onVerifyClick(t)}
+                                        disabled={verifyingTransactionId === t.id}
+                                        title="Zweryfikuj"
+                                    >
+                                        <ShieldCheck />
+                                    </Button>
+                                )}
                                 <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
                                 <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
                             </ButtonGroup>

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 
-namespace MW.TinyMoney.UnitTests.Stubs;
+namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class TransactionStoreStub : ITransactionStore
 {

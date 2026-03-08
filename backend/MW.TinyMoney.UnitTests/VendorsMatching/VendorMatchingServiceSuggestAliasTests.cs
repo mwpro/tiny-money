@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
-using MW.TinyMoney.UnitTests.Stubs;
+using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.VendorsMatching;

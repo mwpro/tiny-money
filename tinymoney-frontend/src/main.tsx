@@ -6,12 +6,15 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import {Toaster} from "sonner";
 import {Auth0Provider} from "@auth0/auth0-react";
 import {ApiClientProvider} from "@/api/ApiClientProvider.tsx";
+import {ConfigurationProvider} from "@/ConfigurationContext.tsx";
 
 export interface Configuration{
     apiUrl: string,
     auth0Domain: string,
     auth0ClientId: string,
     auth0Audience: string,
+    unknownVendorId: number,
+    uncategorizedSubcategoryId: number,
 }
 
 const config: Configuration = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
@@ -24,12 +27,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             redirect_uri: window.location.origin,
             audience: config.auth0Audience
         }}>
-            <ApiClientProvider configuration={config}>
-                <Toaster />
-                <QueryClientProvider client={queryClient}>
-                    <App />
-                </QueryClientProvider>                    
-            </ApiClientProvider>
+            <ConfigurationProvider configuration={config}>
+                <ApiClientProvider configuration={config}>
+                    <Toaster />
+                    <QueryClientProvider client={queryClient}>
+                        <App />
+                    </QueryClientProvider>                    
+                </ApiClientProvider>
+            </ConfigurationProvider>
         </Auth0Provider>  
     </React.StrictMode>,
 )

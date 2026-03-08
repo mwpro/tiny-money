@@ -13,6 +13,7 @@ export interface TransactionsClient {
     getTransactions(params: TransactionQueryParams): Promise<TransactionsResponse>;
     addTransaction(newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
     editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
+    verifyTransaction(transactionId: number): Promise<TransactionMutationResponse>;
     removeTransaction(transactionId: number): Promise<void>;
     removeTransactions(transactionIds: number[]): Promise<void>;
     importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
@@ -49,6 +50,12 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
     async editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<TransactionMutationResponse> {
         const res = await this.request('POST', `/transactions/${transactionId}`, newTransaction);
         if (!res.ok) throw new Error('Błąd podczas zapisywania transakcji');
+        return res.json();
+    }
+
+    async verifyTransaction(transactionId: number): Promise<TransactionMutationResponse> {
+        const res = await this.request('POST', `/transactions/${transactionId}/verify`);
+        if (!res.ok) throw new Error('Błąd weryfikacji transakcji');
         return res.json();
     }
 

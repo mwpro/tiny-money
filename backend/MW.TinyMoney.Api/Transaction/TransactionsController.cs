@@ -139,16 +139,9 @@ namespace MW.TinyMoney.Api.Transaction
 
             response.Transaction = transaction;
 
-            var becameVerified = !wasVerified && transaction.IsVerified;
-            if (isImportedTransaction
-                && becameVerified
-                && vendorChanged
-                && !string.IsNullOrWhiteSpace(transaction.Description))
+            if (vendorChanged)
             {
-                var suggestedAlias = await _vendorMatchingService.SuggestAlias(
-                    transaction.VendorId, transaction.Description);
-                if (suggestedAlias != null)
-                    response.SuggestedAlias = new SuggestedAliasDto(suggestedAlias, transaction.VendorId);
+                response.SuggestedAlias = await TrySuggestAlias(transaction, wasVerified);
             }
 
             return Ok(response);
@@ -221,6 +214,42 @@ namespace MW.TinyMoney.Api.Transaction
             return Ok();
         }
 
+        [HttpPost("{transactionId}/verify")]
+        public async Task<IActionResult> VerifyTransaction([FromRoute] int transactionId)
+        {
+            var transaction = await _transactionStore.GetTransaction(transactionId);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+
+            if (transaction.IsVerified)
+            {
+                return BadRequest("Transaction is already verified.");
+            }
+            if (transaction.VendorId == TransactionPlaceholders.UnknownVendorId)
+            {
+                return BadRequest("Cannot verify a transaction with an unknown vendor.");
+            }
+            if (transaction.SubcategoryId == TransactionPlaceholders.UncategorizedSubcategoryId)
+            {
+                return BadRequest("Cannot verify a transaction with an uncategorized subcategory.");
+            }
+
+            var wasVerified = transaction.IsVerified;
+            transaction.IsVerified = true;
+            transaction.IsPossibleDuplicate = false;
+            transaction.ModifiedDate = DateTime.UtcNow;
+
+            await _transactionStore.UpdateTransaction(transaction);
+
+            return Ok(new AddTransactionResponse
+            {
+                Transaction = transaction,
+                SuggestedAlias = await TrySuggestAlias(transaction, wasVerified)
+            });
+        }
+
         [HttpDelete]
         public async Task<IActionResult> DeleteTransactions([FromBody] IReadOnlyList<int> transactionIds)
         {
@@ -229,6 +258,22 @@ namespace MW.TinyMoney.Api.Transaction
 
             await _transactionStore.DeleteTransactions(transactionIds);
             return Ok();
+        }
+
+        private async Task<SuggestedAliasDto> TrySuggestAlias(ApiModels.Transaction transaction, bool wasVerified)
+        {
+            var becameVerified = !wasVerified && transaction.IsVerified;
+            var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport, StringComparison.OrdinalIgnoreCase);
+
+            if (becameVerified
+                && isImportedTransaction
+                && transaction.VendorId != TransactionPlaceholders.UnknownVendorId
+                && !string.IsNullOrWhiteSpace(transaction.Description))
+            {
+                var alias = await _vendorMatchingService.SuggestAlias(transaction.VendorId, transaction.Description);
+                return alias != null ? new SuggestedAliasDto(alias, transaction.VendorId) : null;
+            }
+            return null;
         }
     }
 }
