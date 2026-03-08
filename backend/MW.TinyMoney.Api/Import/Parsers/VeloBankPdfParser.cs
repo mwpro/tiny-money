@@ -86,6 +86,11 @@ public class VeloBankPdfParser : IFileImportParser
                 b.BoundingBox.TopLeft.X > transactionAmountLeftBoundary.BoundingBox.TopLeft.X && 
                 b.BoundingBox.TopLeft.X < transactionAmountRightBoundary.BoundingBox.TopLeft.X).ToArray();
 
+            if (pageTransactionDescriptionFields.Length == 0)
+            {
+                continue;
+            }
+            
             if (pageTransactionDescriptionFields.First().BoundingBox.TopLeft.Y - pageTransactionDateFields.First().BoundingBox.TopLeft.Y > TOLERANCE)
             {
                 var description = pageTransactionDescriptionFields.First().Text.Trim();
