@@ -9,6 +9,7 @@ import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
+import {useConfiguration} from "@/ConfigurationContext.tsx";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -19,14 +20,13 @@ interface TransactionsTableProps {
     onEditClick: (transaction: Transaction) => void
     onVerifyClick: (transaction: Transaction) => void
     verifyingTransactionId?: number
-    unknownVendorId?: number
-    uncategorizedSubcategoryId?: number
     selectedIds: Set<number>;
     onSelectionChange: (ids: Set<number>) => void;
 }
 
 
-export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, unknownVendorId, uncategorizedSubcategoryId, selectedIds, onSelectionChange}: TransactionsTableProps) {
+export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
+    const { unknownVendorId, uncategorizedSubcategoryId } = useConfiguration();
     const getVendorName = (id: number) => {
         return vendors.find(v => v.id === id)?.name || "-"
     }

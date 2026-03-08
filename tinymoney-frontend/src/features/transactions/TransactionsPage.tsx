@@ -51,7 +51,7 @@ function buildTransactionQueryParamsFromSearchParams(searchParams: URLSearchPara
 }
 
 export function TransactionsPage() {
-    const { transactionsClient, vendorsClient, categoriesClient, tagsClient, unknownVendorId, uncategorizedSubcategoryId } = useApiClient();
+    const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
@@ -332,9 +332,7 @@ export function TransactionsPage() {
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
                     selectedIds={selectedIds} onSelectionChange={setSelectedIds}
                     onVerifyClick={t => verifyMutation.mutate(t)}
-                    verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}
-                    unknownVendorId={unknownVendorId}
-                    uncategorizedSubcategoryId={uncategorizedSubcategoryId}/>
+                    verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}/>
             }
         </div>
     )
