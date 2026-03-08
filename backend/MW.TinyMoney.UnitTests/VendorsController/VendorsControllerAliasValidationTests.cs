@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Vendors;
-using MW.TinyMoney.UnitTests.Stubs;
+using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.VendorsController;

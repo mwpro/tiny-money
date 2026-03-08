@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MW.TinyMoney.Api.Tags;
 
-namespace MW.TinyMoney.UnitTests.Stubs;
+namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class TagStoreStub : ITagStore
 {

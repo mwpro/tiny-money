@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
 
-namespace MW.TinyMoney.UnitTests.Stubs;
+namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class VendorMatchingServiceStub : IVendorMatchingService
 {

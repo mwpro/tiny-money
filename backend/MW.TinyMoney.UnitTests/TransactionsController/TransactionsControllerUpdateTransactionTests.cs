@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Transaction.ApiModels;
-using MW.TinyMoney.UnitTests.Stubs;
+using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.TransactionsController;
@@ -38,27 +38,6 @@ public class TransactionsControllerUpdateTransactionTests
             _vendorMatchingService);
     }
 
-    private static Transaction MakeImportedTransaction(
-        int vendorId = UnknownVendorId,
-        string description = "some description",
-        bool isVerified = false) =>
-        new()
-        {
-            Id = 1,
-            Amount = 10,
-            IsExpense = true,
-            TransactionDate = DateTime.UtcNow,
-            Description = description,
-            VendorId = vendorId,
-            SubcategoryId = 1,
-            IsVerified = isVerified,
-            IsPossibleDuplicate = false,
-            CreatedDate = DateTime.UtcNow,
-            CreatedBy = TransactionPlaceholders.CreatedByImport,
-            ModifiedDate = DateTime.UtcNow,
-            TagIds = new List<int>()
-        };
-
     private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, bool isVerified = true, int subcategoryId = RealSubcategoryId) =>
         new()
         {
@@ -75,7 +54,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenCreatedByIsNotImport()
     {
-        _transactionStore.Transaction = MakeImportedTransaction();
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: UnknownVendorId);
         _transactionStore.Transaction.CreatedBy = TransactionPlaceholders.CreatedByApi;
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
@@ -90,7 +69,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenVendorDoesNotChange()
     {
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: VendorA);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA);
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
         var response = (await _controller.UpdateTransaction(VendorA, MakeUpdateDto(VendorA)))
@@ -105,7 +84,7 @@ public class TransactionsControllerUpdateTransactionTests
     public async Task NoAliasSuggested_WhenTransactionDoesNotBecomeVerified()
     {
         // autoVerify requires subcategoryId != UncategorizedSubcategoryId; use uncategorized to keep isVerified=false
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: VendorA, isVerified: false);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false, subcategoryId: UncategorizedSubcategoryId)))
@@ -119,7 +98,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenTransactionWasAlreadyVerified()
     {
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: VendorA, isVerified: true);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: true);
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: true)))
@@ -133,7 +112,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenDescriptionMatchesVendor()
     {
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: VendorA);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA);
         _vendorMatchingService.SuggestAliasResult = null;
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
@@ -147,7 +126,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task AliasSuggested_WhenVendorChangesFromOneToAnotherAndVerifiedAndImportAndNoMatch()
     {
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: VendorA);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA);
         _vendorMatchingService.SuggestAliasResult = "some description";
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
@@ -163,7 +142,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task AliasSuggested_WhenVendorChangesFromUnknownVendorToRealAndVerifiedAndImportAndNoMatch()
     {
-        _transactionStore.Transaction = MakeImportedTransaction(vendorId: UnknownVendorId, isVerified: false);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: UnknownVendorId, isVerified: false);
         _vendorMatchingService.SuggestAliasResult = "some description";
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorA, isVerified: false)))
