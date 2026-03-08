@@ -46,7 +46,10 @@ public class TransactionsControllerUpdateTransactionTests
             TagIds = new List<int>()
         };
 
-    private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, bool isVerified = true) =>
+    private const int UncategorizedSubcategoryId = 99; // matches TransactionPlaceholders.Setup(UnknownVendorId, 99)
+    private const int RealSubcategoryId = 1;
+
+    private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, bool isVerified = true, int subcategoryId = RealSubcategoryId) =>
         new()
         {
             Amount = 10,
@@ -54,7 +57,7 @@ public class TransactionsControllerUpdateTransactionTests
             TransactionDate = DateTime.UtcNow,
             Description = "some description",
             Vendor = new VendorDto { Id = vendorId, Name = "Stonka" },
-            SubcategoryId = 1,
+            SubcategoryId = subcategoryId,
             Tags = new List<TagDto>(),
             IsVerified = isVerified
         };
@@ -101,11 +104,12 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenTransactionDoesNotBecomeVerified()
     {
+        // autoVerify requires subcategoryId != UncategorizedSubcategoryId; use uncategorized to keep isVerified=false
         var transaction = MakeImportedTransaction(vendorId: VendorA, isVerified: false);
         var matchingService = new StubVendorMatchingService { SuggestAliasResult = "biedronka" };
 
         var controller = BuildController(transaction, matchingService);
-        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false));
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false, subcategoryId: UncategorizedSubcategoryId));
         var response = (AddTransactionResponse)result.Value;
 
         response.SuggestedAlias.Should().BeNull();

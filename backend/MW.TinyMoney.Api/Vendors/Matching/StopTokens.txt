@@ -6,7 +6,9 @@ dla
 for
 gmbh
 inc
+kart
 karta
+kartą
 karty
 kwotę
 ltd
@@ -16,11 +18,13 @@ nr
 numer
 odbiorca
 oo
+o.o.
 operacja
 payu
 peopay
 pl
 platnosc
+płatność
 pln
 pol
 prowadzony
@@ -42,8 +46,10 @@ tytułem
 uzyciu
 via
 warszawa
+wewnętrzny
 www
 wychodzacy
+wychodzący
 wykonanej
 z
 zakup

@@ -113,12 +113,13 @@ namespace MW.TinyMoney.Api.Transaction
                 response.NewTags.Add(newTag);
             }
 
-            var autoVerify = !transaction.IsVerified
-                && transaction.VendorId == TransactionPlaceholders.UnknownVendorId
-                && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId;
-
-            var originalVendorId = transaction.VendorId;
+            var vendorChanged = transaction.VendorId != updatedTransaction.Vendor.Id.Value;
+            var isImportedTransaction = transaction.CreatedBy == TransactionPlaceholders.CreatedByImport;
             var wasVerified = transaction.IsVerified;
+            var autoVerify = !wasVerified
+                             && vendorChanged
+                             && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId
+                             && updatedTransaction.SubcategoryId != TransactionPlaceholders.UncategorizedSubcategoryId;
 
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
@@ -136,9 +137,8 @@ namespace MW.TinyMoney.Api.Transaction
 
             response.Transaction = transaction;
 
-            var vendorChanged = originalVendorId != transaction.VendorId;
             var becameVerified = !wasVerified && transaction.IsVerified;
-            if (transaction.CreatedBy == TransactionPlaceholders.CreatedByImport
+            if (isImportedTransaction
                 && becameVerified
                 && vendorChanged
                 && !string.IsNullOrWhiteSpace(transaction.Description))

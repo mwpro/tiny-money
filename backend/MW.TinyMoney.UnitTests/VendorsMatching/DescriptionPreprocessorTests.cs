@@ -111,4 +111,11 @@ public class DescriptionPreprocessorTests
         var tokens = Preprocessor.Tokenize("stonka ab c");
         tokens.Should().BeEquivalentTo("stonka");
     }
+
+    [Fact]
+    public void Tokenize_RemovesDuplicateTokens()
+    {
+        var tokens = Preprocessor.Tokenize("stonka poznan stonka");
+        tokens.Should().BeEquivalentTo("stonka", "poznan");
+    }
 }

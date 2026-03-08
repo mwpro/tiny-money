@@ -53,7 +53,7 @@ export function AliasProposalDialog({suggestedAlias, transactionDescription, ven
                     {transactionDescription && (
                         <div className="grid gap-1">
                             <Label className="text-xs text-muted-foreground">Oryginalny opis transakcji</Label>
-                            <p className="text-sm bg-muted rounded px-3 py-2 break-all">{transactionDescription}</p>
+                            <p className="text-sm bg-muted rounded px-3 py-2 break-all whitespace-pre-wrap">{transactionDescription}</p>
                         </div>
                     )}
 

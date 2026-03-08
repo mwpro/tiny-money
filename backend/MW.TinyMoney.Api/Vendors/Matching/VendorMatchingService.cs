@@ -52,8 +52,9 @@ public class VendorMatchingService : IVendorMatchingService
         if (matcher.MatchesVendor(vendorId, description))
             return null;
         var preprocessed = _preprocessor.Preprocess(description);
-        if (string.IsNullOrWhiteSpace(preprocessed))
+        var tokenized = string.Join(" ", _preprocessor.Tokenize(preprocessed));
+        if (string.IsNullOrWhiteSpace(tokenized))
             return null;
-        return preprocessed;
+        return tokenized;
     }
 }
