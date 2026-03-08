@@ -17,7 +17,7 @@ RUN dotnet test "MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj" --no-rest
 COPY --from=frontbuild /src/dist /src/MW.TinyMoney.Api/wwwroot
 RUN dotnet publish "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra AS base
 WORKDIR /app
 EXPOSE 8080
 COPY --from=apibuild /app/publish .
