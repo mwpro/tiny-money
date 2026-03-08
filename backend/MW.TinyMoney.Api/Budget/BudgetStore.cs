@@ -103,7 +103,7 @@ namespace MW.TinyMoney.Api.Budget
             {
                 connection.Open();
 
-                return await connection.QueryAsync<BudgetEntry>(MonthlyBudgetQuery, new { year = year, month = month, importSubcategoryId = ImportPlaceholders.SubcategoryId });
+                return await connection.QueryAsync<BudgetEntry>(MonthlyBudgetQuery, new { year = year, month = month, importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId });
             }
         }
 
@@ -131,7 +131,7 @@ namespace MW.TinyMoney.Api.Budget
                         
                     return categoryEntry;
                 },
-                new { year = year, month = month, importSubcategoryId = ImportPlaceholders.SubcategoryId },
+                new { year = year, month = month, importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId },
                 splitOn: "subcategoryId");
             
             foreach (var (_, categoryBudget) in categoryBudgets)
@@ -216,7 +216,7 @@ namespace MW.TinyMoney.Api.Budget
                     previousPeriodYear = previousPeriod.Year, previousPeriodMonth = previousPeriod.Month,
                     thisPeriodLastYearYear = thisPeriodLastYear.Year, thisPeriodLastYearMonth = thisPeriodLastYear.Month,
                     last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd,
-                    importSubcategoryId = ImportPlaceholders.SubcategoryId
+                    importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId
                 },
                 splitOn: "suggestionName");
             

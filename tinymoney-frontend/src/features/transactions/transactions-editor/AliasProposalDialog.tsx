@@ -1,4 +1,4 @@
-import {useState} from "react"
+import {useEffect, useState} from "react"
 import {useMutation} from "@tanstack/react-query"
 import {type SuggestedAlias, type Vendor} from "@/api/ApiTypes.ts"
 import {
@@ -21,6 +21,12 @@ interface AliasProposalDialogProps {
 export function AliasProposalDialog({suggestedAlias, transactionDescription, vendors, onClose}: AliasProposalDialogProps) {
     const {vendorsClient} = useApiClient()
     const [editedAlias, setEditedAlias] = useState(suggestedAlias?.alias ?? "")
+
+    useEffect(() => {
+        if (suggestedAlias) {
+            setEditedAlias(suggestedAlias.alias)
+        }
+    }, [suggestedAlias])
 
     const vendorName = suggestedAlias
         ? (vendors.find(v => v.id === suggestedAlias.vendorId)?.name ?? "")

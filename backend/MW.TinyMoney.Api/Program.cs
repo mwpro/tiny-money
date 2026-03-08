@@ -101,5 +101,5 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileImportParser, ImportPekaoParser>();
     services.AddTransient<IFileImportParser, ImportVeloBankParser>();
     services.AddTransient<IImportService, ImportService>();
-    services.AddHostedService<ImportPlaceholdersInitializer>();
+    services.AddHostedService<TransactionPlaceholdersInitializer>();
 }

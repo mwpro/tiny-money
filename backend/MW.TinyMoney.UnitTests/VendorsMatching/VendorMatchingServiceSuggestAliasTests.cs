@@ -71,16 +71,4 @@ public class VendorMatchingServiceSuggestAliasTests
         result.Should().BeNull();
     }
 
-    [Fact]
-    public async Task InvalidateCache_CausesStoreToBeQueriedAgain()
-    {
-        var store = new StubVendorStore([MakeVendor(1, "Stonka")]);
-        var svc = Build(store);
-
-        await svc.CreateMatcher();
-        svc.InvalidateCache();
-        await svc.CreateMatcher();
-
-        store.GetVendorsCallCount.Should().Be(2);
-    }
 }

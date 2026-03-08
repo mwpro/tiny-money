@@ -16,15 +16,19 @@ namespace MW.TinyMoney.UnitTests.TransactionsController;
 
 public class TransactionsControllerUpdateTransactionTests
 {
-    private const int PlaceholderVendorId = 99;
-    private const int RealVendorId = 1;
+    private const int UnknownVendorId = 99;
+    private const int VendorA = 1;
+    private const int VendorB = 2;
 
     public TransactionsControllerUpdateTransactionTests()
     {
-        ImportPlaceholders.Setup(PlaceholderVendorId, 99);
+        TransactionPlaceholders.Setup(UnknownVendorId, 99);
     }
 
-    private static Api.Transaction.ApiModels.Transaction MakeImportedTransaction(int vendorId = PlaceholderVendorId, string description = "some description") =>
+    private static Api.Transaction.ApiModels.Transaction MakeImportedTransaction(
+        int vendorId = UnknownVendorId,
+        string description = "some description",
+        bool isVerified = false) =>
         new()
         {
             Id = 1,
@@ -34,15 +38,15 @@ public class TransactionsControllerUpdateTransactionTests
             Description = description,
             VendorId = vendorId,
             SubcategoryId = 1,
-            IsVerified = false,
+            IsVerified = isVerified,
             IsPossibleDuplicate = false,
             CreatedDate = DateTime.UtcNow,
-            CreatedBy = ImportPlaceholders.ImportCreatedBy,
+            CreatedBy = TransactionPlaceholders.CreatedByImport,
             ModifiedDate = DateTime.UtcNow,
             TagIds = new List<int>()
         };
 
-    private static AddTransactionDto MakeUpdateDto(int vendorId = RealVendorId) =>
+    private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, bool isVerified = true) =>
         new()
         {
             Amount = 10,
@@ -52,10 +56,10 @@ public class TransactionsControllerUpdateTransactionTests
             Vendor = new VendorDto { Id = vendorId, Name = "Stonka" },
             SubcategoryId = 1,
             Tags = new List<TagDto>(),
-            IsVerified = false
+            IsVerified = isVerified
         };
 
-    private Api.Transaction.TransactionsController BuildController(
+    private static Api.Transaction.TransactionsController BuildController(
         Api.Transaction.ApiModels.Transaction existingTransaction,
         StubVendorMatchingService vendorMatchingService = null)
     {
@@ -71,7 +75,7 @@ public class TransactionsControllerUpdateTransactionTests
     public async Task NoAliasSuggested_WhenCreatedByIsNotImport()
     {
         var transaction = MakeImportedTransaction();
-        transaction.CreatedBy = ImportPlaceholders.ApiCreatedBy;
+        transaction.CreatedBy = TransactionPlaceholders.CreatedByApi;
         var matchingService = new StubVendorMatchingService { SuggestAliasResult = "biedronka" };
 
         var controller = BuildController(transaction, matchingService);
@@ -82,13 +86,39 @@ public class TransactionsControllerUpdateTransactionTests
     }
 
     [Fact]
-    public async Task NoAliasSuggested_WhenAutoVerifyDidNotFire_VendorAlreadySet()
+    public async Task NoAliasSuggested_WhenVendorDoesNotChange()
     {
-        var transaction = MakeImportedTransaction(vendorId: RealVendorId);
+        var transaction = MakeImportedTransaction(vendorId: VendorA);
         var matchingService = new StubVendorMatchingService { SuggestAliasResult = "biedronka" };
 
         var controller = BuildController(transaction, matchingService);
-        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(RealVendorId));
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorA));
+        var response = (AddTransactionResponse)result.Value;
+
+        response.SuggestedAlias.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task NoAliasSuggested_WhenTransactionDoesNotBecomeVerified()
+    {
+        var transaction = MakeImportedTransaction(vendorId: VendorA, isVerified: false);
+        var matchingService = new StubVendorMatchingService { SuggestAliasResult = "biedronka" };
+
+        var controller = BuildController(transaction, matchingService);
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false));
+        var response = (AddTransactionResponse)result.Value;
+
+        response.SuggestedAlias.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task NoAliasSuggested_WhenTransactionWasAlreadyVerified()
+    {
+        var transaction = MakeImportedTransaction(vendorId: VendorA, isVerified: true);
+        var matchingService = new StubVendorMatchingService { SuggestAliasResult = "biedronka" };
+
+        var controller = BuildController(transaction, matchingService);
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: true));
         var response = (AddTransactionResponse)result.Value;
 
         response.SuggestedAlias.Should().BeNull();
@@ -97,56 +127,43 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenDescriptionMatchesVendor()
     {
-        var transaction = MakeImportedTransaction();
+        var transaction = MakeImportedTransaction(vendorId: VendorA);
         var matchingService = new StubVendorMatchingService { SuggestAliasResult = null };
 
         var controller = BuildController(transaction, matchingService);
-        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto());
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB));
         var response = (AddTransactionResponse)result.Value;
 
         response.SuggestedAlias.Should().BeNull();
     }
 
     [Fact]
-    public async Task AliasSuggested_WhenAutoVerifyAndImportAndNoMatch()
+    public async Task AliasSuggested_WhenVendorChangesAndVerifiedAndImportAndNoMatch()
     {
-        var transaction = MakeImportedTransaction();
+        var transaction = MakeImportedTransaction(vendorId: VendorA);
         var matchingService = new StubVendorMatchingService { SuggestAliasResult = "some description" };
 
         var controller = BuildController(transaction, matchingService);
-        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto());
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorB));
         var response = (AddTransactionResponse)result.Value;
 
         response.SuggestedAlias.Should().NotBeNull();
         response.SuggestedAlias.Alias.Should().Be("some description");
-        response.SuggestedAlias.VendorId.Should().Be(RealVendorId);
+        response.SuggestedAlias.VendorId.Should().Be(VendorB);
     }
 
     [Fact]
-    public async Task InvalidateCacheCalled_WhenNewVendorCreated()
+    public async Task AliasSuggested_WhenAutoVerifyFires_UnknownVendorToReal()
     {
-        var transaction = MakeImportedTransaction();
-        var matchingService = new StubVendorMatchingService { SuggestAliasResult = null };
+        var transaction = MakeImportedTransaction(vendorId: UnknownVendorId, isVerified: false);
+        var matchingService = new StubVendorMatchingService { SuggestAliasResult = "some description" };
 
         var controller = BuildController(transaction, matchingService);
-        var dto = MakeUpdateDto();
-        dto.Vendor = new VendorDto { Id = null, Name = "New Vendor" };
+        var result = (OkObjectResult)await controller.UpdateTransaction(1, MakeUpdateDto(VendorA, isVerified: false));
+        var response = (AddTransactionResponse)result.Value;
 
-        await controller.UpdateTransaction(1, dto);
-
-        matchingService.InvalidateCacheCallCount.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task InvalidateCacheNotCalled_WhenExistingVendorUsed()
-    {
-        var transaction = MakeImportedTransaction();
-        var matchingService = new StubVendorMatchingService { SuggestAliasResult = null };
-
-        var controller = BuildController(transaction, matchingService);
-        await controller.UpdateTransaction(1, MakeUpdateDto());
-
-        matchingService.InvalidateCacheCallCount.Should().Be(0);
+        response.SuggestedAlias.Should().NotBeNull();
+        response.SuggestedAlias.VendorId.Should().Be(VendorA);
     }
 
     // Stubs
@@ -166,7 +183,7 @@ public class TransactionsControllerUpdateTransactionTests
 
         public void SaveTransaction(Api.Transaction.ApiModels.Transaction transaction) => throw new NotImplementedException();
         public Task SaveTransactionsBatch(IReadOnlyList<Api.Transaction.ApiModels.Transaction> transactions) => throw new NotImplementedException();
-        public System.Collections.Generic.IEnumerable<Api.Transaction.ApiModels.Transaction> GetTopExpenses(System.Collections.Generic.IEnumerable<DateTime> months) => throw new NotImplementedException();
+        public IEnumerable<Api.Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> months) => throw new NotImplementedException();
         public Task<IReadOnlyCollection<Api.Transaction.ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId, bool? isVerified) => throw new NotImplementedException();
         public Task DeleteTransaction(Api.Transaction.ApiModels.Transaction transaction) => throw new NotImplementedException();
         public Task DeleteTransactions(IReadOnlyList<int> transactionIds) => throw new NotImplementedException();
@@ -174,7 +191,7 @@ public class TransactionsControllerUpdateTransactionTests
 
     private class StubVendorStore : IVendorStore
     {
-        public Task SaveVendor(Vendor vendor) { vendor.Id = RealVendorId; return Task.CompletedTask; }
+        public Task SaveVendor(Vendor vendor) { vendor.Id = VendorA; return Task.CompletedTask; }
         public Task<IEnumerable<Vendor>> GetVendors() => throw new NotImplementedException();
         public Task<IEnumerable<VendorAlias>> GetAllAliases() => throw new NotImplementedException();
         public Task<IEnumerable<VendorDetails>> GetDetailedVendors() => throw new NotImplementedException();
@@ -197,9 +214,7 @@ public class TransactionsControllerUpdateTransactionTests
     private class StubVendorMatchingService : IVendorMatchingService
     {
         public string SuggestAliasResult { get; set; }
-        public int InvalidateCacheCallCount { get; private set; }
 
-        public void InvalidateCache() => InvalidateCacheCallCount++;
         public Task<string> SuggestAlias(int vendorId, string description) => Task.FromResult(SuggestAliasResult);
         public Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit) => throw new NotImplementedException();
         public Task<IVendorMatcher> CreateMatcher() => throw new NotImplementedException();

@@ -96,7 +96,6 @@ namespace MW.TinyMoney.Api.Transaction
                     DefaultSubcategoryId = updatedTransaction.SubcategoryId
                 };
                 await _vendorStore.SaveVendor(vendor);
-                _vendorMatchingService.InvalidateCache();
                 updatedTransaction.Vendor.Id = vendor.Id;
                 updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
                 response.NewVendor = updatedTransaction.Vendor;
@@ -115,8 +114,11 @@ namespace MW.TinyMoney.Api.Transaction
             }
 
             var autoVerify = !transaction.IsVerified
-                && transaction.VendorId == ImportPlaceholders.VendorId
-                && updatedTransaction.Vendor.Id.Value != ImportPlaceholders.VendorId;
+                && transaction.VendorId == TransactionPlaceholders.UnknownVendorId
+                && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId;
+
+            var originalVendorId = transaction.VendorId;
+            var wasVerified = transaction.IsVerified;
 
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
@@ -134,7 +136,11 @@ namespace MW.TinyMoney.Api.Transaction
 
             response.Transaction = transaction;
 
-            if (autoVerify && transaction.CreatedBy == ImportPlaceholders.ImportCreatedBy
+            var vendorChanged = originalVendorId != transaction.VendorId;
+            var becameVerified = !wasVerified && transaction.IsVerified;
+            if (transaction.CreatedBy == TransactionPlaceholders.CreatedByImport
+                && becameVerified
+                && vendorChanged
                 && !string.IsNullOrWhiteSpace(transaction.Description))
             {
                 var suggestedAlias = await _vendorMatchingService.SuggestAlias(
@@ -180,7 +186,7 @@ namespace MW.TinyMoney.Api.Transaction
             {
                 Amount = addTransactionDto.Amount,
                 CreatedDate = DateTime.UtcNow,
-                CreatedBy = ImportPlaceholders.ApiCreatedBy,
+                CreatedBy = TransactionPlaceholders.CreatedByApi,
                 Description = addTransactionDto.Description,
                 IsExpense = addTransactionDto.IsExpense,
                 ModifiedDate = DateTime.UtcNow,

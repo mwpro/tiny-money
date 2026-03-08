@@ -47,6 +47,7 @@ interface TransactionEditorDialogProps {
 export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
+    const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
     const queryClient = useQueryClient()
     const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     
@@ -133,6 +134,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             if (transactionToEdit) {
                 if (data.suggestedAlias) {
                     setPendingAlias(data.suggestedAlias)
+                    setPendingDescription(transactionToEdit.description)
                 }
                 reset();
                 setIsOpen(false);
@@ -153,9 +155,9 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
         <>
         <AliasProposalDialog
             suggestedAlias={pendingAlias}
-            transactionDescription={transactionToEdit?.description}
+            transactionDescription={pendingDescription}
             vendors={vendorsQuery.data ?? []}
-            onClose={() => setPendingAlias(null)}
+            onClose={() => { setPendingAlias(null); setPendingDescription(undefined) }}
         />
         <Dialog open={isOpen} onOpenChange={(v) => {
             setIsOpen(v);

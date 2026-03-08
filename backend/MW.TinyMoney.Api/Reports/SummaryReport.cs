@@ -84,7 +84,7 @@ public class SummaryReport : ISummaryReport
             new
             {
                 dateFrom = dateFrom, dateTo = dateTo, periodPattern = splitByMonth ? "%Y-%m" : "%Y",
-                importSubcategoryId = ImportPlaceholders.SubcategoryId
+                importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId
             });
 
         var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,

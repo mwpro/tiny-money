@@ -68,12 +68,12 @@ public class ImportService : IImportService
                 IsExpense = raw.IsExpense,
                 TransactionDate = raw.TransactionDate,
                 Description = raw.RawDescription,
-                VendorId = matchedVendor?.Id ?? ImportPlaceholders.VendorId,
-                SubcategoryId = matchedVendor?.DefaultSubcategoryId ?? ImportPlaceholders.SubcategoryId,
+                VendorId = matchedVendor?.Id ?? TransactionPlaceholders.UnknownVendorId,
+                SubcategoryId = matchedVendor?.DefaultSubcategoryId ?? TransactionPlaceholders.UncategorizedSubcategoryId,
                 IsVerified = false,
                 IsPossibleDuplicate = false,
                 CreatedDate = now,
-                CreatedBy = ImportPlaceholders.ImportCreatedBy,
+                CreatedBy = TransactionPlaceholders.CreatedByImport,
                 ModifiedDate = now,
                 TagIds = new List<int>()
             };
