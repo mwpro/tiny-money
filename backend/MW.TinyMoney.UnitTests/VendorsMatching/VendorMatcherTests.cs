@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using MW.TinyMoney.Api.Vendors;
-using MW.TinyMoney.UnitTests.VendorsMatching.Helpers;
+using MW.TinyMoney.UnitTests.Stubs;
 using Xunit;
 
 namespace MW.TinyMoney.UnitTests.VendorsMatching;
@@ -127,7 +127,7 @@ public class VendorMatcherTests
     [Fact]
     public void MatchesVendor_ReturnsFalseWhenNoTokensOverlapVendor()
     {
-        var result = Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, "Biedronka Warszawa");
+        var result = Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, "Motyl Warszawa");
         result.Should().BeFalse();
     }
 
@@ -142,7 +142,7 @@ public class VendorMatcherTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void MatchesVendor_ReturnsFalseForEmptyDescription(string? description)
+    public void MatchesVendor_ReturnsFalseForEmptyDescription(string description)
     {
         Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, description!).Should().BeFalse();
     }

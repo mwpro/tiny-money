@@ -114,9 +114,11 @@ namespace MW.TinyMoney.Api.Transaction
             }
 
             var vendorChanged = transaction.VendorId != updatedTransaction.Vendor.Id.Value;
-            var isImportedTransaction = transaction.CreatedBy == TransactionPlaceholders.CreatedByImport;
+            var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport,
+                StringComparison.OrdinalIgnoreCase);
             var wasVerified = transaction.IsVerified;
-            var autoVerify = !wasVerified
+            var autoVerify = isImportedTransaction 
+                             && !wasVerified
                              && vendorChanged
                              && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId
                              && updatedTransaction.SubcategoryId != TransactionPlaceholders.UncategorizedSubcategoryId;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using MW.TinyMoney.Api.Vendors.Matching;
 
-namespace MW.TinyMoney.UnitTests.VendorsMatching.Helpers;
+namespace MW.TinyMoney.UnitTests.Stubs;
 
 public class DescriptionPreprocessorMock : IDescriptionPreprocessor
 {
