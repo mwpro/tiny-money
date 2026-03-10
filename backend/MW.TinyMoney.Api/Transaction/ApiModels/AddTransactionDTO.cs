@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Tags.ApiModels;
+using MW.TinyMoney.Api.Vendors.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction.ApiModels
 {

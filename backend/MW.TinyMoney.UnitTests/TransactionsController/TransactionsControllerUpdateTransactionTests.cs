@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using MW.TinyMoney.Api.Buffer.ApiModels;
 using MW.TinyMoney.Api.Import;
+using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
+using MW.TinyMoney.Api.Vendors.ApiModels;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 

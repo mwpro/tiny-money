@@ -1,4 +1,4 @@
-namespace MW.TinyMoney.Api.Buffer;
+namespace MW.TinyMoney.Api.Import;
 
 public interface ICommandResult<TResultType>
 {
@@ -14,7 +14,7 @@ public class InvalidInputResult<TReturnType> : ICommandResult<TReturnType>
     public string Reason { get; }
 }
 
-public class CommandSuccess<TReturnType> :  ICommandResult<TReturnType>
+public class CommandSuccess<TReturnType> : ICommandResult<TReturnType>
 {
     public CommandSuccess(TReturnType result)
     {
@@ -22,4 +22,4 @@ public class CommandSuccess<TReturnType> :  ICommandResult<TReturnType>
     }
 
     public TReturnType Result { get; }
-} 
+}

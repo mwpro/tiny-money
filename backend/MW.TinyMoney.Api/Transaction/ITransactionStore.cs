@@ -14,7 +14,6 @@ namespace MW.TinyMoney.Api.Transaction
         Task SaveTransactionsBatch(IReadOnlyList<Transaction.ApiModels.Transaction> transactions);
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
-        IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(IEnumerable<DateTime> reportParametersMonths);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
             bool? isVerified);
@@ -59,26 +58,6 @@ namespace MW.TinyMoney.Api.Transaction
         private const string SaveTransactionTags =
             @"INSERT INTO transaction_tag (transaction_id, tag_id)
                 VALUES(@transactionId, @tagId)";
-
-        private const string GetTopExpensesQuery =
-            @"SELECT
-                t.id,
-                t.amount,
-                t.created_date AS 'createdDate',
-                t.description,
-                t.created_by AS 'createdBy',
-                t.is_expense AS 'isExpense',
-                t.modified_date AS 'modifiedDate',
-                t.transaction_date AS 'transactionDate',
-                t.vendor_id AS 'vendorId',
-                t.subcategory_id AS 'subcategoryId',
-                t.is_verified AS 'isVerified',
-                t.is_possible_duplicate AS 'isPossibleDuplicate'
-                # todo tags
-            FROM transaction t
-            WHERE DATE_FORMAT(transaction_date, '%Y-%m') IN @months AND t.is_expense = 1
-            ORDER BY amount DESC
-            LIMIT 50";
 
         private const string GetTransactionsByIdQuery =
             @"SELECT
@@ -240,19 +219,6 @@ namespace MW.TinyMoney.Api.Transaction
 
                 result.TagIds = tagsIds;
                 return result;
-            }
-        }
-
-        public IEnumerable<Transaction.ApiModels.Transaction> GetTopExpenses(
-            IEnumerable<DateTime> reportParametersMonths)
-        {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-                return connection.Query<Transaction.ApiModels.Transaction>(GetTopExpensesQuery, new
-                {
-                    months = reportParametersMonths.Select(x => x.ToString("yyyy-MM"))
-                });
             }
         }
 

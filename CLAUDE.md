@@ -10,8 +10,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The backend serves the frontend as static files from `wwwroot` in production (built via multi-stage Docker).
 
-> **Legacy frontend**: The `frontend/` directory contains an older Vue.js frontend. It has some features not yet ported to `tinymoney-frontend/`. Do not read or reference this code unless explicitly porting a legacy feature.
-
 ## Commands
 
 ### Frontend (`tinymoney-frontend/`)
@@ -59,18 +57,18 @@ The only config not in the repository is the **database connection string**. The
 - React Query manages all server state; React Hook Form handles form validation
 
 ### Backend Structure (`backend/MW.TinyMoney.Api/`)
-- **Feature modules**: `Budget/`, `Transaction/`, `Categories/`, `Tags/`, `Vendors/`, `Reports/`, `Buffer/`
+- **Feature modules**: `Budget/`, `Transaction/`, `Categories/`, `Tags/`, `Vendors/`, `Reports/`, `Import/`
 - Each module has: Controller → Store interface → MySql implementation (repository pattern)
 - **Data access**: Dapper with direct parameterized SQL (no EF Core)
-- **Key stores**: `ITransactionStore`, `IBudgetStore`, `IVendorStore`, `ITagStore`, `ICategoriesStore`, `IReportsProvider`, `IBufferedTransactionStore`
+- **Key stores**: `ITransactionStore`, `IBudgetStore`, `IVendorStore`, `ITagStore`, `ICategoriesStore`
 - `FrontendConfigurationEndpoint` serves runtime config to the frontend
 - `MySqlConnectionFactory` handles connection pooling
 
 ### Reports Domain
-Three report types: Summary (line/bar charts), Top List (ranked transactions), Sankey (flow visualization). Reports are generated server-side via `IReportsProvider`.
+Three report types: Summary (line/bar charts), Top List (ranked transactions), Sankey (flow visualization). Reports are generated server-side via `ISummaryReport`, `ITopListReport`, `ISankeyReport`.
 
-### Transaction Buffer
-Import staging area for bank statement parsing — transactions land in a buffer before being confirmed into the main transaction table.
+### Import Module
+Direct bank statement import — parses files (ING CSV, Pekao CSV, VeloBank PDF) and saves transactions directly. Vendor matching runs at import time.
 
 ## Development Workflow
 
@@ -83,6 +81,8 @@ After making code changes, always verify compilation and tests before finishing:
 - **Frontend - tests**: no tests so far
 
 Fix any errors before considering the task done.
+
+> **Note on build errors**: If `dotnet build` reports `MSB3027`/`MSB3021` file-locked errors (e.g. "cannot copy apphost.exe — file is locked by MW.TinyMoney.Api"), this means the backend is still running. Stop the running instance first, then run `dotnet build` again to confirm a clean successful build.
 
 When adding backend features, write corresponding unit tests in `backend/MW.TinyMoney.UnitTests/`.
 
