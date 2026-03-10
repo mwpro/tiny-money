@@ -61,13 +61,29 @@ public class DescriptionPreprocessorTests
     [Fact]
     public void Preprocess_StripsPunctuation()
     {
-        Preprocessor.Preprocess("stonka o.o.").Should().Be("stonka o o");
+        Preprocessor.Preprocess("stonka x,d,").Should().Be("stonka x d");
     }
 
     [Fact]
     public void Preprocess_NormalizesWhitespace()
     {
         Preprocessor.Preprocess("  stonka   poznan  ").Should().Be("stonka poznan");
+    }
+
+    [Theory]
+    [InlineData("e.st", "est")]
+    [InlineData("e-st", "est")]
+    [InlineData("stonka.com.pl", "stonkacompl")]
+    [InlineData("stonka-online.pl", "stonkaonlinepl")]
+    public void Preprocess_JoinsWordsOnDotsAndHyphens(string input, string expectedResult)
+    {
+        Preprocessor.Preprocess(input).Should().Be(expectedResult);
+    }
+    
+    [Fact]
+    public void Preprocess_SplitsWordsOnSpecialChars()
+    {
+        Preprocessor.Preprocess("stonka_pl").Should().Be("stonka pl");
     }
 
     [Fact]
