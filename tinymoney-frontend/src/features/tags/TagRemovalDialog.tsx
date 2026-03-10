@@ -13,10 +13,11 @@ import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import type {Tag} from "@/api/ApiTypes.ts";
 
 interface TagRemovalDialogProps {
-    tagToRemove?: Tag
+    tagToRemove?: Tag,
+    onClose: () => void
 }
 
-export function TagRemovalDialog({tagToRemove}: TagRemovalDialogProps) {
+export function TagRemovalDialog({tagToRemove, onClose}: TagRemovalDialogProps) {
     const { tagsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
@@ -42,7 +43,7 @@ export function TagRemovalDialog({tagToRemove}: TagRemovalDialogProps) {
         return null;
     
     return (
-        <AlertDialog open={isOpen}>
+        <AlertDialog open={isOpen} onOpenChange={isOpen => !isOpen && onClose()}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć tag "{tagToRemove.name}"?</AlertDialogTitle>

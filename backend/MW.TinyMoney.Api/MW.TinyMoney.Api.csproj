@@ -18,5 +18,8 @@
     <None Update="Vendors\Matching\StopTokens.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Vendors\Matching\JoinPatterns.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

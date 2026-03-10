@@ -119,7 +119,6 @@ namespace MW.TinyMoney.Api.Transaction
             var wasVerified = transaction.IsVerified;
             var autoVerify = isImportedTransaction 
                              && !wasVerified
-                             && vendorChanged
                              && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId
                              && updatedTransaction.SubcategoryId != TransactionPlaceholders.UncategorizedSubcategoryId;
 

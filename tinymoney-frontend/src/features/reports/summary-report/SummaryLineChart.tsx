@@ -44,7 +44,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
                             const min = Math.min(dataMin, 0);
                             const max = Math.ceil(dataMax / 1000) * 1000 + 1000;
                             return [min, max];
-                        }} hide />
+                        }} />
                         <ChartTooltip cursor={false} content={<ChartTooltipContent/>}/>
                         <ChartLegend  onClick={(d, _, e) => {
                             const seriesKey = d.dataKey;

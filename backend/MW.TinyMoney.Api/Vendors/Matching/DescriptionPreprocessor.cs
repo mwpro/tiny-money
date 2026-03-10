@@ -20,30 +20,45 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
     
     private readonly Regex _stopWordsPattern;
     private readonly IReadOnlyCollection<Regex> _stopPatterns;
+    private readonly IReadOnlyCollection<Regex> _joinPatterns;
 
-    public DescriptionPreprocessor(IEnumerable<string> stopTokens, IEnumerable<string> stopPatterns)
+    public DescriptionPreprocessor(IEnumerable<string> stopTokens, IEnumerable<string> stopPatterns, IEnumerable<string> joinPatterns)
     {
         var tokens = stopTokens.Select(Regex.Escape).ToList();
         _stopWordsPattern = tokens.Count > 0
             ? new Regex($@"\b({string.Join("|", tokens)})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))
             : null;
         _stopPatterns = stopPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
+        _joinPatterns = joinPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
     }
 
     public static DescriptionPreprocessor CreateFromFiles()
     {
         var stopTokens = File.ReadAllLines("Vendors/Matching/StopTokens.txt");
         var stopPatterns = File.ReadAllLines("Vendors/Matching/StopPatterns.txt");
-        return new DescriptionPreprocessor(stopTokens, stopPatterns);
+        var joinPatterns = File.ReadAllLines("Vendors/Matching/JoinPatterns.txt");
+        return new DescriptionPreprocessor(stopTokens, stopPatterns, joinPatterns);
     }
 
     public string Preprocess(string text)
     {
         var s = text.ToLowerInvariant().Trim();
+
+        foreach (var pattern in _joinPatterns)
+        {
+            s = pattern.Replace(s, string.Empty);
+        }
+
         if (_stopWordsPattern is not null)
+        {
             s = _stopWordsPattern.Replace(s, " ");
+        }
+        
         foreach (var pattern in _stopPatterns)
+        {
             s = pattern.Replace(s, " ");
+        }
+
         return s.Trim();
     }
 

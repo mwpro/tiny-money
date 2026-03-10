@@ -3,4 +3,5 @@
 ([0-9x]{4}[\s*xX]+){2,4}#card numbers
 \b\d+[,.]?\d*\b#amounts
 [^\w\s]#punctuation
+[_]#other special chars
 \s+#whitespace

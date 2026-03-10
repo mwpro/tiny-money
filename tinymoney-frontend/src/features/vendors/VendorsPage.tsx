@@ -44,7 +44,7 @@ export function VendorsPage() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Sprzedawcy</h1>
                 <VendorEditorDialog vendorToEdit={vendorToEdit} onClose={() => setVendorToEdit(undefined)} />
-                {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data}/> }
+                {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data} onClose={() => setVendorToRemove(undefined)} /> }
             </div>
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">

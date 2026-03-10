@@ -146,7 +146,7 @@ public class VeloBankPdfParser : IFileImportParser
                 b.BoundingBox.TopLeft.Y < descriptionHeader.BoundingBox.TopLeft.Y).ToArray();
             var amountFields = firstPageBlocks.Where(b => 
                 b.BoundingBox.TopLeft.X > transactionAmountLeftBoundary.BoundingBox.TopLeft.X - AMOUNT_LEFT_BOUNDARY_TOLERANCE && 
-                b.BoundingBox.TopLeft.X < transactionAmountRightBoundary.BoundingBox.TopLeft.X && 
+                b.BoundingBox.TopRight.X < transactionAmountRightBoundary.BoundingBox.TopLeft.X && 
                 b.BoundingBox.TopLeft.Y < transactionAmountLeftBoundary.BoundingBox.TopLeft.Y).ToArray();
 
             result.AddRange(PrepareStatementTransactions(transactionDescriptionFields, transactionDateFields, amountFields, HistoryDateFormat));
