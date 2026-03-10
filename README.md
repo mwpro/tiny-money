@@ -1,5 +1,24 @@
 # tiny-money
 
-Budget management
+![logo](tinymoney-frontend/public/favicon-32x32)
 
-[![Build Status](https://dev.azure.com/mwpro/tiny-money/_apis/build/status/mwpro.tiny-money?branchName=master)](https://dev.azure.com/mwpro/tiny-money/_build/latest?definitionId=3&branchName=master)
+Personal budget management application.
+
+[![CI Build](https://github.com/mwpro/tiny-money/actions/workflows/ci.yml/badge.svg)](https://github.com/mwpro/tiny-money/actions/workflows/ci.yml)
+
+## Tech Stack
+
+- **Backend**: ASP.NET Core, Dapper, MySQL
+- **Frontend**: React, TypeScript, Vite, Auth0, React Query, Shadcn
+
+## Features
+
+### Transactions list
+![transactions-list.png](docs/transactions-list.png)
+
+### Budgeting
+![docs/budget.png](docs/budget.png)
+
+### Reports
+![docs/reports.png](docs/reports.png)
+
