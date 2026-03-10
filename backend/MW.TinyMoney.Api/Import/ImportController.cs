@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MW.TinyMoney.Api.Buffer;
-
 namespace MW.TinyMoney.Api.Import;
 
 [ApiController, Route("/api/transactions/import"), Authorize]

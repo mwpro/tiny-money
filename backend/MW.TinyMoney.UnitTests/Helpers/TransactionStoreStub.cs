@@ -18,7 +18,6 @@ public class TransactionStoreStub : ITransactionStore
 
     public void SaveTransaction(Transaction transaction) => throw new NotImplementedException();
     public Task SaveTransactionsBatch(IReadOnlyList<Transaction> transactions) => throw new NotImplementedException();
-    public IEnumerable<Transaction> GetTopExpenses(IEnumerable<DateTime> months) => throw new NotImplementedException();
     public Task<IReadOnlyCollection<Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId, bool? isVerified) => throw new NotImplementedException();
     public Task DeleteTransaction(Transaction transaction) => throw new NotImplementedException();
     public Task DeleteTransactions(IReadOnlyList<int> transactionIds) => throw new NotImplementedException();

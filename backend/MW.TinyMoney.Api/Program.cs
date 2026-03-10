@@ -5,22 +5,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using MW.TinyMoney.Api.Budget;
-using MW.TinyMoney.Api.Buffer;
-using MW.TinyMoney.Api.Buffer.Parsers;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
-using ImportIngParser = MW.TinyMoney.Api.Import.Parsers.IngCsvBankStatementParser;
-using ImportPekaoParser = MW.TinyMoney.Api.Import.Parsers.PekaoCsvBankStatementParser;
-using ImportVeloBankParser = MW.TinyMoney.Api.Import.Parsers.VeloBankPdfParser;
 using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
-using IngCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.IngCsvBankStatementParser;
-using PekaoCsvBankStatementParser = MW.TinyMoney.Api.Buffer.Parsers.PekaoCsvBankStatementParser;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
@@ -81,25 +74,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddTransient<MySqlConnectionFactory>();
     services.AddTransient<ITagStore, MySqlTagStore>();
-    services.AddTransient<IBufferedTransactionStore, MySqlBufferedTransactionStore>();
     services.AddTransient<ITransactionStore, MySqlTransactionStore>();
     services.AddTransient<IVendorStore, MySqlVendorStore>();
     services.AddTransient<IVendorMatchingService, VendorMatchingService>();
     services.AddTransient<ICategoriesStore, MySqlCategoriesStore>();
-    services.AddTransient<IReportsProvider, MySqlReportsProvider>();
     services.AddTransient<ISankeyReport, SankeyReport>();
     services.AddTransient<ITopListReport, TopListReport>();
     services.AddTransient<ISummaryReport, SummaryReport>();
     services.AddTransient<IBudgetStore, BudgetStore>();
-    services.AddTransient<IImportTransactionsService, ImportTransactionsService>();
-    services.AddTransient<IBankStatementParser, GetinPdfBankStatementParser>();
-    services.AddTransient<IBankStatementParser, PekaoCsvBankStatementParser>();
-    services.AddTransient<IBankStatementParser, IngCsvBankStatementParser>();
-
-    // New import module
-    services.AddTransient<IFileImportParser, ImportIngParser>();
-    services.AddTransient<IFileImportParser, ImportPekaoParser>();
-    services.AddTransient<IFileImportParser, ImportVeloBankParser>();
+    services.AddTransient<IFileImportParser, IngCsvBankStatementParser>();
+    services.AddTransient<IFileImportParser, PekaoCsvBankStatementParser>();
+    services.AddTransient<IFileImportParser, VeloBankPdfParser>();
     services.AddTransient<IImportService, ImportService>();
     services.AddHostedService<TransactionPlaceholdersInitializer>();
 }

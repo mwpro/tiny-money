@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MW.TinyMoney.Api.Buffer.ApiModels;
+using MW.TinyMoney.Api.Tags.ApiModels;
 
 namespace MW.TinyMoney.Api.Tags
 {
