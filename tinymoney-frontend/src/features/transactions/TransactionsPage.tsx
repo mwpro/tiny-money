@@ -171,7 +171,7 @@ export function TransactionsPage() {
                     <ImportBankStatementDialog />
                     <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 </div>
-                <TransactionRemovalDialog transactionToRemove={transactionToRemove}/>
+                <TransactionRemovalDialog transactionToRemove={transactionToRemove} onClose={() => setTransactionToRemove(undefined)} />
                 <AliasProposalDialog
                     suggestedAlias={pendingAlias}
                     transactionDescription={pendingDescription}

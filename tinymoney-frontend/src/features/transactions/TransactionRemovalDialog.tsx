@@ -14,10 +14,11 @@ import {useEffect, useState} from "react";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface TransactionRemovalDialogProps {
-    transactionToRemove?: Transaction
+    transactionToRemove?: Transaction,
+    onClose: () => void
 }
 
-export function TransactionRemovalDialog({transactionToRemove}: TransactionRemovalDialogProps) {
+export function TransactionRemovalDialog({transactionToRemove, onClose}: TransactionRemovalDialogProps) {
     const { transactionsClient, vendorsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
@@ -53,7 +54,7 @@ export function TransactionRemovalDialog({transactionToRemove}: TransactionRemov
         return null;
     
     return (
-        <AlertDialog open={isOpen}>
+        <AlertDialog open={isOpen} onOpenChange={isOpen => !isOpen && onClose()}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>

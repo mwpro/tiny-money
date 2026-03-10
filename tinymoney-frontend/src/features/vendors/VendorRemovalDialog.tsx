@@ -15,10 +15,11 @@ import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 interface VendorRemovalDialogProps {
     vendorToRemove?: VendorDetails,
-    vendors?: VendorDetails[]
+    vendors?: VendorDetails[],
+    onClose: () => void
 }
 
-export function VendorRemovalDialog({vendorToRemove, vendors}: VendorRemovalDialogProps) {
+export function VendorRemovalDialog({vendorToRemove, vendors, onClose}: VendorRemovalDialogProps) {
     const { vendorsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +48,7 @@ export function VendorRemovalDialog({vendorToRemove, vendors}: VendorRemovalDial
         return null;
 
     return (
-        <AlertDialog open={isOpen}>
+        <AlertDialog open={isOpen} onOpenChange={isOpen => !isOpen && onClose()}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć sprzedawcę "{vendorToRemove.name}"?</AlertDialogTitle>
@@ -57,8 +58,8 @@ export function VendorRemovalDialog({vendorToRemove, vendors}: VendorRemovalDial
                         )}
                         {vendorToRemove.numberOfTransactions > 0 && (
                             <>
-                                <p>Sprzedawca jest przypisany do {vendorToRemove.numberOfTransactions} transakcji.</p>
-                                <p>Należy wskazać nowego sprzedawcę do którego zostaną one przypisane:</p>
+                                Sprzedawca jest przypisany do {vendorToRemove.numberOfTransactions} transakcji.<br />
+                                Należy wskazać nowego sprzedawcę do którego zostaną one przypisane:<br />
 
                                 
                             </>

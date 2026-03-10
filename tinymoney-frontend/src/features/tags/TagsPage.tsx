@@ -43,7 +43,7 @@ export function TagsPage() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Tagi</h1>
                 <TagEditorDialog tagToEdit={tagToEdit} onClose={() => setTagToEdit(undefined)} />
-                <TagRemovalDialog tagToRemove={tagToRemove}/>
+                <TagRemovalDialog tagToRemove={tagToRemove} onClose={() => setTagToRemove(undefined)} />
             </div>
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">
