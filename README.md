@@ -1,6 +1,4 @@
-# tiny-money
-
-![logo](tinymoney-frontend/public/favicon-32x32.png)
+# ![logo](tinymoney-frontend/public/favicon-32x32.png) tiny-money
 
 Personal budget management application.
 
