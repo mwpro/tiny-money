@@ -153,4 +153,84 @@ public class TransactionsControllerUpdateTransactionTests
         response.SuggestedAlias.Should().NotBeNull();
         response.SuggestedAlias.VendorId.Should().Be(VendorA);
     }
+
+    [Fact]
+    public async Task AutoVerify_SetsTransactionVerified_WhenImportedUnverifiedVendorChangedToRealWithCategory()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
+
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsVerified.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AutoVerify_ClearsPossibleDuplicate_WhenAutoVerified()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
+        _transactionStore.Transaction.IsPossibleDuplicate = true;
+        
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsPossibleDuplicate.Should().BeFalse();
+    }
+    
+    [Fact]
+    public async Task AutoVerify_WhenAlreadyHadVendorAndSubcategory()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, subcategoryId: RealSubcategoryId, isVerified: false);
+
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(isVerified: false)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsVerified.Should().BeTrue();
+    }
+    
+    [Fact]
+    public async Task NoAutoVerify_WhenSubcategoryIsUncategorized()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
+
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false, subcategoryId: UncategorizedSubcategoryId)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsVerified.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task NoAutoVerify_WhenNewVendorIsUnknownVendor()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
+
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(UnknownVendorId, isVerified: false)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsVerified.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task NoAutoVerify_WhenNotImportedTransaction()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false,
+            createdBy: TransactionPlaceholders.CreatedByApi);
+
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+            .Should().BeOfType<OkObjectResult>()
+            .Which.Value.Should().BeOfType<AddTransactionResponse>()
+            .Subject;
+
+        response.Transaction.IsVerified.Should().BeFalse();
+    }
 }

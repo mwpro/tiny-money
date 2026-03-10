@@ -23,7 +23,7 @@ public static class TransactionsHelper
             VendorId = vendorId,
             SubcategoryId = subcategoryId,
             IsVerified = isVerified,
-            IsPossibleDuplicate = true,
+            IsPossibleDuplicate = false,
             CreatedDate = DateTime.UtcNow,
             CreatedBy = createdBy,
             ModifiedDate = DateTime.UtcNow,
