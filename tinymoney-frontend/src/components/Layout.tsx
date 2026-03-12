@@ -17,6 +17,7 @@ import {
     CoinsIcon,
     MenuIcon,
     MoonIcon,
+    SettingsIcon,
     SunIcon,
     WalletIcon
 } from "lucide-react";
@@ -95,6 +96,9 @@ export function Layout() {
                     </div>
 
                     <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/settings") ? "bg-white/20" : ""}`} asChild aria-label="Ustawienia">
+                            <Link to="/settings"><SettingsIcon className="size-5" /></Link>
+                        </Button>
                         <Button variant="ghost" size="icon" className="hover:bg-white/15 hover:text-header-fg" onClick={toggleDark} aria-label="Toggle dark mode">
                             {dark ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
                         </Button>
@@ -170,6 +174,9 @@ export function Layout() {
                             </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
                                 <Link to="/vendors" onClick={() => setMoreOpen(false)}>Sprzedawcy</Link>
+                            </Button>
+                            <Button variant="ghost" asChild className="justify-start w-full">
+                                <Link to="/settings" onClick={() => setMoreOpen(false)}>Ustawienia</Link>
                             </Button>
 
                             <div className="border-t my-1"/>

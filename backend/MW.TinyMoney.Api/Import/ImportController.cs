@@ -1,11 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 namespace MW.TinyMoney.Api.Import;
 
-[ApiController, Route("/api/transactions/import"), Authorize]
+[ApiController, Route("/api/transactions/import"), Authorize(AuthenticationSchemes = $"{JwtBearerDefaults.AuthenticationScheme},ApiKey")]
 public class ImportController : Controller
 {
     private readonly IImportService _importService;

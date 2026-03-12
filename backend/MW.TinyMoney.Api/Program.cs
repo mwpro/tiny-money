@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using MW.TinyMoney.Api.ApiKeys;
 using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Import;
@@ -51,7 +52,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     {
         options.Authority = $"https://{configuration["Auth0:Domain"]}/";
         options.Audience = configuration["Auth0:ApiIdentifier"];
-    });
+    }).AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>("ApiKey", _ => { });
 
     services.AddControllers();
 
@@ -85,6 +86,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileImportParser, IngCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, PekaoCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();
+    services.AddTransient<IApiKeyStore, MySqlApiKeyStore>();
     services.AddTransient<IImportService, ImportService>();
     services.AddHostedService<TransactionPlaceholdersInitializer>();
 }

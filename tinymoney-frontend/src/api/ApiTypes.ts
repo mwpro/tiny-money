@@ -236,3 +236,22 @@ export type Category = { id: number, name: string, isIncome: boolean, subcategor
 export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
+
+export type ApiKeySummary = {
+    id: number;
+    name: string;
+    keyPrefix: string;
+    createdAt: string;
+    lastUsedAt: string | null;
+};
+
+export type CreateApiKeyRequest = {
+    name: string;
+};
+
+export type CreateApiKeyResponse = {
+    id: number;
+    name: string;
+    keyPrefix: string;
+    rawKey: string;
+};
