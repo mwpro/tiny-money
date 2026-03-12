@@ -96,6 +96,19 @@ create table transaction
 )
     charset = latin2;
 
+create table api_key
+(
+    id           int auto_increment primary key,
+    name         varchar(100)  not null,
+    key_hash     char(64)      not null,
+    key_prefix   char(8)       not null,
+    user_id      varchar(255)  not null,
+    created_at   datetime      not null default current_timestamp,
+    last_used_at datetime      null,
+    index idx_key_hash (key_hash),
+    index idx_user_id (user_id)
+);
+
 create table transaction_tag
 (
     tag_id         int not null,

@@ -12,6 +12,7 @@ import {TopListReportPage} from "@/features/reports/toplist-report/TopListReport
 import {SankeyReportPage} from "@/features/reports/SankeyReportPage.tsx";
 import {TagsPage} from "@/features/tags/TagsPage.tsx";
 import {VendorsPage} from "@/features/vendors/VendorsPage.tsx";
+import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -83,6 +84,7 @@ function App() {
                             <Route path="budgets" element={<BudgetsPage />} />
                             <Route path="tags" element={<TagsPage />} />
                             <Route path="vendors" element={<VendorsPage />} />
+                            <Route path="settings" element={<SettingsPage />} />
 
                             {/*fallback*/}
                             <Route path="*" element={<Navigate to="/dashboard" replace />} />

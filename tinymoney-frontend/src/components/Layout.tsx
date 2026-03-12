@@ -91,6 +91,9 @@ export function Layout() {
                             <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/vendors") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/vendors">Sprzedawcy</Link>
                             </Button>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/settings") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/settings">Settings</Link>
+                            </Button>
                         </nav>
                     </div>
 
@@ -170,6 +173,9 @@ export function Layout() {
                             </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
                                 <Link to="/vendors" onClick={() => setMoreOpen(false)}>Sprzedawcy</Link>
+                            </Button>
+                            <Button variant="ghost" asChild className="justify-start w-full">
+                                <Link to="/settings" onClick={() => setMoreOpen(false)}>Settings</Link>
                             </Button>
 
                             <div className="border-t my-1"/>

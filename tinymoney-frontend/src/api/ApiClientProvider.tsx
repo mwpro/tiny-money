@@ -8,6 +8,7 @@ import {VendorsClientImpl} from "@/api/clients/VendorsClient.ts";
 import {CategoriesClientImpl} from "@/api/clients/CategoriesClient.ts";
 import {BudgetClientImpl} from "@/api/clients/BudgetClient.ts";
 import {ReportsClientImpl} from "@/api/clients/ReportsClient.ts";
+import {ApiKeysClientImpl} from "@/api/clients/ApiKeysClient.ts";
 
 export interface ApiClientProviderProps{
     configuration: Configuration,
@@ -25,6 +26,7 @@ export function ApiClientProvider(props: ApiClientProviderProps) {
         categoriesClient: new CategoriesClientImpl(auth, props.configuration.apiUrl),
         budgetClient: new BudgetClientImpl(auth, props.configuration.apiUrl),
         reportsClient: new ReportsClientImpl(auth, props.configuration.apiUrl),
+        apiKeysClient: new ApiKeysClientImpl(auth, props.configuration.apiUrl),
     };
 
     return (<ApiClientContext.Provider value={apiClient}>
