@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MW.TinyMoney.Api.ApiKeys;
 
-[ApiController, Route("/api/apikeys"), Authorize]
+[ApiController, Route("/api/api-keys"), Authorize]
 public class ApiKeyController : Controller
 {
     private readonly IApiKeyStore _apiKeyStore;

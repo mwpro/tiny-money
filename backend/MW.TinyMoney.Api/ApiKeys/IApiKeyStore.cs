@@ -28,21 +28,31 @@ public class MySqlApiKeyStore : IApiKeyStore
     }
 
     private const string FindByHashQuery =
-        @"SELECT id, user_id as UserId FROM api_key WHERE key_hash = @keyHash LIMIT 1";
+        """
+        SELECT id, user_id as UserId FROM api_key WHERE key_hash = @keyHash LIMIT 1
+        """;
 
     private const string GetByUserQuery =
-        @"SELECT id, name, key_prefix as KeyPrefix, created_at as CreatedAt, last_used_at as LastUsedAt
-          FROM api_key WHERE user_id = @userId ORDER BY created_at DESC";
+        """
+        SELECT id, name, key_prefix as KeyPrefix, created_at as CreatedAt, last_used_at as LastUsedAt
+        FROM api_key WHERE user_id = @userId ORDER BY created_at DESC
+        """;
 
     private const string CreateQuery =
-        @"INSERT INTO api_key (name, key_hash, key_prefix, user_id) VALUES (@name, @keyHash, @keyPrefix, @userId);
-          SELECT LAST_INSERT_ID();";
+        """
+        INSERT INTO api_key (name, key_hash, key_prefix, user_id) VALUES (@name, @keyHash, @keyPrefix, @userId);
+        SELECT LAST_INSERT_ID();
+        """;
 
     private const string DeleteQuery =
-        @"DELETE FROM api_key WHERE id = @id AND user_id = @userId";
+        """
+        DELETE FROM api_key WHERE id = @id AND user_id = @userId
+        """;
 
     private const string UpdateLastUsedQuery =
-        @"UPDATE api_key SET last_used_at = UTC_TIMESTAMP() WHERE id = @id";
+        """
+        UPDATE api_key SET last_used_at = UTC_TIMESTAMP() WHERE id = @id
+        """;
 
     public async Task<ApiKeyRecord?> FindByHash(string keyHash)
     {

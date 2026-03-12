@@ -1,25 +1,7 @@
-import {useState} from "react"
-import {useForm} from "react-hook-form"
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
+import {useQuery, useQueryClient} from "@tanstack/react-query"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
-import type {ApiKeySummary, CreateApiKeyResponse} from "@/api/ApiTypes.ts"
-import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
-import {Label} from "@/components/ui/label"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger
-} from "@/components/ui/dialog"
-import {toast} from "sonner"
-
-interface CreateApiKeyInputs {
-    name: string
-}
+import {ApiKeyRow} from "@/features/settings/ApiKeyRow.tsx"
+import {GenerateKeyDialog} from "@/features/settings/GenerateKeyDialog.tsx"
 
 export function SettingsPage() {
     const {apiKeysClient} = useApiClient()
@@ -30,6 +12,8 @@ export function SettingsPage() {
         queryFn: () => apiKeysClient.getApiKeys()
     })
 
+    const invalidate = () => queryClient.invalidateQueries({queryKey: ['api-keys']})
+
     return (
         <div className="max-w-2xl mx-auto">
             <h1 className="text-2xl font-semibold mb-6">Ustawienia</h1>
@@ -38,9 +22,9 @@ export function SettingsPage() {
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h2 className="text-lg font-medium">Klucze API</h2>
-                        <p className="text-sm text-muted-foreground">Używaj kluczy API do uwierzytelniania żądań z Apple Shortcuts lub innych narzędzi automatyzacji.</p>
+                        <p className="text-sm text-muted-foreground">Używaj kluczy API do uwierzytelniania żądań z zewnętrznych narzędzi.</p>
                     </div>
-                    <GenerateKeyDialog onCreated={() => queryClient.invalidateQueries({queryKey: ['api-keys']})} />
+                    <GenerateKeyDialog onCreated={invalidate} />
                 </div>
 
                 {keysQuery.isLoading && <p className="text-sm text-muted-foreground">Ładowanie...</p>}
@@ -53,142 +37,11 @@ export function SettingsPage() {
                 {keysQuery.data && keysQuery.data.length > 0 && (
                     <div className="border rounded-md divide-y">
                         {keysQuery.data.map(key => (
-                            <ApiKeyRow
-                                key={key.id}
-                                apiKey={key}
-                                onDeleted={() => queryClient.invalidateQueries({queryKey: ['api-keys']})}
-                            />
+                            <ApiKeyRow key={key.id} apiKey={key} onDeleted={invalidate} />
                         ))}
                     </div>
                 )}
             </section>
         </div>
-    )
-}
-
-function ApiKeyRow({apiKey, onDeleted}: { apiKey: ApiKeySummary; onDeleted: () => void }) {
-    const {apiKeysClient} = useApiClient()
-
-    const deleteMutation = useMutation({
-        mutationFn: () => apiKeysClient.deleteApiKey(apiKey.id),
-        onSuccess: onDeleted,
-        onError: (error) => toast.error("Błąd: " + error.message)
-    })
-
-    return (
-        <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex flex-col gap-0.5">
-                <span className="font-medium text-sm">{apiKey.name}</span>
-                <span className="text-xs text-muted-foreground font-mono">{apiKey.keyPrefix}...</span>
-                <span className="text-xs text-muted-foreground">
-                    Utworzono {new Date(apiKey.createdAt).toLocaleDateString()}
-                    {apiKey.lastUsedAt && <> · Ostatnio użyto {new Date(apiKey.lastUsedAt).toLocaleDateString()}</>}
-                </span>
-            </div>
-            <Button
-                variant="destructive"
-                size="sm"
-                disabled={deleteMutation.isPending}
-                onClick={() => deleteMutation.mutate()}
-            >
-                Usuń
-            </Button>
-        </div>
-    )
-}
-
-function GenerateKeyDialog({onCreated}: { onCreated: () => void }) {
-    const {apiKeysClient} = useApiClient()
-    const [isOpen, setIsOpen] = useState(false)
-    const [createdKey, setCreatedKey] = useState<CreateApiKeyResponse | null>(null)
-
-    const {register, handleSubmit, formState: {errors}, reset} = useForm<CreateApiKeyInputs>({
-        defaultValues: {name: ""}
-    })
-
-    const mutation = useMutation({
-        mutationFn: (data: CreateApiKeyInputs) => apiKeysClient.createApiKey(data),
-        onSuccess: (response) => {
-            setCreatedKey(response)
-            onCreated()
-        },
-        onError: (error) => toast.error("Błąd: " + error.message)
-    })
-
-    const handleClose = (open: boolean) => {
-        if (!open) {
-            setCreatedKey(null)
-            reset()
-        }
-        setIsOpen(open)
-    }
-
-    return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogTrigger asChild>
-                <Button>Generuj klucz</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                {!createdKey ? (
-                    <>
-                        <DialogHeader>
-                            <DialogTitle>Generuj klucz API</DialogTitle>
-                            <DialogDescription>
-                                Nadaj kluczowi nazwę, żeby móc go później zidentyfikować.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label>Nazwa</Label>
-                                <Input
-                                    {...register("name", {required: "Nazwa jest wymagana"})}
-                                    placeholder="np. Apple Shortcuts"
-                                />
-                                {errors.name && <span className="text-destructive text-xs">{errors.name.message}</span>}
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit" disabled={mutation.isPending}>
-                                    {mutation.isPending ? "Generowanie..." : "Generuj"}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </>
-                ) : (
-                    <>
-                        <DialogHeader>
-                            <DialogTitle>Klucz API wygenerowany</DialogTitle>
-                            <DialogDescription>
-                                Skopiuj klucz teraz — nie zostanie pokazany ponownie.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label>Twój klucz API</Label>
-                                <div className="flex gap-2">
-                                    <Input readOnly value={createdKey.rawKey} className="font-mono text-xs" />
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(createdKey.rawKey)
-                                            toast.success("Skopiowano do schowka")
-                                        }}
-                                    >
-                                        Kopiuj
-                                    </Button>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Użyj w nagłówku <code className="font-mono bg-muted px-1 rounded">Authorization</code>:{" "}
-                                    <code className="font-mono bg-muted px-1 rounded">ApiKey {createdKey.rawKey.slice(0, 12)}...</code>
-                                </p>
-                            </div>
-                            <DialogFooter>
-                                <Button onClick={() => handleClose(false)}>Gotowe</Button>
-                            </DialogFooter>
-                        </div>
-                    </>
-                )}
-            </DialogContent>
-        </Dialog>
     )
 }
