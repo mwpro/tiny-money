@@ -87,6 +87,7 @@ public class ApiKeyAuthenticationHandlerTests
 
         await Authenticate("ApiKey tm_validkey123456789");
 
+        await Task.Delay(TimeSpan.FromMilliseconds(100));
         _store.UpdateLastUsedCalledWithId.Should().Be(42);
     }
 
