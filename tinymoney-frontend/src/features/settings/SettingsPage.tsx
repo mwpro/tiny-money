@@ -32,22 +32,22 @@ export function SettingsPage() {
 
     return (
         <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-semibold mb-6">Settings</h1>
+            <h1 className="text-2xl font-semibold mb-6">Ustawienia</h1>
 
             <section>
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-lg font-medium">API Keys</h2>
-                        <p className="text-sm text-muted-foreground">Use API keys to authenticate requests from Apple Shortcuts or other automation tools.</p>
+                        <h2 className="text-lg font-medium">Klucze API</h2>
+                        <p className="text-sm text-muted-foreground">Używaj kluczy API do uwierzytelniania żądań z Apple Shortcuts lub innych narzędzi automatyzacji.</p>
                     </div>
                     <GenerateKeyDialog onCreated={() => queryClient.invalidateQueries({queryKey: ['api-keys']})} />
                 </div>
 
-                {keysQuery.isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
-                {keysQuery.isError && <p className="text-sm text-destructive">Failed to load API keys.</p>}
+                {keysQuery.isLoading && <p className="text-sm text-muted-foreground">Ładowanie...</p>}
+                {keysQuery.isError && <p className="text-sm text-destructive">Błąd ładowania kluczy API.</p>}
 
                 {keysQuery.data && keysQuery.data.length === 0 && (
-                    <p className="text-sm text-muted-foreground py-4 text-center border rounded-md">No API keys yet.</p>
+                    <p className="text-sm text-muted-foreground py-4 text-center border rounded-md">Brak kluczy API.</p>
                 )}
 
                 {keysQuery.data && keysQuery.data.length > 0 && (
@@ -72,7 +72,7 @@ function ApiKeyRow({apiKey, onDeleted}: { apiKey: ApiKeySummary; onDeleted: () =
     const deleteMutation = useMutation({
         mutationFn: () => apiKeysClient.deleteApiKey(apiKey.id),
         onSuccess: onDeleted,
-        onError: (error) => toast.error("Error: " + error.message)
+        onError: (error) => toast.error("Błąd: " + error.message)
     })
 
     return (
@@ -81,8 +81,8 @@ function ApiKeyRow({apiKey, onDeleted}: { apiKey: ApiKeySummary; onDeleted: () =
                 <span className="font-medium text-sm">{apiKey.name}</span>
                 <span className="text-xs text-muted-foreground font-mono">{apiKey.keyPrefix}...</span>
                 <span className="text-xs text-muted-foreground">
-                    Created {new Date(apiKey.createdAt).toLocaleDateString()}
-                    {apiKey.lastUsedAt && <> · Last used {new Date(apiKey.lastUsedAt).toLocaleDateString()}</>}
+                    Utworzono {new Date(apiKey.createdAt).toLocaleDateString()}
+                    {apiKey.lastUsedAt && <> · Ostatnio użyto {new Date(apiKey.lastUsedAt).toLocaleDateString()}</>}
                 </span>
             </div>
             <Button
@@ -91,7 +91,7 @@ function ApiKeyRow({apiKey, onDeleted}: { apiKey: ApiKeySummary; onDeleted: () =
                 disabled={deleteMutation.isPending}
                 onClick={() => deleteMutation.mutate()}
             >
-                Revoke
+                Usuń
             </Button>
         </div>
     )
@@ -112,7 +112,7 @@ function GenerateKeyDialog({onCreated}: { onCreated: () => void }) {
             setCreatedKey(response)
             onCreated()
         },
-        onError: (error) => toast.error("Error: " + error.message)
+        onError: (error) => toast.error("Błąd: " + error.message)
     })
 
     const handleClose = (open: boolean) => {
@@ -126,29 +126,29 @@ function GenerateKeyDialog({onCreated}: { onCreated: () => void }) {
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogTrigger asChild>
-                <Button>Generate key</Button>
+                <Button>Generuj klucz</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 {!createdKey ? (
                     <>
                         <DialogHeader>
-                            <DialogTitle>Generate API key</DialogTitle>
+                            <DialogTitle>Generuj klucz API</DialogTitle>
                             <DialogDescription>
-                                Give this key a name so you can identify it later.
+                                Nadaj kluczowi nazwę, żeby móc go później zidentyfikować.
                             </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label>Name</Label>
+                                <Label>Nazwa</Label>
                                 <Input
-                                    {...register("name", {required: "Name is required"})}
-                                    placeholder="e.g. Apple Shortcuts"
+                                    {...register("name", {required: "Nazwa jest wymagana"})}
+                                    placeholder="np. Apple Shortcuts"
                                 />
                                 {errors.name && <span className="text-destructive text-xs">{errors.name.message}</span>}
                             </div>
                             <DialogFooter>
                                 <Button type="submit" disabled={mutation.isPending}>
-                                    {mutation.isPending ? "Generating..." : "Generate"}
+                                    {mutation.isPending ? "Generowanie..." : "Generuj"}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -156,14 +156,14 @@ function GenerateKeyDialog({onCreated}: { onCreated: () => void }) {
                 ) : (
                     <>
                         <DialogHeader>
-                            <DialogTitle>API key generated</DialogTitle>
+                            <DialogTitle>Klucz API wygenerowany</DialogTitle>
                             <DialogDescription>
-                                Copy this key now — it will not be shown again.
+                                Skopiuj klucz teraz — nie zostanie pokazany ponownie.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4">
                             <div className="grid gap-2">
-                                <Label>Your API key</Label>
+                                <Label>Twój klucz API</Label>
                                 <div className="flex gap-2">
                                     <Input readOnly value={createdKey.rawKey} className="font-mono text-xs" />
                                     <Button
@@ -171,19 +171,19 @@ function GenerateKeyDialog({onCreated}: { onCreated: () => void }) {
                                         variant="outline"
                                         onClick={() => {
                                             navigator.clipboard.writeText(createdKey.rawKey)
-                                            toast.success("Copied to clipboard")
+                                            toast.success("Skopiowano do schowka")
                                         }}
                                     >
-                                        Copy
+                                        Kopiuj
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Use it in the <code className="font-mono bg-muted px-1 rounded">Authorization</code> header:{" "}
+                                    Użyj w nagłówku <code className="font-mono bg-muted px-1 rounded">Authorization</code>:{" "}
                                     <code className="font-mono bg-muted px-1 rounded">ApiKey {createdKey.rawKey.slice(0, 12)}...</code>
                                 </p>
                             </div>
                             <DialogFooter>
-                                <Button onClick={() => handleClose(false)}>Done</Button>
+                                <Button onClick={() => handleClose(false)}>Gotowe</Button>
                             </DialogFooter>
                         </div>
                     </>
