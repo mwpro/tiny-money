@@ -19,7 +19,8 @@ public class ApiKeyController : Controller
     }
 
     private string UserId => User.FindFirstValue("sub")
-        ?? User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        ?? User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? throw new InvalidOperationException("User ID claim not found in principal.");
 
     [HttpGet]
     public async Task<IActionResult> GetApiKeys()

@@ -11,7 +11,7 @@ public record ApiKeyRecord(int Id, string UserId);
 
 public interface IApiKeyStore
 {
-    Task<ApiKeyRecord?> FindByHash(string keyHash);
+    Task<ApiKeyRecord> FindByHash(string keyHash);
     Task<IEnumerable<ApiKeySummary>> GetByUser(string userId);
     Task<int> Create(string name, string keyHash, string keyPrefix, string userId);
     Task Delete(int id, string userId);
@@ -54,7 +54,7 @@ public class MySqlApiKeyStore : IApiKeyStore
         UPDATE api_key SET last_used_at = UTC_TIMESTAMP() WHERE id = @id
         """;
 
-    public async Task<ApiKeyRecord?> FindByHash(string keyHash)
+    public async Task<ApiKeyRecord> FindByHash(string keyHash)
     {
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync();

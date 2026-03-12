@@ -7,11 +7,11 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class ApiKeyStoreStub : IApiKeyStore
 {
-    public ApiKeyRecord? FindByHashResult { get; set; }
-    public string? LastFindByHashArgument { get; private set; }
+    public ApiKeyRecord FindByHashResult { get; set; }
+    public string LastFindByHashArgument { get; private set; }
     public int UpdateLastUsedCalledWithId { get; private set; }
 
-    public Task<ApiKeyRecord?> FindByHash(string keyHash)
+    public Task<ApiKeyRecord> FindByHash(string keyHash)
     {
         LastFindByHashArgument = keyHash;
         return Task.FromResult(FindByHashResult);

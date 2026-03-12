@@ -41,7 +41,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         if (record is null)
             return AuthenticateResult.NoResult();
 
-        _ = _apiKeyStore.UpdateLastUsed(record.Id);
+        ObserveKeyUsage(record);
 
         var claims = new[]
         {
@@ -53,6 +53,21 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<AuthenticationS
         var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
         return AuthenticateResult.Success(ticket);
+    }
+
+    private void ObserveKeyUsage(ApiKeyRecord record)
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                await _apiKeyStore.UpdateLastUsed(record.Id);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to update last used timestamp for API key {ApiKeyId}", record.Id);
+            }
+        });
     }
 
     public static string ComputeHash(string rawKey)

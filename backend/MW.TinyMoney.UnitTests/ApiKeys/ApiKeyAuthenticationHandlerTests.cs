@@ -17,7 +17,7 @@ public class ApiKeyAuthenticationHandlerTests
 {
     private readonly ApiKeyStoreStub _store = new();
 
-    private async Task<AuthenticateResult> Authenticate(string? authorizationHeader)
+    private async Task<AuthenticateResult> Authenticate(string authorizationHeader)
     {
         var handler = new ApiKeyAuthenticationHandler(
             new OptionsMonitorStub<AuthenticationSchemeOptions>(new AuthenticationSchemeOptions()),
@@ -95,7 +95,7 @@ public class ApiKeyAuthenticationHandlerTests
         private readonly T _value;
         public OptionsMonitorStub(T value) => _value = value;
         public T CurrentValue => _value;
-        public T Get(string? name) => _value;
-        public IDisposable OnChange(Action<T, string?> listener) => null!;
+        public T Get(string name) => _value;
+        public IDisposable OnChange(Action<T, string> listener) => null!;
     }
 }
