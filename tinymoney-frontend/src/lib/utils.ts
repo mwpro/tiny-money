@@ -14,6 +14,7 @@ export type TransactionsUrlParams = {
   vendorId?: number;
   subcategoryId?: number;
   tagId?: number;
+  isVerified?: boolean | 'true' | 'false';
 };
 
 export const getTransactionsUrl = (params: TransactionsUrlParams = {}): string => {

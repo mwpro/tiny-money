@@ -15,12 +15,14 @@ import {
     BarChart2Icon,
     ChevronDownIcon,
     CoinsIcon,
+    LogOutIcon,
     MenuIcon,
     MoonIcon,
     SettingsIcon,
     SunIcon,
     WalletIcon
 } from "lucide-react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {getTransactionsUrl} from "@/lib/utils.ts";
 import {useState} from "react";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
@@ -102,10 +104,17 @@ export function Layout() {
                         <Button variant="ghost" size="icon" className="hover:bg-white/15 hover:text-header-fg" onClick={toggleDark} aria-label="Toggle dark mode">
                             {dark ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
                         </Button>
-                        <Button variant="ghost" className="hover:bg-white/15 hover:text-header-fg"
-                            onClick={() => logout({logoutParams: {returnTo: window.location.origin}})}>
-                            Wyloguj {user?.name}
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="hover:bg-white/15 hover:text-header-fg"
+                                        onClick={() => logout({logoutParams: {returnTo: window.location.origin}})}>
+                                        <LogOutIcon className="size-5"/>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Wyloguj {user?.name}</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </div>
             </header>

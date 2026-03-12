@@ -7,6 +7,7 @@ using Microsoft.OpenApi;
 using MW.TinyMoney.Api.ApiKeys;
 using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Categories;
+using MW.TinyMoney.Api.Dashboard;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
@@ -83,6 +84,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<ITopListReport, TopListReport>();
     services.AddTransient<ISummaryReport, SummaryReport>();
     services.AddTransient<IBudgetStore, BudgetStore>();
+    services.AddTransient<IDashboardStore, MySqlDashboardStore>();
     services.AddTransient<IFileImportParser, IngCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, PekaoCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();

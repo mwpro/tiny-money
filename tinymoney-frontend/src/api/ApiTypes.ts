@@ -237,6 +237,19 @@ export type Subcategory = { id: number; name: string };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 
+export type DailyExpense = { day: number; amount: number };
+export type CategoryBudgetSummary = { subcategoryName: string; amount: number; amountLeft: number };
+export type DashboardResponse = {
+    incomesTotal: number;
+    expensesTotal: number;
+    budgetAmount: number;
+    budgetUsed: number;
+    budgetLeft: number;
+    unverifiedCount: number;
+    dailyExpenses: DailyExpense[];
+    categoryBudgets: CategoryBudgetSummary[];
+};
+
 export type ApiKeySummary = {
     id: number;
     name: string;
