@@ -238,7 +238,7 @@ export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 
 export type DailyExpense = { day: number; amount: number };
-export type CategoryBudgetSummary = { subcategoryName: string; amount: number; amountLeft: number };
+export type CategoryBudgetSummary = { subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
 export type DashboardResponse = {
     incomesTotal: number;
     expensesTotal: number;

@@ -41,7 +41,7 @@ public class DashboardControllerTests
             {
                 new CategoryBudget { CategoryName = "Jedzenie", Amount = 1000m, AmountLeft = 400m, SubcategoryBudgets = new List<SubcategoryBudget>
                 {
-                    new SubcategoryBudget { SubcategoryName = "Restauracje", Amount = 600m, AmountLeft = 200m },
+                    new SubcategoryBudget { SubcategoryName = "Restauracje", Amount = 600m, AmountLeft = 200m, Notes = "max 3x w tygodniu" },
                     new SubcategoryBudget { SubcategoryName = "Zakupy spożywcze", Amount = 400m, AmountLeft = 200m }
                 }},
                 new CategoryBudget { CategoryName = "Transport", Amount = 500m, AmountLeft = -100m, SubcategoryBudgets = new List<SubcategoryBudget>
@@ -64,7 +64,7 @@ public class DashboardControllerTests
         response.BudgetLeft.Should().Be(1900m);
         response.DailyExpenses.Should().HaveCount(2);
         response.CategoryBudgets.Should().HaveCount(3);
-        response.CategoryBudgets.Should().Contain(c => c.SubcategoryName == "Restauracje" && c.Amount == 600m && c.AmountLeft == 200m);
+        response.CategoryBudgets.Should().Contain(c => c.SubcategoryName == "Restauracje" && c.Amount == 600m && c.AmountLeft == 200m && c.Notes == "max 3x w tygodniu");
         response.CategoryBudgets.Should().Contain(c => c.SubcategoryName == "Zakupy spożywcze" && c.Amount == 400m && c.AmountLeft == 200m);
         response.CategoryBudgets.Should().Contain(c => c.SubcategoryName == "Paliwo" && c.Amount == 500m && c.AmountLeft == -100m);
     }

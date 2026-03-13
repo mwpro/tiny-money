@@ -20,11 +20,11 @@ namespace MW.TinyMoney.Api.Dashboard
             await connection.OpenAsync();
 
             var incomesTotal = await connection.QueryFirstAsync<decimal>(
-                "SELECT COALESCE(SUM(amount), 0) FROM transaction WHERE is_expense = 0 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year",
+                "SELECT COALESCE(SUM(amount), 0) FROM transaction WHERE is_expense = 0 AND is_verified = 1 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year",
                 new { year, month });
 
             var expensesTotal = await connection.QueryFirstAsync<decimal>(
-                "SELECT COALESCE(SUM(amount), 0) FROM transaction WHERE is_expense = 1 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year",
+                "SELECT COALESCE(SUM(amount), 0) FROM transaction WHERE is_expense = 1 AND is_verified = 1 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year",
                 new { year, month });
 
             var unverifiedCount = await connection.QueryFirstAsync<int>(
@@ -32,7 +32,7 @@ namespace MW.TinyMoney.Api.Dashboard
                 new { year, month });
 
             var dailyExpenses = (await connection.QueryAsync<DailyExpense>(
-                "SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount FROM transaction WHERE is_expense = 1 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year GROUP BY DAY(transaction_date) ORDER BY Day",
+                "SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount FROM transaction WHERE is_expense = 1 AND is_verified = 1 AND MONTH(transaction_date) = @month AND YEAR(transaction_date) = @year GROUP BY DAY(transaction_date) ORDER BY Day",
                 new { year, month })).ToList();
 
             return new DashboardData

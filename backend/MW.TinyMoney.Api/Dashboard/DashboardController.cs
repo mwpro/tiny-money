@@ -29,7 +29,7 @@ namespace MW.TinyMoney.Api.Dashboard
             var categoryBudgets = budget.CategoryBudgets
                 .SelectMany(c => c.SubcategoryBudgets)
                 .Where(s => s.Amount > 0)
-                .Select(s => new CategoryBudgetSummary(s.SubcategoryName, s.Amount, s.AmountLeft))
+                .Select(s => new CategoryBudgetSummary(s.SubcategoryName, s.Amount, s.AmountLeft, s.Notes))
                 .ToList();
 
             if (budget.Amount == 0)

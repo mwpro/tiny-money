@@ -30,7 +30,7 @@ namespace MW.TinyMoney.Api.Budget
                 FROM category c
                 LEFT JOIN subcategory s ON s.parent_category_id = c.id 
 	            LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
-	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1
+	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
                 WHERE c.is_income = 0
                 AND (s.id IS NULL OR s.id != @importSubcategoryId)
 	            GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes";
