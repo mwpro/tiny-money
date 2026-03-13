@@ -31,38 +31,30 @@ namespace MW.TinyMoney.Api.Transaction
 
         [HttpGet("")]
         [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTransactions([FromQuery]DateTime? month, [FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
+        public async Task<IActionResult> GetTransactions([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
             [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId,
             [FromQuery] int? tagId, [FromQuery] bool? isVerified)
         {
-            if (month.HasValue) // legacy model
+            if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
             {
-                var transactions = await _transactionStore.GetTransactions( new DateTime(month.Value.Year, month.Value.Month, 1),
-                    new DateTime(month.Value.Year, month.Value.Month, DateTime.DaysInMonth(month.Value.Year, month.Value.Month)),
-                    null, null, null, null, null, null, null);
-                return Ok(transactions);
+                return BadRequest("Dates must be provided when no other filters were specified");
             }
-            else
+            
+            var transactions = await _transactionStore.GetTransactions(
+                dateFrom, dateTo, isExpense, amountFrom, amountTo,
+                vendorId, subcategoryId, tagId, isVerified);
+            
+            return Ok(new TransactionsResponse
             {
-                if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
+                Transactions = transactions,
+                Summary = new TransactionsSummary()
                 {
-                    return BadRequest("Dates must be provided when no other filters were specified");
+                    IncomesTotal = transactions.Where(t => !t.IsExpense).Sum(t => t.Amount),
+                    IncomesCount = transactions.Count(t => !t.IsExpense),
+                    ExpensesTotal = transactions.Where(t => t.IsExpense).Sum(t => t.Amount),
+                    ExpensesCount = transactions.Count(t => t.IsExpense)
                 }
-                var transactions = await _transactionStore.GetTransactions(
-                    dateFrom, dateTo, isExpense, amountFrom, amountTo,
-                    vendorId, subcategoryId, tagId, isVerified);
-                return Ok(new TransactionsResponse
-                {
-                    Transactions = transactions,
-                    Summary = new TransactionsSummary()
-                    {
-                        IncomesTotal = transactions.Where(t => !t.IsExpense).Sum(t => t.Amount),
-                        IncomesCount = transactions.Count(t => !t.IsExpense),
-                        ExpensesTotal = transactions.Where(t => t.IsExpense).Sum(t => t.Amount),
-                        ExpensesCount = transactions.Count(t => t.IsExpense)
-                    }
-                });
-            }
+            });
         }
         
         [HttpGet("{transactionId}")]

@@ -1,0 +1,20 @@
+using System.Collections.Generic;
+
+namespace MW.TinyMoney.Api.Reports;
+
+public record DailyExpense(int Day, decimal Amount, decimal BudgetLeft);
+
+public record CategoryBudgetSummary(string CategoryName, string SubcategoryName, decimal Amount, decimal AmountLeft, string Notes);
+
+public class DashboardResponse
+{
+    public decimal IncomesTotal { get; set; }
+    public decimal ExpensesTotal { get; set; }
+    public decimal BudgetAmount { get; set; }
+    public decimal BudgetUsed { get; set; }
+    public decimal BudgetLeft { get; set; }
+    public int UnverifiedCount { get; set; }
+    public IReadOnlyCollection<DailyExpense> DailyExpenses { get; set; } = [];
+    public IReadOnlyCollection<CategoryBudgetSummary> TopRemainingBudgetCategories { get; set; } = [];
+    public IReadOnlyCollection<CategoryBudgetSummary> TopOverspentBudgetCategories { get; set; } = [];
+}

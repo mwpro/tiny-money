@@ -41,10 +41,11 @@ export type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionEditorDialogProps {
     transactionToEdit?: Transaction,
-    onClose?: () => void
+    onClose?: () => void,
+    onTransactionSaved?: () => void
 }
 
-export function TransactionsEditorDialog({transactionToEdit, onClose}: TransactionEditorDialogProps) {
+export function TransactionsEditorDialog({transactionToEdit, onClose, onTransactionSaved}: TransactionEditorDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
     const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
@@ -131,6 +132,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose}: Transacti
             queryClient.invalidateQueries({queryKey: ['vendors']})
             queryClient.invalidateQueries({queryKey: ['categories']})
             queryClient.invalidateQueries({queryKey: ['tags']})
+            onTransactionSaved && onTransactionSaved()
             if (transactionToEdit) {
                 if (data.suggestedAlias) {
                     setPendingAlias(data.suggestedAlias)

@@ -11,7 +11,6 @@ namespace MW.TinyMoney.Api.Budget
 {
     public interface IBudgetStore
     {
-        Task<IEnumerable<BudgetEntry>> GetMonthlyBudgetOld(int year, int month);
         Task<MonthlyBudget> GetMonthlyBudget(int year, int month);
         Task SetBudget(int year, int month, int subcategoryId, decimal budgetAmount, string budgetNotes);
         Task CopyBudget(int yearFrom, int monthFrom, int yearTo, int monthTo);
@@ -23,88 +22,75 @@ namespace MW.TinyMoney.Api.Budget
         private readonly MySqlConnectionFactory _mySqlConnectionFactory;
 
         private const string MonthlyBudgetQuery =
-            @"SELECT c.id AS 'categoryId', c.name AS 'categoryName', s.id AS `subcategoryId`, s.name AS 'subcategoryName', b.notes,
-	            COALESCE(b.amount, 0) AS `Amount`,
+            """
+            SELECT c.id AS 'categoryId', c.name AS 'categoryName', s.id AS `subcategoryId`, s.name AS 'subcategoryName', b.notes,
+                COALESCE(b.amount, 0) AS `Amount`,
                 COALESCE(SUM(t.amount), 0) AS `UsedAmount`,
                 COALESCE(b.amount, 0) - COALESCE(SUM(t.amount), 0) AS 'AmountLeft'
                 FROM category c
                 LEFT JOIN subcategory s ON s.parent_category_id = c.id 
-	            LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
-	            LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1
+                LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
+                LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
                 WHERE c.is_income = 0
                 AND (s.id IS NULL OR s.id != @importSubcategoryId)
-	            GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes";
+                GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
+            """;
 
         private const string SetBudgetQuery =
-            @"INSERT INTO budget (year, month, subcategory_id, amount, notes, created_date, modified_date)
-                     VALUES 
-                        (@year, @month, @subcategoryId, @budgetAmount, @notes, @modifiedDate, @modifiedDate)
-                     ON DUPLICATE KEY UPDATE
-                        amount = @budgetAmount, notes = @notes, modified_date = @modifiedDate;";
+            """
+            INSERT INTO budget (year, month, subcategory_id, amount, notes, created_date, modified_date)
+                VALUES (@year, @month, @subcategoryId, @budgetAmount, @notes, @modifiedDate, @modifiedDate)
+                ON DUPLICATE KEY UPDATE
+                amount = @budgetAmount, notes = @notes, modified_date = @modifiedDate;
+            """;
 
         private const string CopyBudgetQuery =
-            @"DELETE FROM budget WHERE year = @yearTo AND month = @monthTo;
-              INSERT INTO budget (year, month, subcategory_id, amount, notes, created_date, modified_date)
-                     SELECT @yearTo, @monthTo, f.subcategory_id, f.amount, f.notes, @modifiedDate, @modifiedDate FROM budget f 
-                        WHERE f.year = @yearFrom AND f.month = @monthFrom;";
+            """
+            DELETE FROM budget WHERE year = @yearTo AND month = @monthTo;
+            INSERT INTO budget (year, month, subcategory_id, amount, notes, created_date, modified_date)
+                 SELECT @yearTo, @monthTo, f.subcategory_id, f.amount, f.notes, @modifiedDate, @modifiedDate FROM budget f 
+                 WHERE f.year = @yearFrom AND f.month = @monthFrom;
+            """;
 
-        private const string SubcategoryBudgetSuggestionsQuery = @"
-                SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - budżet' AS 'suggestionName', COALESCE(b.amount, 0) AS 'suggestedAmount'
-                FROM category c
-                LEFT JOIN subcategory s ON s.parent_category_id = c.id
-	            LEFT JOIN budget b ON b.subcategory_id = s.id AND b.year = @previousPeriodYear AND b.month = @previousPeriodMonth
-                WHERE c.is_income = 0
-                AND (s.id IS NULL OR s.id != @importSubcategoryId)
+        private const string SubcategoryBudgetSuggestionsQuery = 
+            """
+            SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - budżet' AS 'suggestionName', COALESCE(b.amount, 0) AS 'suggestedAmount'
+            FROM category c
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
+            LEFT JOIN budget b ON b.subcategory_id = s.id AND b.year = @previousPeriodYear AND b.month = @previousPeriodMonth
+            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
 
-	            UNION ALL
+            UNION ALL
 
-	            SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
-                FROM category c
-                LEFT JOIN subcategory s ON s.parent_category_id = c.id
-                LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @previousPeriodYear AND MONTH(t.transaction_date) = @previousPeriodMonth
-                WHERE c.is_income = 0
-                AND (s.id IS NULL OR s.id != @importSubcategoryId)
-	            GROUP BY s.id
+            SELECT s.id AS `subcategoryId`, 'Poprzedni miesiąc - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
+            FROM category c
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
+            LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @previousPeriodYear AND MONTH(t.transaction_date) = @previousPeriodMonth
+            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            GROUP BY s.id
 
-	            UNION ALL
+            UNION ALL
 
-	            SELECT
-                    s.id AS `subcategoryId`,
-                    'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName',
-                    COALESCE(SUM(t.amount), 0) / 3 AS 'suggestedAmount'
-                FROM category c
-                LEFT JOIN subcategory s ON s.parent_category_id = c.id
-                    LEFT JOIN transaction t ON t.subcategory_id = s.id
-                       AND t.is_expense = 1
-                       AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
-                WHERE c.is_income = 0
-                AND (s.id IS NULL OR s.id != @importSubcategoryId)
-                GROUP BY s.id
+            SELECT s.id AS `subcategoryId`, 'Średnie wydatki za 3 ostatnie mc' AS 'suggestionName', COALESCE(SUM(t.amount), 0) / 3 AS 'suggestedAmount'
+            FROM category c
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
+            LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
+            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            GROUP BY s.id
 
-	            UNION ALL
+            UNION ALL
 
-	            SELECT s.id AS `subcategoryId`, 'Ten miesiąc rok temu - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
-                FROM category c
-                LEFT JOIN subcategory s ON s.parent_category_id = c.id
-                LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
-                WHERE c.is_income = 0
-                AND (s.id IS NULL OR s.id != @importSubcategoryId)
-	            GROUP BY s.id
-	            ";
+            SELECT s.id AS `subcategoryId`, 'Ten miesiąc rok temu - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
+            FROM category c
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
+            LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
+            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            GROUP BY s.id
+            """;
 
         public BudgetStore(MySqlConnectionFactory mySqlConnectionFactory)
         {
             _mySqlConnectionFactory = mySqlConnectionFactory;
-        }
-
-        public async Task<IEnumerable<BudgetEntry>> GetMonthlyBudgetOld(int year, int month)
-        {
-            using (var connection = _mySqlConnectionFactory.CreateConnection())
-            {
-                connection.Open();
-
-                return await connection.QueryAsync<BudgetEntry>(MonthlyBudgetQuery, new { year = year, month = month, importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId });
-            }
         }
 
         public async Task<MonthlyBudget> GetMonthlyBudget(int year, int month)
@@ -117,7 +103,7 @@ namespace MW.TinyMoney.Api.Budget
                 MonthlyBudgetQuery,
                 (category, subcategory) =>
                 {
-                    if (!categoryBudgets .TryGetValue(category.CategoryId, out var categoryEntry))
+                    if (!categoryBudgets.TryGetValue(category.CategoryId, out var categoryEntry))
                     {
                         categoryEntry = category;
                         categoryBudgets .Add(categoryEntry.CategoryId, categoryEntry);

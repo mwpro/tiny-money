@@ -83,6 +83,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<ITopListReport, TopListReport>();
     services.AddTransient<ISummaryReport, SummaryReport>();
     services.AddTransient<IBudgetStore, BudgetStore>();
+    services.AddTransient<IDashboardReport, DashboardReport>();
     services.AddTransient<IFileImportParser, IngCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, PekaoCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();
