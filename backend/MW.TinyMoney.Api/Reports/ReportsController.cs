@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MW.TinyMoney.Api.Reports
@@ -32,6 +33,27 @@ namespace MW.TinyMoney.Api.Reports
         {
             var reportData = await sankeyReport.Prepare(dateFrom, dateTo);
             return Ok(reportData);
+        }
+        
+        [HttpGet("dashboard/{year}/{month}")]
+        [ProducesResponseType(typeof(DashboardResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDashboard([FromServices] IDashboardStore dashboardStore, 
+            [FromRoute] int year, [FromRoute] int month)
+        {
+            var dashboardData = await dashboardStore.GetDashboardData(year, month);
+
+            return Ok(new DashboardResponse
+            {
+                IncomesTotal = dashboardData.IncomesTotal,
+                ExpensesTotal = dashboardData.ExpensesTotal,
+                UnverifiedCount = dashboardData.UnverifiedCount,
+                DailyExpenses = dashboardData.DailyExpenses,
+                BudgetAmount = dashboardData.BudgetAmount,
+                BudgetUsed = dashboardData.BudgetUsed,
+                BudgetLeft = dashboardData.BudgetLeft,
+                TopOverspentBudgetCategories = dashboardData.TopOverspentBudgetCategories,
+                TopRemainingBudgetCategories = dashboardData.TopRemainingBudgetCategories
+            });
         }
     }
 }
