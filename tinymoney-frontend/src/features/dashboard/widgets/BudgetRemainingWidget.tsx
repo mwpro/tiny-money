@@ -18,7 +18,7 @@ export function BudgetRemainingWidget({topRemaining}: Props) {
                     : topRemaining.map(c => (
                         <div key={c.subcategoryName} className="flex justify-between items-center text-sm py-0.5">
                             <span className="flex items-center gap-1">
-                                {c.subcategoryName}
+                                {c.categoryName} / {c.subcategoryName}
                                 {c.notes && (
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -28,7 +28,12 @@ export function BudgetRemainingWidget({topRemaining}: Props) {
                                     </Tooltip>
                                 )}
                             </span>
-                            <Curr input={c.amountLeft} colored isPositive={true}/>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Curr input={c.amountLeft} colored isPositive={true}/>
+                                </TooltipTrigger>
+                                <TooltipContent>budżet: <Curr input={c.amount} /></TooltipContent>
+                            </Tooltip>
                         </div>
                     ))
                 }

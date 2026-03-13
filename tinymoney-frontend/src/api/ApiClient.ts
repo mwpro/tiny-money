@@ -5,7 +5,6 @@ import type {CategoriesClient} from './clients/CategoriesClient'
 import type {BudgetClient} from './clients/BudgetClient'
 import type {ReportsClient} from './clients/ReportsClient'
 import type {ApiKeysClient} from './clients/ApiKeysClient'
-import type {DashboardClient} from './clients/DashboardClient'
 
 export type ApiClient = {
     transactionsClient: TransactionsClient
@@ -15,5 +14,4 @@ export type ApiClient = {
     budgetClient: BudgetClient
     reportsClient: ReportsClient
     apiKeysClient: ApiKeysClient
-    dashboardClient: DashboardClient
 }

@@ -15,7 +15,7 @@ import {BudgetRemainingWidget} from "@/features/dashboard/widgets/BudgetRemainin
 import {BudgetOverspentWidget} from "@/features/dashboard/widgets/BudgetOverspentWidget.tsx";
 
 export function DashboardPage() {
-    const {dashboardClient} = useApiClient();
+    const {reportsClient} = useApiClient();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -42,7 +42,7 @@ export function DashboardPage() {
 
     const dashboardQuery = useQuery({
         queryKey: ['dashboard', dashboardPeriod],
-        queryFn: () => dashboardClient.getDashboard(dashboardPeriod)
+        queryFn: () => reportsClient.getDashboardReport(dashboardPeriod)
     });
 
     const today = new Date();
