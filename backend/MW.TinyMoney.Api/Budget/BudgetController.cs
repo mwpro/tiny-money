@@ -18,7 +18,7 @@ namespace MW.TinyMoney.Api.Budget
 
         [HttpGet("{year}/{month}")]
         [ProducesResponseType(typeof(BudgetResponse), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetBudget([FromRoute]int year, [FromRoute]int month, bool useV2 = false)
+        public async Task<IActionResult> GetBudget([FromRoute]int year, [FromRoute]int month)
         {
             var monthlyBudget = await _budgetStore.GetMonthlyBudget(year, month);
             return Ok(new BudgetResponse() { MonthlyBudget = monthlyBudget });

@@ -24,14 +24,14 @@ public class DashboardReport : IDashboardReport
 
     private const string DashboardQuery =
         """
-        SELECT COALESCE(SUM(IF(is_expense = 0, amount, 0)), 0) AS incomesTotal,
-               COALESCE(SUM(IF(is_expense = 1, amount, 0)), 0) AS expensesTotal,
+        SELECT COALESCE(SUM(IF(is_expense = 0 AND is_verified = 1, amount, 0)), 0) AS incomesTotal,
+               COALESCE(SUM(IF(is_expense = 1 AND is_verified = 1, amount, 0)), 0) AS expensesTotal,
                COUNT(CASE WHEN is_verified = 0 THEN 1 END) AS unverifiedCount
-        FROM transaction WHERE transaction_date >= @dateFrom AND transaction_date < @dateTo AND is_verified = 1;
+        FROM transaction WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo;
         
         SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount 
             FROM transaction 
-            WHERE is_expense = 1 AND is_verified = 1 AND transaction_date >= @dateFrom AND transaction_date < @dateTo 
+            WHERE is_expense = 1 AND is_verified = 1 AND transaction_date >= @dateFrom AND transaction_date <= @dateTo 
             GROUP BY DAY(transaction_date) 
             ORDER BY Day;
 
@@ -43,7 +43,7 @@ public class DashboardReport : IDashboardReport
             FROM category c
             LEFT JOIN subcategory s ON s.parent_category_id = c.id 
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
-            LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date < @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
+            LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date <= @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
             AND (s.id IS NULL OR s.id != @importSubcategoryId)
             GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
@@ -118,9 +118,8 @@ public class DashboardReport : IDashboardReport
     private static IReadOnlyCollection<DailyExpense> CalculateRemainingBudget(List<(int Day, decimal Amount)> dailyExpenses,
         decimal totalBudgetAmount)
     {
-        var result = new List<DailyExpense>();
+        var result = new List<DailyExpense>(dailyExpenses.Count);
         var budgetLeft = totalBudgetAmount;
-        result.Add(new DailyExpense(0, 0, budgetLeft));
         foreach (var dailyExpense in dailyExpenses)
         {
             budgetLeft -= dailyExpense.Amount;
