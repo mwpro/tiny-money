@@ -7,7 +7,6 @@ using Microsoft.OpenApi;
 using MW.TinyMoney.Api.ApiKeys;
 using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Categories;
-using MW.TinyMoney.Api.Dashboard;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;

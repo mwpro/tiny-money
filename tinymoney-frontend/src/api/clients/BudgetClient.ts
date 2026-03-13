@@ -11,7 +11,7 @@ export interface BudgetClient {
 
 export class BudgetClientImpl extends ApiBase implements BudgetClient {
     async getBudget(month: MonthSelection): Promise<Budget> {
-        const res = await this.request('GET', `/budget/${month.year}/${month.month}?useV2=true`);
+        const res = await this.request('GET', `/budget/${month.year}/${month.month}`);
         if (!res.ok) throw new Error('Błąd pobierania budżetu');
         return res.json();
     }

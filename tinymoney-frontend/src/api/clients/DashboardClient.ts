@@ -8,7 +8,7 @@ export interface DashboardClient {
 
 export class DashboardClientImpl extends ApiBase implements DashboardClient {
     async getDashboard(month: MonthSelection): Promise<DashboardResponse> {
-        const res = await this.request('GET', `/dashboard/${month.year}/${month.month}`);
+        const res = await this.request('GET', `/reports/dashboard/${month.year}/${month.month}`);
         if (!res.ok) throw new Error('Błąd pobierania danych dashboardu');
         return res.json();
     }

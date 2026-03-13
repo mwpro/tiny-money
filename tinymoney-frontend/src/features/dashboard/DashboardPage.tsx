@@ -57,16 +57,6 @@ export function DashboardPage() {
     const unverifiedUrl = getTransactionsUrl({dateFrom: monthStart, dateTo: monthEnd, isVerified: false});
     const budgetUrl = `/budgets?budgetPeriod=${monthPeriodStr}`;
 
-    const topRemaining = [...(dashboardQuery.data?.categoryBudgets ?? [])]
-        .filter(c => c.amountLeft > 0)
-        .sort((a, b) => b.amountLeft - a.amountLeft)
-        .slice(0, 5);
-
-    const topOverspent = [...(dashboardQuery.data?.categoryBudgets ?? [])]
-        .filter(c => c.amountLeft < 0)
-        .sort((a, b) => a.amountLeft - b.amountLeft)
-        .slice(0, 5);
-
     return (
         <div className="max-w-7xl mx-auto">
             <title>{prepareTitleText(`Dashboard - ${format(dashboardPeriodReferenceDate, monthYearNameFormat, {locale: pl})}`)}</title>
@@ -102,8 +92,8 @@ export function DashboardPage() {
                         daysInMonth={daysInMonth}
                         budgetUrl={budgetUrl}
                     />
-                    <BudgetRemainingWidget topRemaining={topRemaining}/>
-                    <BudgetOverspentWidget topOverspent={topOverspent}/>
+                    <BudgetRemainingWidget topRemaining={dashboardQuery.data.topRemainingBudgetCategories}/>
+                    <BudgetOverspentWidget topOverspent={dashboardQuery.data.topOverspentBudgetCategories}/>
                 </div>
             )}
         </div>
