@@ -8,11 +8,16 @@ using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports;
 
-public class MySqlDashboardStore : IDashboardStore
+public interface IDashboardReport
+{
+    Task<DashboardResponse> GetDashboardData(int year, int month);
+}
+
+public class DashboardReport : IDashboardReport
 {
     private readonly MySqlConnectionFactory _mySqlConnectionFactory;
 
-    public MySqlDashboardStore(MySqlConnectionFactory mySqlConnectionFactory)
+    public DashboardReport(MySqlConnectionFactory mySqlConnectionFactory)
     {
         _mySqlConnectionFactory = mySqlConnectionFactory;
     }
