@@ -14,10 +14,8 @@ namespace MW.TinyMoney.UnitTests.TransactionsController;
 
 public class TransactionsControllerUpdateTransactionTests
 {
-    private const int UnknownVendorId = 99;
     private const int VendorA = 1;
     private const int VendorB = 2;
-    private const int UncategorizedSubcategoryId = 999; 
     private const int RealSubcategoryId = 1;
 
     private readonly TransactionStoreStub _transactionStore;
@@ -27,8 +25,6 @@ public class TransactionsControllerUpdateTransactionTests
 
     public TransactionsControllerUpdateTransactionTests()
     {
-        TransactionPlaceholders.Setup(UnknownVendorId, UncategorizedSubcategoryId);
-        
         _transactionStore = new TransactionStoreStub();
         var vendorStore = new VendorStoreStub();
         vendorStore.SaveVendorMutation = v => v.Id = VendorA;
@@ -55,7 +51,7 @@ public class TransactionsControllerUpdateTransactionTests
     [Fact]
     public async Task NoAliasSuggested_WhenCreatedByIsNotImport()
     {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: UnknownVendorId);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null);
         _transactionStore.Transaction.CreatedBy = TransactionPlaceholders.CreatedByApi;
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
@@ -74,21 +70,6 @@ public class TransactionsControllerUpdateTransactionTests
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
         var response = (await _controller.UpdateTransaction(VendorA, MakeUpdateDto(VendorA)))
-            .Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<AddTransactionResponse>()
-            .Subject;
-        
-        response.SuggestedAlias.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task NoAliasSuggested_WhenTransactionDoesNotBecomeVerified()
-    {
-        // autoVerify requires subcategoryId != UncategorizedSubcategoryId; use uncategorized to keep isVerified=false
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
-        _vendorMatchingService.SuggestAliasResult = "motyl";
-
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false, subcategoryId: UncategorizedSubcategoryId)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -141,9 +122,9 @@ public class TransactionsControllerUpdateTransactionTests
     }
 
     [Fact]
-    public async Task AliasSuggested_WhenVendorChangesFromUnknownVendorToRealAndVerifiedAndImportAndNoMatch()
+    public async Task AliasSuggested_WhenVendorChangesFromNullToRealAndVerifiedAndImportAndNoMatch()
     {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: UnknownVendorId, isVerified: false);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null, isVerified: false);
         _vendorMatchingService.SuggestAliasResult = "some description";
 
         var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorA, isVerified: false)))
@@ -195,32 +176,6 @@ public class TransactionsControllerUpdateTransactionTests
         response.Transaction.IsVerified.Should().BeTrue();
     }
     
-    [Fact]
-    public async Task NoAutoVerify_WhenSubcategoryIsUncategorized()
-    {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
-
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false, subcategoryId: UncategorizedSubcategoryId)))
-            .Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<AddTransactionResponse>()
-            .Subject;
-
-        response.Transaction.IsVerified.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task NoAutoVerify_WhenNewVendorIsUnknownVendor()
-    {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
-
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(UnknownVendorId, isVerified: false)))
-            .Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<AddTransactionResponse>()
-            .Subject;
-
-        response.Transaction.IsVerified.Should().BeFalse();
-    }
-
     [Fact]
     public async Task NoAutoVerify_WhenNotImportedTransaction()
     {

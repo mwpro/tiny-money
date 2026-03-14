@@ -6,8 +6,8 @@ export type Transaction = {
     isExpense: boolean;
     modifiedDate: string;
     transactionDate: string;
-    vendorId: number;
-    subcategoryId: number;
+    vendorId: number | null;
+    subcategoryId: number | null;
     tagIds: number[];
     isVerified: boolean;
     isPossibleDuplicate: boolean;

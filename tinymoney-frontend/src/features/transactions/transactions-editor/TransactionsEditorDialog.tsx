@@ -108,9 +108,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             setValue("description", transactionToEdit.description ?? "")
             setValue("isExpense", transactionToEdit.isExpense);
             setValue("transactionDate", format(transactionToEdit.transactionDate, dateFormat));
-            setValue("subcategoryId", transactionToEdit.subcategoryId);
+            if (transactionToEdit.subcategoryId !== null) {
+                setValue("subcategoryId", transactionToEdit.subcategoryId);
+            }
             setValue("isVerified", transactionToEdit.isVerified);
-            const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
+            const selectedVendor = transactionToEdit.vendorId !== null ? vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId) : undefined
             if (selectedVendor) {
                 setValue("vendor", selectedVendor);
             }

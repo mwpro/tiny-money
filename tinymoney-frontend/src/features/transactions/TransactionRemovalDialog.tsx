@@ -46,7 +46,8 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
         ...dictionariesConfig
     })
     
-    const getVendorName = (id: number) => {
+    const getVendorName = (id: number | null) => {
+        if (id === null) return "-";
         return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
     }
     

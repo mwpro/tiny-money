@@ -9,7 +9,6 @@ import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
-import {useConfiguration} from "@/ConfigurationContext.tsx";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -26,12 +25,13 @@ interface TransactionsTableProps {
 
 
 export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
-    const { unknownVendorId, uncategorizedSubcategoryId } = useConfiguration();
-    const getVendorName = (id: number) => {
+    const getVendorName = (id: number | null) => {
+        if (id === null) return "-";
         return vendors.find(v => v.id === id)?.name || "-"
     }
 
-    const getSubcategoryName = (id: number) => {
+    const getSubcategoryName = (id: number | null) => {
+        if (id === null) return "-";
         return subcategories.get(id) || "-"
     }
 
@@ -123,7 +123,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         </TableCell>
                         <TableCell>
                             <ButtonGroup>
-                                {!t.isVerified && t.vendorId !== unknownVendorId && t.subcategoryId !== uncategorizedSubcategoryId && (
+                                {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
                                     <Button
                                         variant="outline" size="sm"
                                         className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"

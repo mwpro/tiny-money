@@ -15,8 +15,8 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public DateTime ModifiedDate { get; set; }
         public DateTime TransactionDate { get; set; }
 
-        public int VendorId { get; set; }
-        public int SubcategoryId { get; set; }
+        public int? VendorId { get; set; }
+        public int? SubcategoryId { get; set; }
         public IList<int> TagIds { get; set; }
         public bool IsVerified { get; set; }
         public bool IsPossibleDuplicate { get; set; }

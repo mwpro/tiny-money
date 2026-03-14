@@ -87,8 +87,8 @@ create table transaction
     is_expense       bit            not null,
     modified_date    datetime       null,
     transaction_date date           not null,
-    subcategory_id   int            not null,
-    vendor_id        int            not null,
+    subcategory_id   int            null,
+    vendor_id        int            null,
     constraint FK5cpv0vgf70pxdtuna3mh69qw1
         foreign key (vendor_id) references vendor (id),
     constraint FKp7w3w7p3no2jxxxgljm500jw9

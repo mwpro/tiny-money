@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Reports;
@@ -45,7 +44,6 @@ public class DashboardReport : IDashboardReport
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date <= @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
-            AND (s.id IS NULL OR s.id != @importSubcategoryId)
             GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
         )
         SELECT subcategoryId, categoryName, subcategoryName, amount, amountLeft, notes
@@ -64,7 +62,6 @@ public class DashboardReport : IDashboardReport
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date < @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
-            AND (s.id IS NULL OR s.id != @importSubcategoryId)
             GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
         )
         SELECT subcategoryId, categoryName, subcategoryName, amount, amountLeft, notes
@@ -82,7 +79,7 @@ public class DashboardReport : IDashboardReport
                      LEFT JOIN subcategory s ON s.parent_category_id = c.id
                      LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
                      LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date < @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
-            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            WHERE c.is_income = 0
             GROUP BY c.id, c.name, s.id, s.name, b.amount) b;
         """;
         
@@ -93,7 +90,7 @@ public class DashboardReport : IDashboardReport
         var dateFrom = new DateTime(year, month, 1);
         var dateTo = new DateTime(year, month, DateTime.DaysInMonth(year, month));
 
-        var reader = await connection.QueryMultipleAsync(DashboardQuery, new {dateFrom, dateTo, year, month, importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId});
+        var reader = await connection.QueryMultipleAsync(DashboardQuery, new {dateFrom, dateTo, year, month});
 
         var gauges = await reader.ReadFirstAsync<(decimal IncomesTotal, decimal ExpensesTotal, int UnverifiedCount)>();
         var dailyExpenses = (await reader.ReadAsync<(int Day, decimal Amount)>()).ToList();
