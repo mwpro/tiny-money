@@ -110,6 +110,11 @@ namespace MW.TinyMoney.Api.Transaction
                 StringComparison.OrdinalIgnoreCase);
             var wasVerified = transaction.IsVerified;
             var autoVerify = isImportedTransaction && !wasVerified;
+            if (autoVerify)
+            {
+                transaction.IsVerified = true;
+                transaction.IsPossibleDuplicate = false;
+            }
 
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
@@ -119,9 +124,6 @@ namespace MW.TinyMoney.Api.Transaction
             transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
             transaction.TransactionDate = updatedTransaction.TransactionDate;
             transaction.VendorId = updatedTransaction.Vendor.Id.Value;
-            transaction.IsVerified = autoVerify || updatedTransaction.IsVerified;
-            if (transaction.IsVerified)
-                transaction.IsPossibleDuplicate = false;
 
             await _transactionStore.UpdateTransaction(transaction);
 
@@ -177,7 +179,7 @@ namespace MW.TinyMoney.Api.Transaction
                 TagIds = addTransactionDto.Tags.Select(x => x.Id.Value).ToList(),
                 TransactionDate = addTransactionDto.TransactionDate,
                 VendorId = addTransactionDto.Vendor.Id.Value,
-                IsVerified = addTransactionDto.IsVerified,
+                IsVerified = true,
                 IsPossibleDuplicate = false
             };
             _transactionStore.SaveTransaction(createdTransaction);

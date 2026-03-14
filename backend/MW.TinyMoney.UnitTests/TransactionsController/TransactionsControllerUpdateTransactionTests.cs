@@ -35,7 +35,7 @@ public class TransactionsControllerUpdateTransactionTests
             _vendorMatchingService);
     }
 
-    private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, bool isVerified = true, int subcategoryId = RealSubcategoryId) =>
+    private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, int subcategoryId = RealSubcategoryId) =>
         new()
         {
             Amount = 10,
@@ -44,8 +44,7 @@ public class TransactionsControllerUpdateTransactionTests
             Description = "some description",
             Vendor = new VendorDto { Id = vendorId, Name = "Stonka" },
             SubcategoryId = subcategoryId,
-            Tags = new List<TagDto>(),
-            IsVerified = isVerified
+            Tags = new List<TagDto>()
         };
 
     [Fact]
@@ -83,7 +82,7 @@ public class TransactionsControllerUpdateTransactionTests
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: true);
         _vendorMatchingService.SuggestAliasResult = "motyl";
 
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: true)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -127,7 +126,7 @@ public class TransactionsControllerUpdateTransactionTests
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null, isVerified: false);
         _vendorMatchingService.SuggestAliasResult = "some description";
 
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorA, isVerified: false)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorA)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -141,7 +140,7 @@ public class TransactionsControllerUpdateTransactionTests
     {
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
 
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -155,7 +154,7 @@ public class TransactionsControllerUpdateTransactionTests
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
         _transactionStore.Transaction.IsPossibleDuplicate = true;
         
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -168,7 +167,7 @@ public class TransactionsControllerUpdateTransactionTests
     {
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, subcategoryId: RealSubcategoryId, isVerified: false);
 
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(isVerified: false)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto()))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;
@@ -182,7 +181,7 @@ public class TransactionsControllerUpdateTransactionTests
         _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false,
             createdBy: TransactionPlaceholders.CreatedByApi);
 
-        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB, isVerified: false)))
+        var response = (await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB)))
             .Should().BeOfType<OkObjectResult>()
             .Which.Value.Should().BeOfType<AddTransactionResponse>()
             .Subject;

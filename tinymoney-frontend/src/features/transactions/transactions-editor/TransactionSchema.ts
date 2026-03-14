@@ -13,6 +13,5 @@ export const transactionSchema = z.object({
     tags: z.array(z.object({
         id: z.number().optional(),
         name: z.string()
-    })),
-    isVerified: z.boolean()
+    }))
 })

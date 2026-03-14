@@ -82,7 +82,7 @@ After making code changes, always verify compilation and tests before finishing:
 
 Fix any errors before considering the task done.
 
-> **Note on build errors**: If `dotnet build` reports `MSB3027`/`MSB3021` file-locked errors (e.g. "cannot copy apphost.exe — file is locked by MW.TinyMoney.Api"), this means the backend is still running. Stop the running instance first, then run `dotnet build` again to confirm a clean successful build.
+> **Note on build errors**: If `dotnet build` reports `MSB3027`/`MSB3021` file-locked errors (e.g. "cannot copy apphost.exe — file is locked by MW.TinyMoney.Api"), this means the backend is still running. Ask the user to stop it, then run `dotnet build` again to confirm a clean successful build.
 
 When adding backend features, write corresponding unit tests in `backend/MW.TinyMoney.UnitTests/`.
 

@@ -201,7 +201,6 @@ export type NewTransaction = {
     vendor: VendorUpsert,
     subcategoryId: number;
     tags: TagUpsert[];
-    isVerified: boolean;
 }
 
 export type ImportBankStatementResult = {
