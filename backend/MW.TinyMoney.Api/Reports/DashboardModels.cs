@@ -4,7 +4,7 @@ namespace MW.TinyMoney.Api.Reports;
 
 public record DailyExpense(int Day, decimal Amount, decimal BudgetLeft);
 
-public record CategoryBudgetSummary(string CategoryName, string SubcategoryName, decimal Amount, decimal AmountLeft, string Notes);
+public record CategoryBudgetSummary(int SubcategoryId, string CategoryName, string SubcategoryName, decimal Amount, decimal AmountLeft, string Notes);
 
 public class DashboardResponse
 {

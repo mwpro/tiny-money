@@ -43,18 +43,15 @@ export function Layout() {
             <header className="hidden md:block border-b bg-header-bg text-header-fg">
                 <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-2">
+                        <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80">
                             <CoinsIcon className="size-5" />
                             <span className="text-lg tracking-tight leading-none">
                                 <span className="font-light font-sans">tiny</span>
                                 <span className="font-serif font-bold"> Money</span>
                             </span>
-                        </div>
+                        </Link>
 
                         <nav className="flex gap-1">
-                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/dashboard") ? "bg-white/20" : ""}`} asChild>
-                                <Link to="/dashboard">Dashboard</Link>
-                            </Button>
                             <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/transactions") ? "bg-white/20" : ""}`} asChild>
                                 <Link to={getTransactionsUrl({
                                     dateFrom: startOfMonth(new Date()),

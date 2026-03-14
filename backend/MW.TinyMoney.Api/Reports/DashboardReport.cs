@@ -48,26 +48,26 @@ public class DashboardReport : IDashboardReport
             AND (s.id IS NULL OR s.id != @importSubcategoryId)
             GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
         )
-        SELECT categoryName, subcategoryName, amount, amountLeft, notes
+        SELECT subcategoryId, categoryName, subcategoryName, amount, amountLeft, notes
             FROM monthlyBudgets
             WHERE AmountLeft < 0
             ORDER BY AmountLeft ASC
             LIMIT 5;
-        
+
         WITH monthlyBudgets AS (
             SELECT c.id AS 'categoryId', c.name AS 'categoryName', s.id AS `subcategoryId`, s.name AS 'subcategoryName', b.notes,
             COALESCE(b.amount, 0) AS `Amount`,
             COALESCE(SUM(t.amount), 0) AS `UsedAmount`,
             COALESCE(b.amount, 0) - COALESCE(SUM(t.amount), 0) AS 'AmountLeft'
             FROM category c
-            LEFT JOIN subcategory s ON s.parent_category_id = c.id 
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date < @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
             AND (s.id IS NULL OR s.id != @importSubcategoryId)
             GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
         )
-        SELECT categoryName, subcategoryName, amount, amountLeft, notes
+        SELECT subcategoryId, categoryName, subcategoryName, amount, amountLeft, notes
             FROM monthlyBudgets
             WHERE AmountLeft > 0
             ORDER BY AmountLeft DESC
