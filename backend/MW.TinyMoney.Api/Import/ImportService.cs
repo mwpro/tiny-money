@@ -38,6 +38,44 @@ public class ImportService : IImportService
         _vendorMatchingService = vendorMatchingService;
     }
 
+    public async Task<ICommandResult<int>> ImportSingle(SingleTransactionRequest request, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+
+        var now = DateTime.UtcNow;
+        int? vendorId = null;
+        int? subcategoryId = null;
+
+        if (!string.IsNullOrWhiteSpace(request.Description))
+        {
+            var matcher = await _vendorMatchingService.CreateMatcher();
+            var matchedVendor = matcher.Match(request.Description, 1).FirstOrDefault();
+            vendorId = matchedVendor?.Id;
+            subcategoryId = matchedVendor?.DefaultSubcategoryId;
+        }
+
+        var transaction = new Transaction.ApiModels.Transaction
+        {
+            Amount = request.Amount,
+            IsExpense = request.IsExpense,
+            TransactionDate = request.Date,
+            Description = request.Description,
+            VendorId = vendorId,
+            SubcategoryId = subcategoryId,
+            IsVerified = false,
+            IsPossibleDuplicate = false,
+            CreatedDate = now,
+            CreatedBy = TransactionPlaceholders.CreatedByImport,
+            ModifiedDate = now,
+            TagIds = new List<int>()
+        };
+
+        await DetectDuplicates(new[] { transaction });
+        _transactionStore.SaveTransaction(transaction);
+
+        return new CommandSuccess<int>(transaction.Id);
+    }
+
     public async Task<ICommandResult<ImportResult>> ImportFile(Stream fileStream, string fileType, CancellationToken ct)
     {
         var parser = _parsers.FirstOrDefault(p => p.CanHandle(fileType));
