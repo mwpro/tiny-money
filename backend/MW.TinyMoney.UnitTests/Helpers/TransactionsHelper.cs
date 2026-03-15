@@ -8,8 +8,8 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 public static class TransactionsHelper
 {
     public static Transaction PrepareTransaction(
-        int vendorId = 1234,
-        int subcategoryId = 4321,
+        int? vendorId = 1234,
+        int? subcategoryId = 4321,
         bool isVerified = false,
         string createdBy = TransactionPlaceholders.CreatedByImport,
         string description = "some description") =>

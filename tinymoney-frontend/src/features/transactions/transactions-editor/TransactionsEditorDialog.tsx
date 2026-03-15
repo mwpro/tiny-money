@@ -33,7 +33,6 @@ import {AlertTriangle, Minus, Plus} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
-import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 
@@ -96,8 +95,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             transactionDate: format(new Date(), dateFormat),
             subcategoryId: 0,
             vendor: {id: undefined, name: ""},
-            tags: [],
-            isVerified: true
+            tags: []
         }
     })
 
@@ -108,9 +106,10 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             setValue("description", transactionToEdit.description ?? "")
             setValue("isExpense", transactionToEdit.isExpense);
             setValue("transactionDate", format(transactionToEdit.transactionDate, dateFormat));
-            setValue("subcategoryId", transactionToEdit.subcategoryId);
-            setValue("isVerified", transactionToEdit.isVerified);
-            const selectedVendor = vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId)
+            if (transactionToEdit.subcategoryId !== null) {
+                setValue("subcategoryId", transactionToEdit.subcategoryId);
+            }
+            const selectedVendor = transactionToEdit.vendorId !== null ? vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId) : undefined
             if (selectedVendor) {
                 setValue("vendor", selectedVendor);
             }
@@ -178,11 +177,16 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
 
                 <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
 
-                    {transactionToEdit?.isPossibleDuplicate && (
-                        <Alert variant="default" className="border-orange-400">
-                            <AlertTriangle className="h-4 w-4 text-orange-500" />
-                            <AlertDescription className="text-orange-700">
-                                Ta transakcja może być duplikatem istniejącej transakcji.
+                    {transactionToEdit && (!transactionToEdit.isVerified || transactionToEdit.isPossibleDuplicate) && (
+                        <Alert variant="default" className="border-amber-400">
+                            <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            <AlertDescription className="text-amber-700">
+                                {!transactionToEdit.isVerified && transactionToEdit.isPossibleDuplicate
+                                    ? "Ta transakcja nie została jeszcze zweryfikowana i może być duplikatem istniejącej transakcji."
+                                    : !transactionToEdit.isVerified
+                                        ? "Ta transakcja nie została jeszcze zweryfikowana."
+                                        : "Ta transakcja może być duplikatem istniejącej transakcji."
+                                }
                             </AlertDescription>
                         </Alert>
                     )}
@@ -338,21 +342,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                     }}/>
                             )}
                         />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <Controller
-                            control={control}
-                            name="isVerified"
-                            render={({field}) => (
-                                <Checkbox
-                                    id="isVerified"
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            )}
-                        />
-                        <Label htmlFor="isVerified">Zweryfikowana</Label>
                     </div>
 
                     <DialogFooter>

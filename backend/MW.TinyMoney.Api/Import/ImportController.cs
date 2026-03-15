@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -17,6 +18,22 @@ public class ImportController : Controller
     }
 
     public record ImportBankStatementResponse(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates);
+    public record ImportSingleRequest(DateTime Date, bool IsExpense, decimal Amount, string Description);
+    public record ImportSingleResponse(int Id);
+
+    [HttpPost("single")]
+    [ProducesResponseType(typeof(ImportSingleResponse), StatusCodes.Status201Created)]
+    public async Task<IActionResult> ImportSingle([FromBody] ImportSingleRequest request, CancellationToken ct)
+    {
+        var result = await _importService.ImportSingle(
+            new SingleTransactionRequest(request.Date, request.IsExpense, request.Amount, request.Description), ct);
+
+        return result switch
+        {
+            CommandSuccess<int> success => StatusCode(StatusCodes.Status201Created, new ImportSingleResponse(success.Result)),
+            _ => StatusCode(StatusCodes.Status500InternalServerError)
+        };
+    }
 
     [HttpPost("file")]
     [RequestSizeLimit(1 * 1024 * 1024)]

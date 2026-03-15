@@ -109,10 +109,12 @@ namespace MW.TinyMoney.Api.Transaction
             var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport,
                 StringComparison.OrdinalIgnoreCase);
             var wasVerified = transaction.IsVerified;
-            var autoVerify = isImportedTransaction 
-                             && !wasVerified
-                             && updatedTransaction.Vendor.Id.Value != TransactionPlaceholders.UnknownVendorId
-                             && updatedTransaction.SubcategoryId != TransactionPlaceholders.UncategorizedSubcategoryId;
+            var autoVerify = isImportedTransaction && !wasVerified;
+            if (autoVerify)
+            {
+                transaction.IsVerified = true;
+                transaction.IsPossibleDuplicate = false;
+            }
 
             transaction.Amount = updatedTransaction.Amount;
             transaction.IsExpense = updatedTransaction.IsExpense;
@@ -122,9 +124,6 @@ namespace MW.TinyMoney.Api.Transaction
             transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
             transaction.TransactionDate = updatedTransaction.TransactionDate;
             transaction.VendorId = updatedTransaction.Vendor.Id.Value;
-            transaction.IsVerified = autoVerify || updatedTransaction.IsVerified;
-            if (transaction.IsVerified)
-                transaction.IsPossibleDuplicate = false;
 
             await _transactionStore.UpdateTransaction(transaction);
 
@@ -180,7 +179,7 @@ namespace MW.TinyMoney.Api.Transaction
                 TagIds = addTransactionDto.Tags.Select(x => x.Id.Value).ToList(),
                 TransactionDate = addTransactionDto.TransactionDate,
                 VendorId = addTransactionDto.Vendor.Id.Value,
-                IsVerified = addTransactionDto.IsVerified,
+                IsVerified = true,
                 IsPossibleDuplicate = false
             };
             _transactionStore.SaveTransaction(createdTransaction);
@@ -218,11 +217,11 @@ namespace MW.TinyMoney.Api.Transaction
             {
                 return BadRequest("Transaction is already verified.");
             }
-            if (transaction.VendorId == TransactionPlaceholders.UnknownVendorId)
+            if (transaction.VendorId == null)
             {
                 return BadRequest("Cannot verify a transaction with an unknown vendor.");
             }
-            if (transaction.SubcategoryId == TransactionPlaceholders.UncategorizedSubcategoryId)
+            if (transaction.SubcategoryId == null)
             {
                 return BadRequest("Cannot verify a transaction with an uncategorized subcategory.");
             }
@@ -258,11 +257,11 @@ namespace MW.TinyMoney.Api.Transaction
 
             if (becameVerified
                 && isImportedTransaction
-                && transaction.VendorId != TransactionPlaceholders.UnknownVendorId
+                && transaction.VendorId != null
                 && !string.IsNullOrWhiteSpace(transaction.Description))
             {
-                var alias = await _vendorMatchingService.SuggestAlias(transaction.VendorId, transaction.Description);
-                return alias != null ? new SuggestedAliasDto(alias, transaction.VendorId) : null;
+                var alias = await _vendorMatchingService.SuggestAlias(transaction.VendorId.Value, transaction.Description);
+                return alias != null ? new SuggestedAliasDto(alias, transaction.VendorId.Value) : null;
             }
             return null;
         }

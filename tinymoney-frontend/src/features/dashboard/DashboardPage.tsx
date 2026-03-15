@@ -92,8 +92,8 @@ export function DashboardPage() {
                         daysInMonth={daysInMonth}
                         budgetUrl={budgetUrl}
                     />
-                    <BudgetRemainingWidget topRemaining={dashboardQuery.data.topRemainingBudgetCategories}/>
-                    <BudgetOverspentWidget topOverspent={dashboardQuery.data.topOverspentBudgetCategories}/>
+                    <BudgetRemainingWidget topRemaining={dashboardQuery.data.topRemainingBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
+                    <BudgetOverspentWidget topOverspent={dashboardQuery.data.topOverspentBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
                 </div>
             )}
         </div>

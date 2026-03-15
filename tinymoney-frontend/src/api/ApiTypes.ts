@@ -6,8 +6,8 @@ export type Transaction = {
     isExpense: boolean;
     modifiedDate: string;
     transactionDate: string;
-    vendorId: number;
-    subcategoryId: number;
+    vendorId: number | null;
+    subcategoryId: number | null;
     tagIds: number[];
     isVerified: boolean;
     isPossibleDuplicate: boolean;
@@ -201,7 +201,6 @@ export type NewTransaction = {
     vendor: VendorUpsert,
     subcategoryId: number;
     tags: TagUpsert[];
-    isVerified: boolean;
 }
 
 export type ImportBankStatementResult = {
@@ -238,7 +237,7 @@ export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
-export type CategoryBudgetSummary = { categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
+export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
 export type DashboardResponse = {
     incomesTotal: number;
     expensesTotal: number;

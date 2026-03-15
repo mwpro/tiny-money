@@ -89,5 +89,4 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();
     services.AddTransient<IApiKeyStore, MySqlApiKeyStore>();
     services.AddTransient<IImportService, ImportService>();
-    services.AddHostedService<TransactionPlaceholdersInitializer>();
 }

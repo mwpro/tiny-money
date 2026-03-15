@@ -10,8 +10,6 @@ namespace MW.TinyMoney.UnitTests.TransactionsController;
 
 public class TransactionsControllerVerifyTransactionTests
 {
-    private const int UnknownVendorId = 99;
-    private const int UncategorizedSubcategoryId = 999;
     private const int RealVendorId = 1;
 
     private readonly TransactionStoreStub _transactionStore;
@@ -20,8 +18,6 @@ public class TransactionsControllerVerifyTransactionTests
 
     public TransactionsControllerVerifyTransactionTests()
     {
-        TransactionPlaceholders.Setup(UnknownVendorId, UncategorizedSubcategoryId);
-
         _transactionStore = new TransactionStoreStub();
         _vendorMatchingService = new VendorMatchingServiceStub();
         _controller = new Api.Transaction.TransactionsController(
@@ -49,9 +45,9 @@ public class TransactionsControllerVerifyTransactionTests
     }
 
     [Fact]
-    public async Task Returns400_WhenVendorIsUnknown()
+    public async Task Returns400_WhenVendorIsNull()
     {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: UnknownVendorId);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null);
 
         var result = await _controller.VerifyTransaction(1);
 
@@ -59,9 +55,9 @@ public class TransactionsControllerVerifyTransactionTests
     }
 
     [Fact]
-    public async Task Returns400_WhenSubcategoryIsUncategorized()
+    public async Task Returns400_WhenSubcategoryIsNull()
     {
-        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(subcategoryId: UncategorizedSubcategoryId);
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(subcategoryId: null);
 
         var result = await _controller.VerifyTransaction(1);
 

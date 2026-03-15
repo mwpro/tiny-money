@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
-using MW.TinyMoney.Api.Import;
 
 namespace MW.TinyMoney.Api.Infrastructure;
 
@@ -11,10 +10,7 @@ public static class FrontendConfigurationEndpoint
     {
         app.MapGet("configuration.json", (IConfiguration config) =>
         {
-            var frontendConfig = config.GetSection("FrontendConfiguration").Get<FrontendConfiguration>();
-            frontendConfig.UnknownVendorId = TransactionPlaceholders.UnknownVendorId;
-            frontendConfig.UncategorizedSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId;
-            return frontendConfig;
+            return config.GetSection("FrontendConfiguration").Get<FrontendConfiguration>();
         });
     }
 
@@ -24,7 +20,5 @@ public static class FrontendConfigurationEndpoint
         public string Auth0Domain { get; set; }
         public string Auth0ClientId { get; set; }
         public string Auth0Audience { get; set; }
-        public int UnknownVendorId { get; set; }
-        public int UncategorizedSubcategoryId { get; set; }
     }
 }

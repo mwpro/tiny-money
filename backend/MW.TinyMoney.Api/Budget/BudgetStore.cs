@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Budget.ApiModels;
-using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Budget
@@ -32,7 +31,6 @@ namespace MW.TinyMoney.Api.Budget
                 LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
                 LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
                 WHERE c.is_income = 0
-                AND (s.id IS NULL OR s.id != @importSubcategoryId)
                 GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
             """;
 
@@ -58,7 +56,7 @@ namespace MW.TinyMoney.Api.Budget
             FROM category c
             LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN budget b ON b.subcategory_id = s.id AND b.year = @previousPeriodYear AND b.month = @previousPeriodMonth
-            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            WHERE c.is_income = 0
 
             UNION ALL
 
@@ -66,7 +64,7 @@ namespace MW.TinyMoney.Api.Budget
             FROM category c
             LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @previousPeriodYear AND MONTH(t.transaction_date) = @previousPeriodMonth
-            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            WHERE c.is_income = 0
             GROUP BY s.id
 
             UNION ALL
@@ -75,7 +73,7 @@ namespace MW.TinyMoney.Api.Budget
             FROM category c
             LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND t.transaction_date BETWEEN @last3mPeriodStart AND @last3mPeriodEnd
-            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            WHERE c.is_income = 0
             GROUP BY s.id
 
             UNION ALL
@@ -84,7 +82,7 @@ namespace MW.TinyMoney.Api.Budget
             FROM category c
             LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND YEAR(t.transaction_date) = @thisPeriodLastYearYear AND MONTH(t.transaction_date) = @thisPeriodLastYearMonth
-            WHERE c.is_income = 0 AND (s.id IS NULL OR s.id != @importSubcategoryId)
+            WHERE c.is_income = 0
             GROUP BY s.id
             """;
 
@@ -117,7 +115,7 @@ namespace MW.TinyMoney.Api.Budget
                         
                     return categoryEntry;
                 },
-                new { year = year, month = month, importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId },
+                new { year = year, month = month },
                 splitOn: "subcategoryId");
             
             foreach (var (_, categoryBudget) in categoryBudgets)
@@ -201,8 +199,7 @@ namespace MW.TinyMoney.Api.Budget
                 {
                     previousPeriodYear = previousPeriod.Year, previousPeriodMonth = previousPeriod.Month,
                     thisPeriodLastYearYear = thisPeriodLastYear.Year, thisPeriodLastYearMonth = thisPeriodLastYear.Month,
-                    last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd,
-                    importSubcategoryId = TransactionPlaceholders.UncategorizedSubcategoryId
+                    last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd
                 },
                 splitOn: "suggestionName");
             
