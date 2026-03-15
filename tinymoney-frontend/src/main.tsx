@@ -7,15 +7,25 @@ import {Toaster} from "sonner";
 import {Auth0Provider} from "@auth0/auth0-react";
 import {ApiClientProvider} from "@/api/ApiClientProvider.tsx";
 import {ConfigurationProvider} from "@/ConfigurationContext.tsx";
+import * as Sentry from "@sentry/react";
 
 export interface Configuration{
     apiUrl: string,
     auth0Domain: string,
     auth0ClientId: string,
     auth0Audience: string,
+    sentryDsn?: string,
 }
 
 const config: Configuration = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
+
+if (config.sentryDsn) {
+    Sentry.init({
+        dsn: config.sentryDsn,
+        integrations: [Sentry.browserTracingIntegration()],
+        tracesSampleRate: 1.0,
+    });
+}
 
 const queryClient = new QueryClient()
 
@@ -29,11 +39,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <ApiClientProvider configuration={config}>
                     <Toaster />
                     <QueryClientProvider client={queryClient}>
-                        <App />
-                    </QueryClientProvider>                    
+                        <Sentry.ErrorBoundary fallback={<p>An unexpected error has occurred.</p>}>
+                            <App />
+                        </Sentry.ErrorBoundary>
+                    </QueryClientProvider>
                 </ApiClientProvider>
             </ConfigurationProvider>
-        </Auth0Provider>  
+        </Auth0Provider>
     </React.StrictMode>,
 )
 

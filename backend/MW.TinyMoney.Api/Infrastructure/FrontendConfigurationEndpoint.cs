@@ -20,5 +20,6 @@ public static class FrontendConfigurationEndpoint
         public string Auth0Domain { get; set; }
         public string Auth0ClientId { get; set; }
         public string Auth0Audience { get; set; }
+        public string? SentryDsn { get; set; }
     }
 }

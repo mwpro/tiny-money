@@ -14,18 +14,22 @@ using MW.TinyMoney.Api.Reports;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
+using Microsoft.AspNetCore.Hosting;
 using MW.TinyMoney.Api.Vendors.Matching;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("/run/secrets/appsettings.secret.json", optional: true);
+builder.WebHost.UseSentry();
 
 ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
 app.MapStaticAssets().ShortCircuit();
+
+app.UseSentryTracing();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
