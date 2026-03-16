@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace MW.TinyMoney.Api.Infrastructure;
+namespace MW.TinyMoney.Api.Migrations;
 
 public static class DatabaseMigrationsAppBuilderExtensions
 {

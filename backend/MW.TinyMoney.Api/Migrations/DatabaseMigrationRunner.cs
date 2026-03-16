@@ -4,7 +4,7 @@ using DbUp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace MW.TinyMoney.Api.Infrastructure;
+namespace MW.TinyMoney.Api.Migrations;
 
 public class DatabaseMigrationRunner(IConfiguration configuration, ILogger<DatabaseMigrationRunner> logger)
 {
@@ -26,7 +26,5 @@ public class DatabaseMigrationRunner(IConfiguration configuration, ILogger<Datab
             logger.LogError(result.Error, "Database migration failed. Application startup will be aborted.");
             throw new Exception("Database migration failed.", result.Error);
         }
-
-        logger.LogInformation("Database migrations completed successfully.");
     }
 }
