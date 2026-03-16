@@ -10,6 +10,7 @@ services:
     # command: --init-file /var/lib/tpodata/database.sql
     environment:
       MYSQL_ROOT_PASSWORD: tinymoney
+      MYSQL_DATABASE: tinymoney
     ports:
       - 3306:3306
 

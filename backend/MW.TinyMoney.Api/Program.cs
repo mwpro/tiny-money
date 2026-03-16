@@ -15,6 +15,7 @@ using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 using Microsoft.AspNetCore.Hosting;
+using MW.TinyMoney.Api.Migrations;
 using MW.TinyMoney.Api.Vendors.Matching;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -26,6 +27,8 @@ builder.WebHost.UseSentry();
 ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
+
+app.RunDatabaseMigrations();
 
 app.MapStaticAssets().ShortCircuit();
 
