@@ -133,6 +133,7 @@ export function TransactionsPage() {
     const subcategoriesQuery = useQuery({
         queryKey: ['categories'],
         queryFn: () => categoriesClient.getCategories(),
+        // Keep deleted subcategories in the map so existing transactions still show their name
         select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
         ...dictionariesConfig
     })
@@ -277,11 +278,11 @@ export function TransactionsPage() {
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
                         {categoriesQuery.data && categoriesQuery.data
-                            .filter(c => queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome )
+                            .filter(c => !c.isDeleted && (queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome))
                             .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
-                                {category.subcategories.map(subcategory =>
+                                {category.subcategories.filter(s => !s.isDeleted).map(subcategory =>
                                     (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                             </SelectGroup>
                         ))}

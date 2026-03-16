@@ -7,5 +7,7 @@ public class CategoryDto
     public int Id { get; set; }
     public string Name { get; set; }
     public bool IsIncome { get; set; }
+    public bool IsDeleted { get; set; }
+    public int SortOrder { get; set; }
     public IEnumerable<SubcategoryDto> Subcategories { get; set; }
 }

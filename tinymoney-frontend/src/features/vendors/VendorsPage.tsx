@@ -17,7 +17,8 @@ import type {VendorDetails} from "@/api/ApiTypes.ts";
 
 interface ListSettings {
     withoutTransactionsFilter: boolean,
-    nameFilter: string
+    nameFilter: string,
+    subcategoryIdFilter: number | undefined
 }
 
 export function VendorsPage() {
@@ -29,8 +30,9 @@ export function VendorsPage() {
     const listSettings = useMemo<ListSettings>(() => {
         const withoutTransactionsFilter = searchParams.get("withoutTransactions") == "true" ? true : false;
         const nameFilter = searchParams.get("name") ?? "";
+        const subcategoryIdFilter = searchParams.get("subcategoryId") ? Number(searchParams.get("subcategoryId")) : undefined;
         return {
-            withoutTransactionsFilter, nameFilter
+            withoutTransactionsFilter, nameFilter, subcategoryIdFilter
         };
     }, [searchParams]);
     
@@ -84,8 +86,9 @@ export function VendorsPage() {
                                         </Alert>
                                     </TableCell>
                                 </TableRow> }
-                            {vendorsQuery.data.filter(t => (!listSettings.withoutTransactionsFilter || t.numberOfTransactions == 0) 
-                                && (!listSettings.nameFilter || t.name.toLowerCase().includes(listSettings.nameFilter.toLowerCase()))).map((t) => (
+                            {vendorsQuery.data.filter(t => (!listSettings.withoutTransactionsFilter || t.numberOfTransactions == 0)
+                                && (!listSettings.nameFilter || t.name.toLowerCase().includes(listSettings.nameFilter.toLowerCase()))
+                                && (!listSettings.subcategoryIdFilter || t.defaultSubcategoryId === listSettings.subcategoryIdFilter)).map((t) => (
                                 <TableRow key={t.id}>
                                     <TableCell>
                                         {t.name}
