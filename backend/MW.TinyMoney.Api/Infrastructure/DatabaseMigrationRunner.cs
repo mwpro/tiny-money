@@ -16,7 +16,7 @@ public class DatabaseMigrationRunner(IConfiguration configuration, ILogger<Datab
         var upgrader = DeployChanges.To
             .MySqlDatabase(_connectionString)
             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-            .LogToAutodetectedLog()
+            .LogTo(logger)
             .Build();
 
         var result = upgrader.PerformUpgrade();

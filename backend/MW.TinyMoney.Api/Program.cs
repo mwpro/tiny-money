@@ -28,11 +28,7 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-// Run DB migrations before accepting any HTTP traffic
-new MW.TinyMoney.Api.Infrastructure.DatabaseMigrationRunner(
-    app.Services.GetRequiredService<IConfiguration>(),
-    app.Services.GetRequiredService<ILogger<MW.TinyMoney.Api.Infrastructure.DatabaseMigrationRunner>>()
-).Run();
+app.RunDatabaseMigrations();
 
 app.MapStaticAssets().ShortCircuit();
 

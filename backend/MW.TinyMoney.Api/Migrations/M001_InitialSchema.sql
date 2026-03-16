@@ -1,12 +1,3 @@
-CREATE TABLE IF NOT EXISTS bufferedTransaction (
-    id                          INT AUTO_INCREMENT PRIMARY KEY,
-    amount                      DECIMAL(10, 2) NOT NULL,
-    importDate                  DATETIME       NOT NULL,
-    transactionDate             DATE           NOT NULL,
-    rawBankStatementDescription VARCHAR(255)   NOT NULL,
-    isExpense                   BIT            NOT NULL
-) COLLATE = utf8mb3_polish_ci;
-
 CREATE TABLE IF NOT EXISTS category (
     id        INT AUTO_INCREMENT PRIMARY KEY,
     name      VARCHAR(255) NOT NULL,
