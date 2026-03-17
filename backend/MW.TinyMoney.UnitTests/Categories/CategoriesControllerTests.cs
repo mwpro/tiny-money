@@ -63,6 +63,15 @@ public class CategoriesControllerTests
     }
 
     [Fact]
+    public async Task RestoreCategory_CallsStoreWithCategoryId()
+    {
+        var result = await _controller.RestoreCategory(8);
+
+        result.Should().BeOfType<OkResult>();
+        _store.LastRestoredCategoryId.Should().Be(8);
+    }
+
+    [Fact]
     public async Task MoveCategoryUp_CallsStoreWithIdAndUpTrue()
     {
         var result = await _controller.MoveCategoryUp(7);
@@ -114,6 +123,15 @@ public class CategoriesControllerTests
 
         result.Should().BeOfType<OkResult>();
         _store.LastDeletedSubcategoryId.Should().Be(15);
+    }
+
+    [Fact]
+    public async Task RestoreSubcategory_CallsStoreWithId()
+    {
+        var result = await _controller.RestoreSubcategory(2, 20);
+
+        result.Should().BeOfType<OkResult>();
+        _store.LastRestoredSubcategoryId.Should().Be(20);
     }
 
     [Fact]

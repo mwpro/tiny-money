@@ -15,6 +15,7 @@ public class CategoriesStoreStub : ICategoriesStore
     public string LastUpdatedCategoryName { get; private set; }
 
     public int LastDeletedCategoryId { get; private set; }
+    public int LastRestoredCategoryId { get; private set; }
 
     public int LastMovedCategoryId { get; private set; }
     public bool LastMovedCategoryUp { get; private set; }
@@ -27,6 +28,7 @@ public class CategoriesStoreStub : ICategoriesStore
     public int LastUpdatedSubcategoryParentCategoryId { get; private set; }
 
     public int LastDeletedSubcategoryId { get; private set; }
+    public int LastRestoredSubcategoryId { get; private set; }
 
     public int LastMovedSubcategoryCategoryId { get; private set; }
     public int LastMovedSubcategoryId { get; private set; }
@@ -55,6 +57,12 @@ public class CategoriesStoreStub : ICategoriesStore
         return Task.CompletedTask;
     }
 
+    public Task RestoreCategory(int id)
+    {
+        LastRestoredCategoryId = id;
+        return Task.CompletedTask;
+    }
+
     public Task MoveCategory(int id, bool up)
     {
         LastMovedCategoryId = id;
@@ -80,6 +88,12 @@ public class CategoriesStoreStub : ICategoriesStore
     public Task DeleteSubcategory(int id)
     {
         LastDeletedSubcategoryId = id;
+        return Task.CompletedTask;
+    }
+
+    public Task RestoreSubcategory(int id)
+    {
+        LastRestoredSubcategoryId = id;
         return Task.CompletedTask;
     }
 

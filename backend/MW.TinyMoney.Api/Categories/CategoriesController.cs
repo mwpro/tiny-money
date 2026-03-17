@@ -47,6 +47,13 @@ namespace MW.TinyMoney.Api.Categories
             return Ok();
         }
 
+        [HttpPost, Route("{id}/restore")]
+        public async Task<IActionResult> RestoreCategory(int id)
+        {
+            await _categoriesStore.RestoreCategory(id);
+            return Ok();
+        }
+
         [HttpPost, Route("{id}/move-up")]
         public async Task<IActionResult> MoveCategoryUp(int id)
         {
@@ -79,6 +86,13 @@ namespace MW.TinyMoney.Api.Categories
         public async Task<IActionResult> DeleteSubcategory(int categoryId, int id)
         {
             await _categoriesStore.DeleteSubcategory(id);
+            return Ok();
+        }
+
+        [HttpPost, Route("{categoryId}/subcategories/{id}/restore")]
+        public async Task<IActionResult> RestoreSubcategory(int categoryId, int id)
+        {
+            await _categoriesStore.RestoreSubcategory(id);
             return Ok();
         }
 

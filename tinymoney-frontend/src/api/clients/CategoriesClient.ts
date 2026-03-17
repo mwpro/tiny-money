@@ -6,11 +6,13 @@ export interface CategoriesClient {
     createCategory(name: string, isIncome: boolean): Promise<void>;
     updateCategory(id: number, name: string): Promise<void>;
     deleteCategory(id: number): Promise<void>;
+    restoreCategory(id: number): Promise<void>;
     moveCategoryUp(id: number): Promise<void>;
     moveCategoryDown(id: number): Promise<void>;
     createSubcategory(categoryId: number, name: string): Promise<void>;
     updateSubcategory(id: number, categoryId: number, name: string, parentCategoryId: number): Promise<void>;
     deleteSubcategory(categoryId: number, id: number): Promise<void>;
+    restoreSubcategory(categoryId: number, id: number): Promise<void>;
     moveSubcategoryUp(categoryId: number, id: number): Promise<void>;
     moveSubcategoryDown(categoryId: number, id: number): Promise<void>;
 }
@@ -37,6 +39,11 @@ export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
         if (!res.ok) throw new Error('Błąd usuwania kategorii');
     }
 
+    async restoreCategory(id: number): Promise<void> {
+        const res = await this.request('POST', `/categories/${id}/restore`);
+        if (!res.ok) throw new Error('Błąd przywracania kategorii');
+    }
+
     async moveCategoryUp(id: number): Promise<void> {
         const res = await this.request('POST', `/categories/${id}/move-up`);
         if (!res.ok) throw new Error('Błąd przesuwania kategorii');
@@ -60,6 +67,11 @@ export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
     async deleteSubcategory(categoryId: number, id: number): Promise<void> {
         const res = await this.request('DELETE', `/categories/${categoryId}/subcategories/${id}`);
         if (!res.ok) throw new Error('Błąd usuwania podkategorii');
+    }
+
+    async restoreSubcategory(categoryId: number, id: number): Promise<void> {
+        const res = await this.request('POST', `/categories/${categoryId}/subcategories/${id}/restore`);
+        if (!res.ok) throw new Error('Błąd przywracania podkategorii');
     }
 
     async moveSubcategoryUp(categoryId: number, id: number): Promise<void> {

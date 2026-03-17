@@ -8,7 +8,7 @@ import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog"
-import {ChevronDown, ChevronUp, List, Pencil, Store, Trash2} from "lucide-react"
+import {ChevronDown, ChevronUp, List, Pencil, RotateCcw, Store, Trash2} from "lucide-react"
 import {toast} from "sonner"
 import {getTransactionsUrl} from "@/lib/utils.ts"
 import {EditSubcategoryDialog} from "@/features/settings/categories/EditSubcategoryDialog.tsx"
@@ -40,6 +40,12 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
 
     const deleteMutation = useMutation({
         mutationFn: () => categoriesClient.deleteSubcategory(categoryId, subcategory.id),
+        onSuccess: onMutated,
+        onError: (e) => toast.error("Błąd: " + e.message)
+    })
+
+    const restoreMutation = useMutation({
+        mutationFn: () => categoriesClient.restoreSubcategory(categoryId, subcategory.id),
         onSuccess: onMutated,
         onError: (e) => toast.error("Błąd: " + e.message)
     })
@@ -96,7 +102,12 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
                 </div>
             )}
             {subcategory.isDeleted && (
-                <span className="text-xs text-muted-foreground italic">archiwalna</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground italic">archiwalna</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Przywróć" disabled={restoreMutation.isPending} onClick={() => restoreMutation.mutate()}>
+                        <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                </div>
             )}
             <EditSubcategoryDialog
                 isOpen={editOpen}

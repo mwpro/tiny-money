@@ -53,10 +53,12 @@ namespace MW.TinyMoney.Api.Categories
         Task CreateCategory(string name, bool isIncome);
         Task UpdateCategory(int id, string name);
         Task DeleteCategory(int id);
+        Task RestoreCategory(int id);
         Task MoveCategory(int id, bool up);
         Task CreateSubcategory(int categoryId, string name);
         Task UpdateSubcategory(int id, string name, int parentCategoryId);
         Task DeleteSubcategory(int id);
+        Task RestoreSubcategory(int id);
         Task MoveSubcategory(int categoryId, int id, bool up);
     }
 
@@ -100,6 +102,12 @@ namespace MW.TinyMoney.Api.Categories
             SET c.deleted_at = NOW(), s.deleted_at = NOW()
             WHERE c.id = @id
             """;
+
+        private const string RestoreCategoryQuery =
+            "UPDATE category SET deleted_at = NULL WHERE id = @id";
+
+        private const string RestoreSubcategoryQuery =
+            "UPDATE subcategory SET deleted_at = NULL WHERE id = @id";
 
         private const string GetCategorySortOrderQuery =
             "SELECT sort_order FROM category WHERE id = @id";
@@ -231,6 +239,13 @@ namespace MW.TinyMoney.Api.Categories
             await connection.ExecuteAsync(query, new { id });
         }
 
+        public async Task RestoreCategory(int id)
+        {
+            using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(RestoreCategoryQuery, new { id });
+        }
+
         public async Task MoveCategory(int id, bool up)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
@@ -276,6 +291,13 @@ namespace MW.TinyMoney.Api.Categories
             var usageCount = await connection.ExecuteScalarAsync<int>(CheckSubcategoryUsageQuery, new { id });
             var query = usageCount == 0 ? HardDeleteSubcategoryQuery : SoftDeleteSubcategoryQuery;
             await connection.ExecuteAsync(query, new { id });
+        }
+
+        public async Task RestoreSubcategory(int id)
+        {
+            using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await connection.ExecuteAsync(RestoreSubcategoryQuery, new { id });
         }
 
         public async Task MoveSubcategory(int categoryId, int id, bool up)
