@@ -2,7 +2,7 @@ import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableR
 import {Badge} from "@/components/ui/badge.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import type {Subcategories, Tag, Transaction, TransactionsResponse, Vendor} from "@/api/ApiTypes.ts";
+import type {Tag, Transaction, TransactionsResponse, Vendor} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
@@ -13,7 +13,6 @@ import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
     vendors: Vendor[];
-    subcategories: Subcategories,
     tags: Tag[],
     onDeleteClick: (transaction: Transaction) => void
     onEditClick: (transaction: Transaction) => void
@@ -24,15 +23,10 @@ interface TransactionsTableProps {
 }
 
 
-export function TransactionsTable({transactions, vendors, subcategories, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
+export function TransactionsTable({transactions, vendors, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
     const getVendorName = (id: number | null) => {
         if (id === null) return "-";
         return vendors.find(v => v.id === id)?.name || "-"
-    }
-
-    const getSubcategoryName = (id: number | null) => {
-        if (id === null) return "-";
-        return subcategories.get(id) || "-"
     }
 
     const getTagNames = (ids: number[]) => {
@@ -106,7 +100,7 @@ export function TransactionsTable({transactions, vendors, subcategories, tags, o
                         <TableCell>
                             {format(new Date(t.transactionDate), dateFormat)}
                         </TableCell>
-                        <TableCell>{getSubcategoryName(t.subcategoryId)}</TableCell>
+                        <TableCell>{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
                         <TableCell>{getVendorName(t.vendorId)}</TableCell>
                         <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
                         <TableCell>

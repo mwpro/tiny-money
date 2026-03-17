@@ -14,6 +14,8 @@ namespace MW.TinyMoney.Api.Vendors
         public int Id { get; set; }
         public string Name { get; set; }
         public int DefaultSubcategoryId { get; set; }
+        public string SubcategoryName { get; set; }
+        public string CategoryName { get; set; }
     }
 
     public class VendorAlias
@@ -70,8 +72,12 @@ namespace MW.TinyMoney.Api.Vendors
 
         private const string GetVendorsQuery =
             """
-            SELECT id, name, default_subcategory_id as defaultSubcategoryId
-            FROM vendor
+            SELECT v.id, v.name, v.default_subcategory_id as defaultSubcategoryId,
+                   s.name as subcategoryName,
+                   c.name as categoryName
+            FROM vendor v
+            LEFT JOIN subcategory s ON v.default_subcategory_id = s.id
+            LEFT JOIN category c ON s.parent_category_id = c.id
             """;
 
 

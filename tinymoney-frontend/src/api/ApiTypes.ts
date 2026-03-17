@@ -8,6 +8,8 @@ export type Transaction = {
     transactionDate: string;
     vendorId: number | null;
     subcategoryId: number | null;
+    subcategoryName: string | null;
+    categoryName: string | null;
     tagIds: number[];
     isVerified: boolean;
     isPossibleDuplicate: boolean;
