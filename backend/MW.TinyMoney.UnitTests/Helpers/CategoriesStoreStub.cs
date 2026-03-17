@@ -7,15 +7,19 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 public class CategoriesStoreStub : ICategoriesStore
 {
     public IReadOnlyCollection<Category> Categories { get; set; } = new List<Category>();
+    public IReadOnlyCollection<Category> DetailedCategories { get; set; } = new List<Category>();
+
+    public Category CategoryToReturn { get; set; }
+    public Subcategory SubcategoryToReturn { get; set; }
 
     public string LastCreatedCategoryName { get; private set; }
     public bool LastCreatedCategoryIsIncome { get; private set; }
 
-    public int LastUpdatedCategoryId { get; private set; }
-    public string LastUpdatedCategoryName { get; private set; }
+    public Category LastUpdatedCategory { get; private set; }
+    public int LastUpdatedCategoryId => LastUpdatedCategory?.Id ?? 0;
+    public string LastUpdatedCategoryName => LastUpdatedCategory?.Name;
 
     public int LastDeletedCategoryId { get; private set; }
-    public int LastRestoredCategoryId { get; private set; }
 
     public int LastMovedCategoryId { get; private set; }
     public bool LastMovedCategoryUp { get; private set; }
@@ -23,12 +27,12 @@ public class CategoriesStoreStub : ICategoriesStore
     public int LastCreatedSubcategoryCategoryId { get; private set; }
     public string LastCreatedSubcategoryName { get; private set; }
 
-    public int LastUpdatedSubcategoryId { get; private set; }
-    public string LastUpdatedSubcategoryName { get; private set; }
-    public int LastUpdatedSubcategoryParentCategoryId { get; private set; }
+    public Subcategory LastUpdatedSubcategory { get; private set; }
+    public int LastUpdatedSubcategoryId => LastUpdatedSubcategory?.Id ?? 0;
+    public string LastUpdatedSubcategoryName => LastUpdatedSubcategory?.Name;
+    public int LastUpdatedSubcategoryParentCategoryId => LastUpdatedSubcategory?.ParentCategoryId ?? 0;
 
     public int LastDeletedSubcategoryId { get; private set; }
-    public int LastRestoredSubcategoryId { get; private set; }
 
     public int LastMovedSubcategoryCategoryId { get; private set; }
     public int LastMovedSubcategoryId { get; private set; }
@@ -37,6 +41,15 @@ public class CategoriesStoreStub : ICategoriesStore
     public Task<IReadOnlyCollection<Category>> GetCategories() =>
         Task.FromResult(Categories);
 
+    public Task<IReadOnlyCollection<Category>> GetDetailedCategories() =>
+        Task.FromResult(DetailedCategories);
+
+    public Task<Category> GetCategoryById(int id) =>
+        Task.FromResult(CategoryToReturn);
+
+    public Task<Subcategory> GetSubcategoryById(int id) =>
+        Task.FromResult(SubcategoryToReturn);
+
     public Task CreateCategory(string name, bool isIncome)
     {
         LastCreatedCategoryName = name;
@@ -44,22 +57,15 @@ public class CategoriesStoreStub : ICategoriesStore
         return Task.CompletedTask;
     }
 
-    public Task UpdateCategory(int id, string name)
+    public Task UpdateCategory(Category category)
     {
-        LastUpdatedCategoryId = id;
-        LastUpdatedCategoryName = name;
+        LastUpdatedCategory = category;
         return Task.CompletedTask;
     }
 
     public Task DeleteCategory(int id)
     {
         LastDeletedCategoryId = id;
-        return Task.CompletedTask;
-    }
-
-    public Task RestoreCategory(int id)
-    {
-        LastRestoredCategoryId = id;
         return Task.CompletedTask;
     }
 
@@ -77,23 +83,15 @@ public class CategoriesStoreStub : ICategoriesStore
         return Task.CompletedTask;
     }
 
-    public Task UpdateSubcategory(int id, string name, int parentCategoryId)
+    public Task UpdateSubcategory(Subcategory subcategory)
     {
-        LastUpdatedSubcategoryId = id;
-        LastUpdatedSubcategoryName = name;
-        LastUpdatedSubcategoryParentCategoryId = parentCategoryId;
+        LastUpdatedSubcategory = subcategory;
         return Task.CompletedTask;
     }
 
     public Task DeleteSubcategory(int id)
     {
         LastDeletedSubcategoryId = id;
-        return Task.CompletedTask;
-    }
-
-    public Task RestoreSubcategory(int id)
-    {
-        LastRestoredSubcategoryId = id;
         return Task.CompletedTask;
     }
 

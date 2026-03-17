@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +27,7 @@ public class CategoriesControllerTests
 
         var result = await _controller.CreateCategory(request);
 
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(201);
         _store.LastCreatedCategoryName.Should().Be("Jedzenie");
         _store.LastCreatedCategoryIsIncome.Should().BeFalse();
     }
@@ -42,8 +43,9 @@ public class CategoriesControllerTests
     }
 
     [Fact]
-    public async Task UpdateCategory_CallsStoreWithNameOnly_IsIncomeNotInRequest()
+    public async Task UpdateCategory_FetchesThenSetsNameAndSaves()
     {
+        _store.CategoryToReturn = new Category { Id = 5, Name = "Old name" };
         var request = new UpdateCategoryRequest { Name = "Nowa nazwa" };
 
         var result = await _controller.UpdateCategory(5, request);
@@ -51,6 +53,17 @@ public class CategoriesControllerTests
         result.Should().BeOfType<OkResult>();
         _store.LastUpdatedCategoryId.Should().Be(5);
         _store.LastUpdatedCategoryName.Should().Be("Nowa nazwa");
+    }
+
+    [Fact]
+    public async Task UpdateCategory_ReturnsNotFound_WhenCategoryNotFound()
+    {
+        _store.CategoryToReturn = null;
+        var request = new UpdateCategoryRequest { Name = "Nowa nazwa" };
+
+        var result = await _controller.UpdateCategory(99, request);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
@@ -63,12 +76,25 @@ public class CategoriesControllerTests
     }
 
     [Fact]
-    public async Task RestoreCategory_CallsStoreWithCategoryId()
+    public async Task RestoreCategory_SetsDeletedAtNullAndSaves()
     {
+        _store.CategoryToReturn = new Category { Id = 8, DeletedAt = DateTime.Now };
+
         var result = await _controller.RestoreCategory(8);
 
         result.Should().BeOfType<OkResult>();
-        _store.LastRestoredCategoryId.Should().Be(8);
+        _store.LastUpdatedCategory.Id.Should().Be(8);
+        _store.LastUpdatedCategory.DeletedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RestoreCategory_ReturnsNotFound_WhenCategoryNotFound()
+    {
+        _store.CategoryToReturn = null;
+
+        var result = await _controller.RestoreCategory(99);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
@@ -98,14 +124,15 @@ public class CategoriesControllerTests
 
         var result = await _controller.CreateSubcategory(2, request);
 
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<StatusCodeResult>().Which.StatusCode.Should().Be(201);
         _store.LastCreatedSubcategoryCategoryId.Should().Be(2);
         _store.LastCreatedSubcategoryName.Should().Be("Dom");
     }
 
     [Fact]
-    public async Task UpdateSubcategory_CallsStoreWithIdNameAndParent()
+    public async Task UpdateSubcategory_FetchesThenSetsFieldsAndSaves()
     {
+        _store.SubcategoryToReturn = new Subcategory { Id = 10, Name = "Old", ParentCategoryId = 2 };
         var request = new UpdateSubcategoryRequest { Name = "Miasto", ParentCategoryId = 4 };
 
         var result = await _controller.UpdateSubcategory(2, 10, request);
@@ -114,6 +141,17 @@ public class CategoriesControllerTests
         _store.LastUpdatedSubcategoryId.Should().Be(10);
         _store.LastUpdatedSubcategoryName.Should().Be("Miasto");
         _store.LastUpdatedSubcategoryParentCategoryId.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task UpdateSubcategory_ReturnsNotFound_WhenSubcategoryNotFound()
+    {
+        _store.SubcategoryToReturn = null;
+        var request = new UpdateSubcategoryRequest { Name = "Miasto", ParentCategoryId = 4 };
+
+        var result = await _controller.UpdateSubcategory(2, 99, request);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]
@@ -126,12 +164,25 @@ public class CategoriesControllerTests
     }
 
     [Fact]
-    public async Task RestoreSubcategory_CallsStoreWithId()
+    public async Task RestoreSubcategory_SetsDeletedAtNullAndSaves()
     {
+        _store.SubcategoryToReturn = new Subcategory { Id = 20, ParentCategoryId = 1, DeletedAt = DateTime.Now };
+
         var result = await _controller.RestoreSubcategory(2, 20);
 
         result.Should().BeOfType<OkResult>();
-        _store.LastRestoredSubcategoryId.Should().Be(20);
+        _store.LastUpdatedSubcategory.Id.Should().Be(20);
+        _store.LastUpdatedSubcategory.DeletedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RestoreSubcategory_ReturnsNotFound_WhenSubcategoryNotFound()
+    {
+        _store.SubcategoryToReturn = null;
+
+        var result = await _controller.RestoreSubcategory(2, 99);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     [Fact]

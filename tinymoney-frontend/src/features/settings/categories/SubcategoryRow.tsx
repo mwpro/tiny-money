@@ -11,7 +11,7 @@ import {
 import {ChevronDown, ChevronUp, List, Pencil, RotateCcw, Store, Trash2} from "lucide-react"
 import {toast} from "sonner"
 import {getTransactionsUrl} from "@/lib/utils.ts"
-import {EditSubcategoryDialog} from "@/features/settings/categories/EditSubcategoryDialog.tsx"
+import {SubcategoryEditorDialog} from "@/features/settings/categories/SubcategoryEditorDialog.tsx"
 
 interface SubcategoryRowProps {
     subcategory: Subcategory
@@ -84,7 +84,7 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Usuń podkategorię</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    {subcategory.hasUsages
+                                    {subcategory.hasUsages === true
                                         ? <>Podkategoria „{subcategory.name}" zostanie <strong>zarchiwizowana</strong>. Istniejące transakcje nie zostaną usunięte.</>
                                         : <>Podkategoria „{subcategory.name}" zostanie <strong>trwale usunięta</strong>.</>
                                     }
@@ -112,11 +112,9 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
                     </Button>
                 </div>
             )}
-            <EditSubcategoryDialog
+            <SubcategoryEditorDialog
                 isOpen={editOpen}
-                subcategoryId={subcategory.id}
-                currentName={subcategory.name}
-                currentCategoryId={categoryId}
+                subcategory={{id: subcategory.id, name: subcategory.name, categoryId}}
                 categories={categories}
                 onClose={() => setEditOpen(false)}
                 onSaved={onMutated}

@@ -10,8 +10,8 @@ import {
 import {ChevronDown, ChevronRight, ChevronUp, Pencil, Plus, RotateCcw, Trash2} from "lucide-react"
 import {toast} from "sonner"
 import {SubcategoryRow} from "@/features/settings/categories/SubcategoryRow.tsx"
-import {AddSubcategoryDialog} from "@/features/settings/categories/AddSubcategoryDialog.tsx"
-import {EditCategoryDialog} from "@/features/settings/categories/EditCategoryDialog.tsx"
+import {CategoryEditorDialog} from "@/features/settings/categories/CategoryEditorDialog.tsx"
+import {SubcategoryEditorDialog} from "@/features/settings/categories/SubcategoryEditorDialog.tsx"
 
 interface CategoryRowProps {
     category: Category
@@ -146,19 +146,19 @@ export function CategoryRow({category, allCategories, isFirst, isLast, showDelet
                 </div>
             )}
 
-            <EditCategoryDialog
+            <CategoryEditorDialog
                 isOpen={editOpen}
-                categoryId={category.id}
-                currentName={category.name}
+                category={{id: category.id, name: category.name}}
                 onClose={() => setEditOpen(false)}
                 onSaved={onMutated}
             />
-            <AddSubcategoryDialog
+            <SubcategoryEditorDialog
                 isOpen={addSubcategoryOpen}
                 categoryId={category.id}
                 categoryName={category.name}
+                categories={allCategories}
                 onClose={() => setAddSubcategoryOpen(false)}
-                onCreated={onMutated}
+                onSaved={onMutated}
             />
         </div>
     )

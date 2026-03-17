@@ -18,7 +18,7 @@ namespace MW.TinyMoney.Api.Categories
         public bool IsDeleted => DeletedAt.HasValue;
         public IList<Subcategory> Subcategories { get; set; }
 
-        public CategoryDto ToDto()
+        public CategoryDto ToDto(bool detailed = true)
         {
             return new CategoryDto()
             {
@@ -26,14 +26,12 @@ namespace MW.TinyMoney.Api.Categories
                 Name = Name,
                 IsIncome = IsIncome,
                 IsDeleted = IsDeleted,
-                SortOrder = SortOrder,
                 Subcategories = Subcategories.Select(s => new SubcategoryDto()
                 {
                     Id = s.Id,
                     Name = s.Name,
                     IsDeleted = s.IsDeleted,
-                    SortOrder = s.SortOrder,
-                    HasUsages = s.HasUsages
+                    HasUsages = detailed ? s.HasUsages : (bool?)null
                 })
             };
         }
@@ -44,6 +42,7 @@ namespace MW.TinyMoney.Api.Categories
         public int Id { get; set; }
         public string Name { get; set; }
         public int SortOrder { get; set; }
+        public int ParentCategoryId { get; set; }
         public DateTime? DeletedAt { get; set; }
         public bool IsDeleted => DeletedAt.HasValue;
         public bool HasUsages { get; set; }
@@ -52,15 +51,16 @@ namespace MW.TinyMoney.Api.Categories
     public interface ICategoriesStore
     {
         Task<IReadOnlyCollection<Category>> GetCategories();
+        Task<IReadOnlyCollection<Category>> GetDetailedCategories();
+        Task<Category?> GetCategoryById(int id);
+        Task<Subcategory?> GetSubcategoryById(int id);
         Task CreateCategory(string name, bool isIncome);
-        Task UpdateCategory(int id, string name);
+        Task UpdateCategory(Category category);
         Task DeleteCategory(int id);
-        Task RestoreCategory(int id);
         Task MoveCategory(int id, bool up);
         Task CreateSubcategory(int categoryId, string name);
-        Task UpdateSubcategory(int id, string name, int parentCategoryId);
+        Task UpdateSubcategory(Subcategory subcategory);
         Task DeleteSubcategory(int id);
-        Task RestoreSubcategory(int id);
         Task MoveSubcategory(int categoryId, int id, bool up);
     }
 
@@ -76,7 +76,16 @@ namespace MW.TinyMoney.Api.Categories
         private const string GetCategoriesQuery =
             """
             SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder', c.deleted_at AS 'deletedAt',
-                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt',
+                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt', s.parent_category_id AS 'parentCategoryId'
+            FROM category c
+            LEFT JOIN subcategory s ON c.id = s.parent_category_id
+            ORDER BY c.sort_order, s.sort_order
+            """;
+
+        private const string GetDetailedCategoriesQuery =
+            """
+            SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder', c.deleted_at AS 'deletedAt',
+                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt', s.parent_category_id AS 'parentCategoryId',
                    CASE WHEN s.id IS NOT NULL AND (
                        (SELECT COUNT(*) FROM `transaction` WHERE subcategory_id = s.id) +
                        (SELECT COUNT(*) FROM vendor WHERE default_subcategory_id = s.id)
@@ -86,6 +95,12 @@ namespace MW.TinyMoney.Api.Categories
             ORDER BY c.sort_order, s.sort_order
             """;
 
+        private const string GetCategoryByIdQuery =
+            "SELECT id, name, is_income AS 'isIncome', sort_order AS 'sortOrder', deleted_at AS 'deletedAt' FROM category WHERE id = @id";
+
+        private const string GetSubcategoryByIdQuery =
+            "SELECT id, name, sort_order AS 'sortOrder', deleted_at AS 'deletedAt', parent_category_id AS 'parentCategoryId' FROM subcategory WHERE id = @id";
+
         private const string CreateCategoryQuery =
             """
             INSERT INTO category (name, is_income, sort_order)
@@ -93,7 +108,7 @@ namespace MW.TinyMoney.Api.Categories
             """;
 
         private const string UpdateCategoryQuery =
-            "UPDATE category SET name = @name WHERE id = @id";
+            "UPDATE category SET name = @name, deleted_at = @deletedAt WHERE id = @id";
 
         private const string CountCategorySubcategoriesQuery =
             "SELECT COUNT(*) FROM subcategory WHERE parent_category_id = @id";
@@ -108,12 +123,6 @@ namespace MW.TinyMoney.Api.Categories
             SET c.deleted_at = NOW(), s.deleted_at = NOW()
             WHERE c.id = @id
             """;
-
-        private const string RestoreCategoryQuery =
-            "UPDATE category SET deleted_at = NULL WHERE id = @id";
-
-        private const string RestoreSubcategoryQuery =
-            "UPDATE subcategory SET deleted_at = NULL WHERE id = @id";
 
         private const string GetCategorySortOrderQuery =
             "SELECT sort_order FROM category WHERE id = @id";
@@ -147,12 +156,13 @@ namespace MW.TinyMoney.Api.Categories
             """;
 
         private const string UpdateSubcategoryQuery =
-            "UPDATE subcategory SET name = @name WHERE id = @id";
+            "UPDATE subcategory SET name = @name, deleted_at = @deletedAt WHERE id = @id";
 
         private const string ReparentSubcategoryQuery =
             """
             UPDATE subcategory
             SET name = @name, parent_category_id = @parentCategoryId,
+                deleted_at = @deletedAt,
                 sort_order = COALESCE((SELECT MAX(s2.sort_order) FROM subcategory s2 WHERE s2.parent_category_id = @parentCategoryId), 0) + 1
             WHERE id = @id
             """;
@@ -199,13 +209,13 @@ namespace MW.TinyMoney.Api.Categories
             WHERE id IN (@id, @neighborId)
             """;
 
-        public async Task<IReadOnlyCollection<Category>> GetCategories()
+        private async Task<IReadOnlyCollection<Category>> QueryCategories(string sql)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             var categoriesDictionary = new Dictionary<int, Category>();
 
             await connection.OpenAsync();
-            await connection.QueryAsync<Category, Subcategory, Category>(GetCategoriesQuery, (category, subcategory) =>
+            await connection.QueryAsync<Category, Subcategory, Category>(sql, (category, subcategory) =>
             {
                 if (!categoriesDictionary.TryGetValue(category.Id, out Category categoryEntry))
                 {
@@ -222,6 +232,26 @@ namespace MW.TinyMoney.Api.Categories
             return categoriesDictionary.Values;
         }
 
+        public Task<IReadOnlyCollection<Category>> GetCategories() =>
+            QueryCategories(GetCategoriesQuery);
+
+        public Task<IReadOnlyCollection<Category>> GetDetailedCategories() =>
+            QueryCategories(GetDetailedCategoriesQuery);
+
+        public async Task<Category?> GetCategoryById(int id)
+        {
+            using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            return await connection.QuerySingleOrDefaultAsync<Category>(GetCategoryByIdQuery, new { id });
+        }
+
+        public async Task<Subcategory?> GetSubcategoryById(int id)
+        {
+            using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            return await connection.QuerySingleOrDefaultAsync<Subcategory>(GetSubcategoryByIdQuery, new { id });
+        }
+
         public async Task CreateCategory(string name, bool isIncome)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
@@ -229,11 +259,11 @@ namespace MW.TinyMoney.Api.Categories
             await connection.ExecuteAsync(CreateCategoryQuery, new { name, isIncome });
         }
 
-        public async Task UpdateCategory(int id, string name)
+        public async Task UpdateCategory(Category category)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-            await connection.ExecuteAsync(UpdateCategoryQuery, new { id, name });
+            await connection.ExecuteAsync(UpdateCategoryQuery, new { id = category.Id, name = category.Name, deletedAt = category.DeletedAt });
         }
 
         public async Task DeleteCategory(int id)
@@ -243,13 +273,6 @@ namespace MW.TinyMoney.Api.Categories
             var subcategoryCount = await connection.ExecuteScalarAsync<int>(CountCategorySubcategoriesQuery, new { id });
             var query = subcategoryCount == 0 ? HardDeleteCategoryQuery : SoftDeleteCategoryQuery;
             await connection.ExecuteAsync(query, new { id });
-        }
-
-        public async Task RestoreCategory(int id)
-        {
-            using var connection = _mySqlConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
-            await connection.ExecuteAsync(RestoreCategoryQuery, new { id });
         }
 
         public async Task MoveCategory(int id, bool up)
@@ -276,18 +299,18 @@ namespace MW.TinyMoney.Api.Categories
             await connection.ExecuteAsync(CreateSubcategoryQuery, new { name, categoryId });
         }
 
-        public async Task UpdateSubcategory(int id, string name, int parentCategoryId)
+        public async Task UpdateSubcategory(Subcategory subcategory)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
             var current = await connection.QuerySingleAsync<(int ParentCategoryId, int SortOrder)>(
-                GetSubcategoryParentAndSortOrderQuery, new { id });
+                GetSubcategoryParentAndSortOrderQuery, new { id = subcategory.Id });
 
-            if (current.ParentCategoryId != parentCategoryId)
-                await connection.ExecuteAsync(ReparentSubcategoryQuery, new { id, name, parentCategoryId });
+            if (current.ParentCategoryId != subcategory.ParentCategoryId)
+                await connection.ExecuteAsync(ReparentSubcategoryQuery, new { id = subcategory.Id, name = subcategory.Name, parentCategoryId = subcategory.ParentCategoryId, deletedAt = subcategory.DeletedAt });
             else
-                await connection.ExecuteAsync(UpdateSubcategoryQuery, new { id, name });
+                await connection.ExecuteAsync(UpdateSubcategoryQuery, new { id = subcategory.Id, name = subcategory.Name, deletedAt = subcategory.DeletedAt });
         }
 
         public async Task DeleteSubcategory(int id)
@@ -297,13 +320,6 @@ namespace MW.TinyMoney.Api.Categories
             var usageCount = await connection.ExecuteScalarAsync<int>(CheckSubcategoryUsageQuery, new { id });
             var query = usageCount == 0 ? HardDeleteSubcategoryQuery : SoftDeleteSubcategoryQuery;
             await connection.ExecuteAsync(query, new { id });
-        }
-
-        public async Task RestoreSubcategory(int id)
-        {
-            using var connection = _mySqlConnectionFactory.CreateConnection();
-            await connection.OpenAsync();
-            await connection.ExecuteAsync(RestoreSubcategoryQuery, new { id });
         }
 
         public async Task MoveSubcategory(int categoryId, int id, bool up)

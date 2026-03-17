@@ -213,7 +213,7 @@ namespace MW.TinyMoney.Api.Transaction
 
                 Transaction.ApiModels.Transaction result = null;
                 var tagsIds = new List<int>();
-                var tagRows = new List<Transaction.ApiModels.TagSummary>();
+                var tagRows = new List<Transaction.ApiModels.TransactionTag>();
                 await connection.QueryAsync<Transaction.ApiModels.Transaction, TransactionTagRow, Transaction.ApiModels.Transaction>(
                     GetTransactionsByIdQuery,
                     (transaction, tagRow) =>
@@ -227,7 +227,7 @@ namespace MW.TinyMoney.Api.Transaction
                         if (tagRow?.TagId.HasValue == true)
                         {
                             tagsIds.Add(tagRow.TagId.Value);
-                            tagRows.Add(new Transaction.ApiModels.TagSummary { Id = tagRow.TagId.Value, Name = tagRow.TagName });
+                            tagRows.Add(new Transaction.ApiModels.TransactionTag { Id = tagRow.TagId.Value, Name = tagRow.TagName });
                         }
 
                         return result;
@@ -274,7 +274,7 @@ namespace MW.TinyMoney.Api.Transaction
                 {
                     var txTags = transactionsTags.Where(t => t.transactionId == transaction.Id).ToList();
                     transaction.TagIds = txTags.Select(t => t.tagId).ToList();
-                    transaction.Tags = txTags.Select(t => new Transaction.ApiModels.TagSummary { Id = t.tagId, Name = t.tagName }).ToList();
+                    transaction.Tags = txTags.Select(t => new Transaction.ApiModels.TransactionTag { Id = t.tagId, Name = t.tagName }).ToList();
                 }
 
                 return transactions;

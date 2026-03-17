@@ -3,6 +3,7 @@ import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface CategoriesClient {
     getCategories(): Promise<Category[]>;
+    getCategoriesDetailed(): Promise<Category[]>;
     createCategory(name: string, isIncome: boolean): Promise<void>;
     updateCategory(id: number, name: string): Promise<void>;
     deleteCategory(id: number): Promise<void>;
@@ -20,6 +21,12 @@ export interface CategoriesClient {
 export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
     async getCategories(): Promise<Category[]> {
         const res = await this.request('GET', '/categories');
+        if (!res.ok) throw new Error('Błąd pobierania kategorii');
+        return res.json();
+    }
+
+    async getCategoriesDetailed(): Promise<Category[]> {
+        const res = await this.request('GET', '/categories?detailed=true');
         if (!res.ok) throw new Error('Błąd pobierania kategorii');
         return res.json();
     }

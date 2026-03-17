@@ -235,8 +235,8 @@ export type VendorDetails = {
     numberOfTransactions: number,
     lastTransactionDate: string | undefined
 };
-export type Category = { id: number, name: string, isIncome: boolean, isDeleted: boolean, sortOrder: number, subcategories: Subcategory[] };
-export type Subcategory = { id: number; name: string; isDeleted: boolean; sortOrder: number; hasUsages: boolean };
+export type Category = { id: number, name: string, isIncome: boolean, isDeleted: boolean, subcategories: Subcategory[] };
+export type Subcategory = { id: number; name: string; isDeleted: boolean; hasUsages: boolean | null };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
 export type Subcategories = Map<number, string>;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Transaction.ApiModels
 {
-    public class TagSummary
+    public class TransactionTag
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -27,7 +27,7 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public string SubcategoryName { get; set; }
         public string CategoryName { get; set; }
         public IList<int> TagIds { get; set; }
-        public IList<TagSummary> Tags { get; set; }
+        public IList<TransactionTag> Tags { get; set; }
         public bool IsVerified { get; set; }
         public bool IsPossibleDuplicate { get; set; }
     }
