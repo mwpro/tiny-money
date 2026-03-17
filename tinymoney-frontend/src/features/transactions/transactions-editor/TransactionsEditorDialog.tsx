@@ -120,10 +120,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             ? transactionsClient.editTransaction(transactionToEdit.id, newTransaction)
             : transactionsClient.addTransaction(newTransaction),
         onSuccess: (data: TransactionMutationResponse) => {
+            if (data.newVendor) {
+                queryClient.invalidateQueries({queryKey: ['vendors']})                
+            }
+            if (data.newTags?.length) {
+                queryClient.invalidateQueries({queryKey: ['tags']})
+            }
             queryClient.invalidateQueries({queryKey: ['transactions']})
-            queryClient.invalidateQueries({queryKey: ['vendors']})
-            queryClient.invalidateQueries({queryKey: ['categories']})
-            queryClient.invalidateQueries({queryKey: ['tags']})
             onTransactionSaved && onTransactionSaved()
             if (transactionToEdit) {
                 if (data.suggestedAlias) {
