@@ -321,14 +321,13 @@ export function TransactionsPage() {
                     <p>Maksymalna ilość znalezionych transakcji jest ograniczona do 1000. Spróbuj użyć bardziej precyzyjnych kryteriów.</p>
                 </AlertDescription>
             </Alert>)}
-            {(transactionsQuery.isLoading || tagsQuery.isLoading) &&
+            {transactionsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
-            {(transactionsQuery.isError || tagsQuery.isError) &&
+            {transactionsQuery.isError &&
                 <div className="p-10 text-destructive">Błąd ładowania danych</div>}
-            {transactionsQuery.data && tagsQuery.data &&
+            {transactionsQuery.data &&
                 <TransactionsTable
                     transactions={transactionsQuery.data}
-                    tags={tagsQuery.data}
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
                     selectedIds={selectedIds} onSelectionChange={setSelectedIds}
                     onVerifyClick={t => verifyMutation.mutate(t)}

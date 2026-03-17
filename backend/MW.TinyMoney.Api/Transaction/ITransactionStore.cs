@@ -76,9 +76,11 @@ namespace MW.TinyMoney.Api.Transaction
                 c.name AS 'categoryName',
                 t.is_verified AS 'isVerified',
                 t.is_possible_duplicate AS 'isPossibleDuplicate',
-                tt.tag_id AS 'tagId'
+                tt.tag_id AS 'tagId',
+                tag.name AS 'tagName'
             FROM transaction t
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
+            LEFT JOIN tag ON tt.tag_id = tag.id
             LEFT JOIN subcategory s ON t.subcategory_id = s.id
             LEFT JOIN category c ON s.parent_category_id = c.id
             LEFT JOIN vendor v ON t.vendor_id = v.id
@@ -127,9 +129,10 @@ namespace MW.TinyMoney.Api.Transaction
               DELETE FROM transaction WHERE id IN @transactionIds;";
 
         private const string GetTagsForTransactions =
-            @"SELECT transaction_id AS transactionId, tag_id AS tagId
-              FROM transaction_tag
-              WHERE transaction_id in @transactionIds";
+            @"SELECT tt.transaction_id AS transactionId, tt.tag_id AS tagId, t.name AS tagName
+              FROM transaction_tag tt
+              JOIN tag t ON tt.tag_id = t.id
+              WHERE tt.transaction_id in @transactionIds";
 
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
@@ -200,6 +203,8 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
 
+        private record TransactionTagRow(int? TagId, string TagName);
+
         public async Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -208,9 +213,10 @@ namespace MW.TinyMoney.Api.Transaction
 
                 Transaction.ApiModels.Transaction result = null;
                 var tagsIds = new List<int>();
-                await connection.QueryAsync<Transaction.ApiModels.Transaction, int?, Transaction.ApiModels.Transaction>(
+                var tagRows = new List<Transaction.ApiModels.TagSummary>();
+                await connection.QueryAsync<Transaction.ApiModels.Transaction, TransactionTagRow, Transaction.ApiModels.Transaction>(
                     GetTransactionsByIdQuery,
-                    (transaction, tagId) =>
+                    (transaction, tagRow) =>
                     {
                         if (result == null)
                         {
@@ -218,9 +224,10 @@ namespace MW.TinyMoney.Api.Transaction
                             transaction.TagIds = new List<int>();
                         }
 
-                        if (tagId.HasValue)
+                        if (tagRow?.TagId.HasValue == true)
                         {
-                            tagsIds.Add(tagId.Value);
+                            tagsIds.Add(tagRow.TagId.Value);
+                            tagRows.Add(new Transaction.ApiModels.TagSummary { Id = tagRow.TagId.Value, Name = tagRow.TagName });
                         }
 
                         return result;
@@ -230,6 +237,7 @@ namespace MW.TinyMoney.Api.Transaction
                     }, splitOn: "tagId");
 
                 result.TagIds = tagsIds;
+                result.Tags = tagRows;
                 return result;
             }
         }
@@ -256,7 +264,7 @@ namespace MW.TinyMoney.Api.Transaction
                         TransactionsLimit
                     })).ToList();
 
-                var transactionsTags = (await connection.QueryAsync<(int transactionId, int tagId)>(
+                var transactionsTags = (await connection.QueryAsync<(int transactionId, int tagId, string tagName)>(
                     GetTagsForTransactions, new
                     {
                         transactionIds = transactions.Select(t => t.Id)
@@ -264,8 +272,9 @@ namespace MW.TinyMoney.Api.Transaction
 
                 foreach (var transaction in transactions)
                 {
-                    transaction.TagIds = transactionsTags.Where(t => t.transactionId == transaction.Id)
-                        .Select(t => t.tagId).ToList();
+                    var txTags = transactionsTags.Where(t => t.transactionId == transaction.Id).ToList();
+                    transaction.TagIds = txTags.Select(t => t.tagId).ToList();
+                    transaction.Tags = txTags.Select(t => new Transaction.ApiModels.TagSummary { Id = t.tagId, Name = t.tagName }).ToList();
                 }
 
                 return transactions;

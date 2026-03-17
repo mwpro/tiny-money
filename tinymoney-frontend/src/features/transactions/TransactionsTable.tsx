@@ -2,7 +2,7 @@ import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableR
 import {Badge} from "@/components/ui/badge.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import type {Tag, Transaction, TransactionsResponse} from "@/api/ApiTypes.ts";
+import type {Transaction, TransactionsResponse} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
@@ -12,7 +12,6 @@ import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
-    tags: Tag[],
     onDeleteClick: (transaction: Transaction) => void
     onEditClick: (transaction: Transaction) => void
     onVerifyClick: (transaction: Transaction) => void
@@ -22,12 +21,7 @@ interface TransactionsTableProps {
 }
 
 
-export function TransactionsTable({transactions, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
-    const getTagNames = (ids: number[]) => {
-        if (!ids || ids.length === 0) return [];
-        return ids.map(id => tags.find(t => t.id === id)).filter(Boolean).map(x => x!);
-    }
-
+export function TransactionsTable({transactions, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
     const allIds = transactions.transactions.map(t => t.id);
     const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
     const someSelected = allIds.some(id => selectedIds.has(id)) && !allSelected;
@@ -99,7 +93,7 @@ export function TransactionsTable({transactions, tags, onEditClick, onDeleteClic
                         <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
                         <TableCell>
                             <div className="flex gap-1 flex-wrap">
-                                {getTagNames(t.tagIds).map((tag) => (
+                                {t.tags.map((tag) => (
                                     <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
                                         {tag.name}
                                     </Badge>
