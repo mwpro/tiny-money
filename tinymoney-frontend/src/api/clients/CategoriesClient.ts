@@ -1,9 +1,9 @@
-import type {Category} from "@/api/ApiTypes.ts";
+import type {Category, DetailedCategory} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface CategoriesClient {
     getCategories(): Promise<Category[]>;
-    getCategoriesDetailed(): Promise<Category[]>;
+    getCategoriesDetailed(): Promise<DetailedCategory[]>;
     createCategory(name: string, isIncome: boolean): Promise<void>;
     updateCategory(id: number, name: string): Promise<void>;
     deleteCategory(id: number): Promise<void>;
@@ -25,7 +25,7 @@ export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
         return res.json();
     }
 
-    async getCategoriesDetailed(): Promise<Category[]> {
+    async getCategoriesDetailed(): Promise<DetailedCategory[]> {
         const res = await this.request('GET', '/categories?detailed=true');
         if (!res.ok) throw new Error('Błąd pobierania kategorii');
         return res.json();

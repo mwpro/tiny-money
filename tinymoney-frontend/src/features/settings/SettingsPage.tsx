@@ -1,5 +1,5 @@
 import {CategoriesSettingsSection} from "@/features/settings/categories/CategoriesSettingsSection.tsx"
-import {ApiKeysSettingsSection} from "@/features/settings/ApiKeysSettingsSection.tsx"
+import {ApiKeysSettings} from "@/features/settings/ApiKeysSettings.tsx"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs.tsx"
 
 export function SettingsPage() {
@@ -18,7 +18,7 @@ export function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="api-keys" className="mt-4">
-                    <ApiKeysSettingsSection />
+                    <ApiKeysSettings />
                 </TabsContent>
             </Tabs>
         </div>

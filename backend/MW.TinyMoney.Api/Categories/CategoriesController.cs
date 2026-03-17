@@ -20,11 +20,12 @@ namespace MW.TinyMoney.Api.Categories
 
         [HttpGet("")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<DetailedCategoryDto>))]
         public async Task<IActionResult> GetCategories([FromQuery] bool? detailed = false)
         {
             if (detailed == true)
-                return Ok((await _categoriesStore.GetDetailedCategories()).Select(x => x.ToDto()));
-            return Ok((await _categoriesStore.GetCategories()).Select(x => x.ToDto(detailed: false)));
+                return Ok((await _categoriesStore.GetDetailedCategories()).Select(x => x.ToDetailedDto()));
+            return Ok((await _categoriesStore.GetCategories()).Select(x => x.ToDto()));
         }
 
         [HttpPost("")]

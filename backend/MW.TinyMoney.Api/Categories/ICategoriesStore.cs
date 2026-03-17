@@ -18,7 +18,7 @@ namespace MW.TinyMoney.Api.Categories
         public bool IsDeleted => DeletedAt.HasValue;
         public IList<Subcategory> Subcategories { get; set; }
 
-        public CategoryDto ToDto(bool detailed = true)
+        public CategoryDto ToDto()
         {
             return new CategoryDto()
             {
@@ -30,8 +30,25 @@ namespace MW.TinyMoney.Api.Categories
                 {
                     Id = s.Id,
                     Name = s.Name,
+                    IsDeleted = s.IsDeleted
+                })
+            };
+        }
+
+        public DetailedCategoryDto ToDetailedDto()
+        {
+            return new DetailedCategoryDto()
+            {
+                Id = Id,
+                Name = Name,
+                IsIncome = IsIncome,
+                IsDeleted = IsDeleted,
+                Subcategories = Subcategories.Select(s => new DetailedSubcategoryDto()
+                {
+                    Id = s.Id,
+                    Name = s.Name,
                     IsDeleted = s.IsDeleted,
-                    HasUsages = detailed ? s.HasUsages : (bool?)null
+                    HasUsages = s.HasUsages
                 })
             };
         }

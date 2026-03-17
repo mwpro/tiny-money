@@ -2,7 +2,7 @@ import {useEffect} from "react"
 import {Controller, useForm} from "react-hook-form"
 import {useMutation} from "@tanstack/react-query"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
-import type {Category} from "@/api/ApiTypes.ts"
+import type {DetailedCategory} from "@/api/ApiTypes.ts"
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
@@ -16,7 +16,7 @@ interface SubcategoryEditorDialogProps {
     isOpen: boolean
     onClose: () => void
     onSaved: () => void
-    categories: Category[]
+    categories: DetailedCategory[]
     categoryId?: number
     categoryName?: string
     subcategory?: { id: number; name: string; categoryId: number }

@@ -3,7 +3,7 @@ import {useApiClient} from "@/api/ApiClientProvider.tsx"
 import {ApiKeyRow} from "@/features/settings/ApiKeyRow.tsx"
 import {GenerateKeyDialog} from "@/features/settings/GenerateKeyDialog.tsx"
 
-export function ApiKeysSettingsSection() {
+export function ApiKeysSettings() {
     const {apiKeysClient} = useApiClient()
     const queryClient = useQueryClient()
 

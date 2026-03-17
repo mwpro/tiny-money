@@ -1,7 +1,7 @@
 import {useState} from "react"
 import {useMutation} from "@tanstack/react-query"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
-import type {Category} from "@/api/ApiTypes.ts"
+import type {DetailedCategory} from "@/api/ApiTypes.ts"
 import {Button} from "@/components/ui/button"
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -14,8 +14,8 @@ import {CategoryEditorDialog} from "@/features/settings/categories/CategoryEdito
 import {SubcategoryEditorDialog} from "@/features/settings/categories/SubcategoryEditorDialog.tsx"
 
 interface CategoryRowProps {
-    category: Category
-    allCategories: Category[]
+    category: DetailedCategory
+    allCategories: DetailedCategory[]
     isFirst: boolean
     isLast: boolean
     showDeleted: boolean

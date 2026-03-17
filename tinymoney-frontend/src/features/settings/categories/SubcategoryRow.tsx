@@ -2,7 +2,7 @@ import {useState} from "react"
 import {Link} from "react-router-dom"
 import {useMutation} from "@tanstack/react-query"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
-import type {Category, Subcategory} from "@/api/ApiTypes.ts"
+import type {DetailedCategory, DetailedSubcategory} from "@/api/ApiTypes.ts"
 import {Button} from "@/components/ui/button"
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -14,11 +14,11 @@ import {getTransactionsUrl} from "@/lib/utils.ts"
 import {SubcategoryEditorDialog} from "@/features/settings/categories/SubcategoryEditorDialog.tsx"
 
 interface SubcategoryRowProps {
-    subcategory: Subcategory
+    subcategory: DetailedSubcategory
     categoryId: number
     isFirst: boolean
     isLast: boolean
-    categories: Category[]
+    categories: DetailedCategory[]
     onMutated: () => void
 }
 
