@@ -100,7 +100,10 @@ export function CategoryRow({category, allCategories, isFirst, isLast, showDelet
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Usuń kategorię</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Kategoria „{category.name}" zostanie usunięta. Istniejące transakcje i podkategorie nie zostaną usunięte.
+                                        {category.subcategories.length === 0
+                                            ? <>Kategoria „{category.name}" zostanie <strong>trwale usunięta</strong>.</>
+                                            : <>Kategoria „{category.name}" zostanie <strong>zarchiwizowana</strong> wraz z jej podkategoriami. Istniejące transakcje nie zostaną usunięte.</>
+                                        }
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

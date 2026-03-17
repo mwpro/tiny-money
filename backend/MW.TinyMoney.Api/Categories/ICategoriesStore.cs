@@ -32,7 +32,8 @@ namespace MW.TinyMoney.Api.Categories
                     Id = s.Id,
                     Name = s.Name,
                     IsDeleted = s.IsDeleted,
-                    SortOrder = s.SortOrder
+                    SortOrder = s.SortOrder,
+                    HasUsages = s.HasUsages
                 })
             };
         }
@@ -45,6 +46,7 @@ namespace MW.TinyMoney.Api.Categories
         public int SortOrder { get; set; }
         public DateTime? DeletedAt { get; set; }
         public bool IsDeleted => DeletedAt.HasValue;
+        public bool HasUsages { get; set; }
     }
 
     public interface ICategoriesStore
@@ -74,7 +76,11 @@ namespace MW.TinyMoney.Api.Categories
         private const string GetCategoriesQuery =
             """
             SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder', c.deleted_at AS 'deletedAt',
-                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt'
+                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt',
+                   CASE WHEN s.id IS NOT NULL AND (
+                       (SELECT COUNT(*) FROM `transaction` WHERE subcategory_id = s.id) +
+                       (SELECT COUNT(*) FROM vendor WHERE default_subcategory_id = s.id)
+                   ) > 0 THEN 1 ELSE 0 END AS 'hasUsages'
             FROM category c
             LEFT JOIN subcategory s ON c.id = s.parent_category_id
             ORDER BY c.sort_order, s.sort_order

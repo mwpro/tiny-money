@@ -84,7 +84,10 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Usuń podkategorię</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Podkategoria „{subcategory.name}" zostanie usunięta. Istniejące transakcje nie zostaną usunięte.
+                                    {subcategory.hasUsages
+                                        ? <>Podkategoria „{subcategory.name}" zostanie <strong>zarchiwizowana</strong>. Istniejące transakcje nie zostaną usunięte.</>
+                                        : <>Podkategoria „{subcategory.name}" zostanie <strong>trwale usunięta</strong>.</>
+                                    }
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
