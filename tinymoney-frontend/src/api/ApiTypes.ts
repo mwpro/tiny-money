@@ -7,6 +7,7 @@ export type Transaction = {
     modifiedDate: string;
     transactionDate: string;
     vendorId: number | null;
+    vendorName: string | null;
     subcategoryId: number | null;
     subcategoryName: string | null;
     categoryName: string | null;

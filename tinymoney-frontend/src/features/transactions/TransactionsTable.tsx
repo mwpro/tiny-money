@@ -2,7 +2,7 @@ import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableR
 import {Badge} from "@/components/ui/badge.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import type {Tag, Transaction, TransactionsResponse, Vendor} from "@/api/ApiTypes.ts";
+import type {Tag, Transaction, TransactionsResponse} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
@@ -12,7 +12,6 @@ import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
-    vendors: Vendor[];
     tags: Tag[],
     onDeleteClick: (transaction: Transaction) => void
     onEditClick: (transaction: Transaction) => void
@@ -23,12 +22,7 @@ interface TransactionsTableProps {
 }
 
 
-export function TransactionsTable({transactions, vendors, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
-    const getVendorName = (id: number | null) => {
-        if (id === null) return "-";
-        return vendors.find(v => v.id === id)?.name || "-"
-    }
-
+export function TransactionsTable({transactions, tags, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
     const getTagNames = (ids: number[]) => {
         if (!ids || ids.length === 0) return [];
         return ids.map(id => tags.find(t => t.id === id)).filter(Boolean).map(x => x!);
@@ -101,7 +95,7 @@ export function TransactionsTable({transactions, vendors, tags, onEditClick, onD
                             {format(new Date(t.transactionDate), dateFormat)}
                         </TableCell>
                         <TableCell>{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
-                        <TableCell>{getVendorName(t.vendorId)}</TableCell>
+                        <TableCell>{t.vendorName ?? "-"}</TableCell>
                         <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
                         <TableCell>
                             <div className="flex gap-1 flex-wrap">

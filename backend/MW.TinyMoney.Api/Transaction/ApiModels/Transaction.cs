@@ -16,6 +16,7 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public DateTime TransactionDate { get; set; }
 
         public int? VendorId { get; set; }
+        public string VendorName { get; set; }
         public int? SubcategoryId { get; set; }
         public string SubcategoryName { get; set; }
         public string CategoryName { get; set; }

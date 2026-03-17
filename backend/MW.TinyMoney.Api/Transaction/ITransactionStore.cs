@@ -70,6 +70,7 @@ namespace MW.TinyMoney.Api.Transaction
                 t.modified_date AS 'modifiedDate',
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
+                v.name AS 'vendorName',
                 t.subcategory_id AS 'subcategoryId',
                 s.name AS 'subcategoryName',
                 c.name AS 'categoryName',
@@ -80,6 +81,7 @@ namespace MW.TinyMoney.Api.Transaction
             LEFT JOIN transaction_tag tt on t.id = tt.transaction_id
             LEFT JOIN subcategory s ON t.subcategory_id = s.id
             LEFT JOIN category c ON s.parent_category_id = c.id
+            LEFT JOIN vendor v ON t.vendor_id = v.id
             WHERE t.id = @transactionId";
 
         private const string GetTransactionsQuery =
@@ -93,6 +95,7 @@ namespace MW.TinyMoney.Api.Transaction
                 t.modified_date AS 'modifiedDate',
                 t.transaction_date AS 'transactionDate',
                 t.vendor_id AS 'vendorId',
+                v.name AS 'vendorName',
                 t.subcategory_id AS 'subcategoryId',
                 s.name AS 'subcategoryName',
                 c.name AS 'categoryName',
@@ -101,6 +104,7 @@ namespace MW.TinyMoney.Api.Transaction
             FROM transaction t
             LEFT JOIN subcategory s ON t.subcategory_id = s.id
             LEFT JOIN category c ON s.parent_category_id = c.id
+            LEFT JOIN vendor v ON t.vendor_id = v.id
             WHERE
                 (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
                 AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
