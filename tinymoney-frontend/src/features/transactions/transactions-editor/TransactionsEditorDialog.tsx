@@ -265,10 +265,10 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                     </SelectTrigger>
                                     
                                     <SelectContent>
-                                        {categoriesQuery.data && categoriesQuery.data.filter(c => !c.isDeleted).map(category => (
+                                        {categoriesQuery.data && categoriesQuery.data.map(category => (
                                             <SelectGroup key={category.id}>
                                                 <SelectLabel>{category.name}</SelectLabel>
-                                                {category.subcategories.filter(s => !s.isDeleted).map(subcategory => (
+                                                {category.subcategories.map(subcategory => (
                                                     <SelectItem key={subcategory.id}
                                                                 value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                                             </SelectGroup>

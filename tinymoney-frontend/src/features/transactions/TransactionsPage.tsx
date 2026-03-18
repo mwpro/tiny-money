@@ -277,11 +277,11 @@ export function TransactionsPage() {
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
                         {categoriesQuery.data && categoriesQuery.data
-                            .filter(c => !c.isDeleted && (queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome))
+                            .filter(c => (queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome))
                             .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
-                                {category.subcategories.filter(s => !s.isDeleted).map(subcategory =>
+                                {category.subcategories.map(subcategory =>
                                     (<SelectItem key={subcategory.id} value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
                             </SelectGroup>
                         ))}

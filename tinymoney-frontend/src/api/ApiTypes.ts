@@ -234,12 +234,11 @@ export type VendorDetails = {
     numberOfTransactions: number,
     lastTransactionDate: string | undefined
 };
-export type Category = { id: number, name: string, isIncome: boolean, isDeleted: boolean, subcategories: Subcategory[] };
-export type Subcategory = { id: number; name: string; isDeleted: boolean };
+export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
+export type Subcategory = { id: number; name: string };
 export type DetailedCategory = { id: number, name: string, isIncome: boolean, isDeleted: boolean, subcategories: DetailedSubcategory[] };
 export type DetailedSubcategory = { id: number; name: string; isDeleted: boolean; hasUsages: boolean };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
-export type Subcategories = Map<number, string>;
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };

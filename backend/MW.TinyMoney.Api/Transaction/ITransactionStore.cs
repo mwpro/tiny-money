@@ -204,8 +204,6 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
 
-        private record TransactionTagRow(int? TagId, string TagName);
-
         public async Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId)
         {
             using (var connection = _mySqlConnectionFactory.CreateConnection())
@@ -214,15 +212,15 @@ namespace MW.TinyMoney.Api.Transaction
 
                 Transaction.ApiModels.Transaction result = null;
                 var tagRows = new List<TagDto>();
-                await connection.QueryAsync<Transaction.ApiModels.Transaction, TransactionTagRow, Transaction.ApiModels.Transaction>(
+                await connection.QueryAsync<Transaction.ApiModels.Transaction, (int? tagId, string tagName), Transaction.ApiModels.Transaction>(
                     GetTransactionsByIdQuery,
                     (transaction, tagRow) =>
                     {
                         if (result == null)
                             result = transaction;
 
-                        if (tagRow?.TagId.HasValue == true)
-                            tagRows.Add(new TagDto { Id = tagRow.TagId.Value, Name = tagRow.TagName });
+                        if (tagRow.tagId.HasValue)
+                            tagRows.Add(new TagDto { Id = tagRow.tagId.Value, Name = tagRow.tagName });
 
                         return result;
                     }, new

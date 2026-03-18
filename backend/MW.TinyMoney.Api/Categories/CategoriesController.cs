@@ -60,7 +60,7 @@ namespace MW.TinyMoney.Api.Categories
         {
             var category = await _categoriesStore.GetCategoryById(id);
             if (category == null) return NotFound();
-            if (!category.IsDeleted) return Conflict("Kategoria nie jest archiwalna.");
+            if (!category.IsDeleted) return Conflict("Category is not archived.");
             category.DeletedAt = null;
             await _categoriesStore.UpdateCategory(category);
             return Ok();
@@ -84,7 +84,7 @@ namespace MW.TinyMoney.Api.Categories
         public async Task<IActionResult> CreateSubcategory(int categoryId, [FromBody] CreateSubcategoryRequest request)
         {
             var parent = await _categoriesStore.GetCategoryById(categoryId);
-            if (parent == null) return BadRequest("Kategoria nadrzędna nie istnieje.");
+            if (parent == null) return BadRequest("Parent category does not exist.");
             await _categoriesStore.CreateSubcategory(categoryId, request.Name);
             return StatusCode((int)HttpStatusCode.Created);
         }
@@ -95,7 +95,7 @@ namespace MW.TinyMoney.Api.Categories
             var subcategory = await _categoriesStore.GetSubcategoryById(id);
             if (subcategory == null) return NotFound();
             var parent = await _categoriesStore.GetCategoryById(request.ParentCategoryId);
-            if (parent == null) return BadRequest("Kategoria nadrzędna nie istnieje.");
+            if (parent == null) return BadRequest("Parent category does not exist.");
             subcategory.Name = request.Name;
             subcategory.ParentCategoryId = request.ParentCategoryId;
             await _categoriesStore.UpdateSubcategory(subcategory);
@@ -116,7 +116,7 @@ namespace MW.TinyMoney.Api.Categories
         {
             var subcategory = await _categoriesStore.GetSubcategoryById(id);
             if (subcategory == null) return NotFound();
-            if (!subcategory.IsDeleted) return Conflict("Podkategoria nie jest archiwalna.");
+            if (!subcategory.IsDeleted) return Conflict("Subcategory is not archived.");
             subcategory.DeletedAt = null;
             await _categoriesStore.UpdateSubcategory(subcategory);
             return Ok();
