@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +69,7 @@ public class CategoriesControllerTests
     public async Task DeleteCategory_CallsStoreWithCategoryId()
     {
         _store.CategoryToReturn = new Category { Id = 3 };
+        _store.CategoryHasSubcategoriesToReturn = false;
 
         var result = await _controller.DeleteCategory(3);
 
@@ -88,35 +88,15 @@ public class CategoriesControllerTests
     }
 
     [Fact]
-    public async Task RestoreCategory_ReturnsConflict_WhenNotDeleted()
+    public async Task DeleteCategory_ReturnsConflict_WhenHasSubcategories()
     {
-        _store.CategoryToReturn = new Category { Id = 8, DeletedAt = null };
+        _store.CategoryToReturn = new Category { Id = 3 };
+        _store.CategoryHasSubcategoriesToReturn = true;
 
-        var result = await _controller.RestoreCategory(8);
+        var result = await _controller.DeleteCategory(3);
 
         result.Should().BeOfType<ConflictObjectResult>();
-    }
-
-    [Fact]
-    public async Task RestoreCategory_SetsDeletedAtNullAndSaves()
-    {
-        _store.CategoryToReturn = new Category { Id = 8, DeletedAt = DateTime.Now };
-
-        var result = await _controller.RestoreCategory(8);
-
-        result.Should().BeOfType<OkResult>();
-        _store.LastUpdatedCategory.Id.Should().Be(8);
-        _store.LastUpdatedCategory.DeletedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task RestoreCategory_ReturnsNotFound_WhenCategoryNotFound()
-    {
-        _store.CategoryToReturn = null;
-
-        var result = await _controller.RestoreCategory(99);
-
-        result.Should().BeOfType<NotFoundResult>();
+        _store.LastDeletedCategoryId.Should().Be(0);
     }
 
     [Fact]
@@ -206,6 +186,7 @@ public class CategoriesControllerTests
     public async Task DeleteSubcategory_CallsStoreWithId()
     {
         _store.SubcategoryToReturn = new Subcategory { Id = 15 };
+        _store.SubcategoryHasUsagesToReturn = false;
 
         var result = await _controller.DeleteSubcategory(2, 15);
 
@@ -224,35 +205,15 @@ public class CategoriesControllerTests
     }
 
     [Fact]
-    public async Task RestoreSubcategory_ReturnsConflict_WhenNotDeleted()
+    public async Task DeleteSubcategory_ReturnsConflict_WhenHasUsages()
     {
-        _store.SubcategoryToReturn = new Subcategory { Id = 20, ParentCategoryId = 1, DeletedAt = null };
+        _store.SubcategoryToReturn = new Subcategory { Id = 15 };
+        _store.SubcategoryHasUsagesToReturn = true;
 
-        var result = await _controller.RestoreSubcategory(1, 20);
+        var result = await _controller.DeleteSubcategory(2, 15);
 
         result.Should().BeOfType<ConflictObjectResult>();
-    }
-
-    [Fact]
-    public async Task RestoreSubcategory_SetsDeletedAtNullAndSaves()
-    {
-        _store.SubcategoryToReturn = new Subcategory { Id = 20, ParentCategoryId = 1, DeletedAt = DateTime.Now };
-
-        var result = await _controller.RestoreSubcategory(2, 20);
-
-        result.Should().BeOfType<OkResult>();
-        _store.LastUpdatedSubcategory.Id.Should().Be(20);
-        _store.LastUpdatedSubcategory.DeletedAt.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task RestoreSubcategory_ReturnsNotFound_WhenSubcategoryNotFound()
-    {
-        _store.SubcategoryToReturn = null;
-
-        var result = await _controller.RestoreSubcategory(2, 99);
-
-        result.Should().BeOfType<NotFoundResult>();
+        _store.LastDeletedSubcategoryId.Should().Be(0);
     }
 
     [Fact]

@@ -51,18 +51,9 @@ namespace MW.TinyMoney.Api.Categories
         {
             var category = await _categoriesStore.GetCategoryById(id);
             if (category == null) return NotFound();
+            if (await _categoriesStore.CategoryHasSubcategories(id))
+                return Conflict("Category has subcategories. Delete or move them first.");
             await _categoriesStore.DeleteCategory(id);
-            return Ok();
-        }
-
-        [HttpPost("{id}/restore")]
-        public async Task<IActionResult> RestoreCategory(int id)
-        {
-            var category = await _categoriesStore.GetCategoryById(id);
-            if (category == null) return NotFound();
-            if (!category.IsDeleted) return Conflict("Category is not archived.");
-            category.DeletedAt = null;
-            await _categoriesStore.UpdateCategory(category);
             return Ok();
         }
 
@@ -107,18 +98,9 @@ namespace MW.TinyMoney.Api.Categories
         {
             var subcategory = await _categoriesStore.GetSubcategoryById(id);
             if (subcategory == null) return NotFound();
+            if (await _categoriesStore.SubcategoryHasUsages(id))
+                return Conflict("Subcategory has usages. Move transactions and vendor defaults first.");
             await _categoriesStore.DeleteSubcategory(id);
-            return Ok();
-        }
-
-        [HttpPost("{categoryId}/subcategories/{id}/restore")]
-        public async Task<IActionResult> RestoreSubcategory(int categoryId, int id)
-        {
-            var subcategory = await _categoriesStore.GetSubcategoryById(id);
-            if (subcategory == null) return NotFound();
-            if (!subcategory.IsDeleted) return Conflict("Subcategory is not archived.");
-            subcategory.DeletedAt = null;
-            await _categoriesStore.UpdateSubcategory(subcategory);
             return Ok();
         }
 

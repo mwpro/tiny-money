@@ -94,7 +94,7 @@ export function SubcategoryEditorDialog({
                                             <SelectValue placeholder="Wybierz kategorię" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {categories.filter(c => !c.isDeleted).map(c => (
+                                            {categories.map(c => (
                                                 <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
                                             ))}
                                         </SelectContent>

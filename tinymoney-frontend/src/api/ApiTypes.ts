@@ -236,8 +236,8 @@ export type VendorDetails = {
 };
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
-export type DetailedCategory = { id: number, name: string, isIncome: boolean, isDeleted: boolean, subcategories: DetailedSubcategory[] };
-export type DetailedSubcategory = { id: number; name: string; isDeleted: boolean; hasUsages: boolean };
+export type DetailedCategory = { id: number, name: string, isIncome: boolean, subcategories: DetailedSubcategory[] };
+export type DetailedSubcategory = { id: number; name: string; hasUsages: boolean };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };

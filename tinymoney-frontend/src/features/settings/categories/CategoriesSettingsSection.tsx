@@ -8,7 +8,6 @@ import {Button} from "@/components/ui/button"
 export function CategoriesSettingsSection() {
     const {categoriesClient} = useApiClient()
     const queryClient = useQueryClient()
-    const [showDeleted, setShowDeleted] = useState(false)
     const [addOpen, setAddOpen] = useState(false)
 
     const categoriesQuery = useQuery({
@@ -19,8 +18,6 @@ export function CategoriesSettingsSection() {
     const invalidate = () => queryClient.invalidateQueries({queryKey: ['categories', 'detailed']})
 
     const categories = categoriesQuery.data ?? []
-    const visibleCategories = showDeleted ? categories : categories.filter(c => !c.isDeleted)
-    const activeCategories = categories.filter(c => !c.isDeleted)
 
     return (
         <section>
@@ -38,29 +35,17 @@ export function CategoriesSettingsSection() {
 
             {categoriesQuery.data && (
                 <>
-                    <div className="mb-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground text-xs"
-                            onClick={() => setShowDeleted(v => !v)}
-                        >
-                            {showDeleted ? "Ukryj archiwalne" : "Pokaż archiwalne"}
-                        </Button>
-                    </div>
-
-                    {visibleCategories.length === 0 && (
+                    {categories.length === 0 && (
                         <p className="text-sm text-muted-foreground py-4 text-center border rounded-md">Brak kategorii.</p>
                     )}
 
-                    {visibleCategories.map((category, idx) => (
+                    {categories.map((category, idx) => (
                         <CategoryRow
                             key={category.id}
                             category={category}
                             allCategories={categories}
                             isFirst={idx === 0}
-                            isLast={idx === activeCategories.length - 1}
-                            showDeleted={showDeleted}
+                            isLast={idx === categories.length - 1}
                             onMutated={invalidate}
                         />
                     ))}

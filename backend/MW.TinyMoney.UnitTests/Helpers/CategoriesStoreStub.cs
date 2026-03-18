@@ -12,6 +12,9 @@ public class CategoriesStoreStub : ICategoriesStore
     public Category CategoryToReturn { get; set; }
     public Subcategory SubcategoryToReturn { get; set; }
 
+    public bool CategoryHasSubcategoriesToReturn { get; set; }
+    public bool SubcategoryHasUsagesToReturn { get; set; }
+
     public string LastCreatedCategoryName { get; private set; }
     public bool LastCreatedCategoryIsIncome { get; private set; }
 
@@ -69,6 +72,9 @@ public class CategoriesStoreStub : ICategoriesStore
         return Task.CompletedTask;
     }
 
+    public Task<bool> CategoryHasSubcategories(int id) =>
+        Task.FromResult(CategoryHasSubcategoriesToReturn);
+
     public Task MoveCategory(int id, bool up)
     {
         LastMovedCategoryId = id;
@@ -94,6 +100,9 @@ public class CategoriesStoreStub : ICategoriesStore
         LastDeletedSubcategoryId = id;
         return Task.CompletedTask;
     }
+
+    public Task<bool> SubcategoryHasUsages(int id) =>
+        Task.FromResult(SubcategoryHasUsagesToReturn);
 
     public Task MoveSubcategory(int categoryId, int id, bool up)
     {
