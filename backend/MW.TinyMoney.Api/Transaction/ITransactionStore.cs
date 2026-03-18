@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Tags.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction
 {
@@ -145,7 +146,7 @@ namespace MW.TinyMoney.Api.Transaction
                     transaction.Id = connection.QuerySingle<int>(SaveTransactionQuery, transaction, dbTransaction);
 
                     connection.Execute(SaveTransactionTags,
-                        transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
+                        transaction.Tags.Select(x => new {transactionId = transaction.Id, tagId = x.Id}), dbTransaction);
 
                     dbTransaction.Commit();
                 }
@@ -196,7 +197,7 @@ namespace MW.TinyMoney.Api.Transaction
                     await connection.ExecuteAsync(DeleteTransactionTags, new {transactionId = transaction.Id}, dbTransaction);
 
                     await connection.ExecuteAsync(SaveTransactionTags,
-                        transaction.TagIds.Select(x => new {transactionId = transaction.Id, tagId = x}), dbTransaction);
+                        transaction.Tags.Select(x => new {transactionId = transaction.Id, tagId = x.Id}), dbTransaction);
 
                     await dbTransaction.CommitAsync();
                 }
@@ -212,23 +213,16 @@ namespace MW.TinyMoney.Api.Transaction
                 connection.Open();
 
                 Transaction.ApiModels.Transaction result = null;
-                var tagsIds = new List<int>();
-                var tagRows = new List<Transaction.ApiModels.TransactionTag>();
+                var tagRows = new List<TagDto>();
                 await connection.QueryAsync<Transaction.ApiModels.Transaction, TransactionTagRow, Transaction.ApiModels.Transaction>(
                     GetTransactionsByIdQuery,
                     (transaction, tagRow) =>
                     {
                         if (result == null)
-                        {
                             result = transaction;
-                            transaction.TagIds = new List<int>();
-                        }
 
                         if (tagRow?.TagId.HasValue == true)
-                        {
-                            tagsIds.Add(tagRow.TagId.Value);
-                            tagRows.Add(new Transaction.ApiModels.TransactionTag { Id = tagRow.TagId.Value, Name = tagRow.TagName });
-                        }
+                            tagRows.Add(new TagDto { Id = tagRow.TagId.Value, Name = tagRow.TagName });
 
                         return result;
                     }, new
@@ -236,7 +230,6 @@ namespace MW.TinyMoney.Api.Transaction
                         transactionId
                     }, splitOn: "tagId");
 
-                result.TagIds = tagsIds;
                 result.Tags = tagRows;
                 return result;
             }
@@ -273,8 +266,7 @@ namespace MW.TinyMoney.Api.Transaction
                 foreach (var transaction in transactions)
                 {
                     var txTags = transactionsTags.Where(t => t.transactionId == transaction.Id).ToList();
-                    transaction.TagIds = txTags.Select(t => t.tagId).ToList();
-                    transaction.Tags = txTags.Select(t => new Transaction.ApiModels.TransactionTag { Id = t.tagId, Name = t.tagName }).ToList();
+                    transaction.Tags = txTags.Select(t => new TagDto { Id = t.tagId, Name = t.tagName }).ToList();
                 }
 
                 return transactions;

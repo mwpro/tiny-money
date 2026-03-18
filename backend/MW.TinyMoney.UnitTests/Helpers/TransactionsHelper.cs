@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MW.TinyMoney.Api.Import;
+using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 
 namespace MW.TinyMoney.UnitTests.Helpers;
@@ -27,6 +28,6 @@ public static class TransactionsHelper
             CreatedDate = DateTime.UtcNow,
             CreatedBy = createdBy,
             ModifiedDate = DateTime.UtcNow,
-            TagIds = new List<int>()
+            Tags = new List<TagDto>()
         };
 }

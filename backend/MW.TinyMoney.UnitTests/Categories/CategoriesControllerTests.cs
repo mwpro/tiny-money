@@ -69,10 +69,32 @@ public class CategoriesControllerTests
     [Fact]
     public async Task DeleteCategory_CallsStoreWithCategoryId()
     {
+        _store.CategoryToReturn = new Category { Id = 3 };
+
         var result = await _controller.DeleteCategory(3);
 
         result.Should().BeOfType<OkResult>();
         _store.LastDeletedCategoryId.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ReturnsNotFound_WhenCategoryNotFound()
+    {
+        _store.CategoryToReturn = null;
+
+        var result = await _controller.DeleteCategory(99);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task RestoreCategory_ReturnsConflict_WhenNotDeleted()
+    {
+        _store.CategoryToReturn = new Category { Id = 8, DeletedAt = null };
+
+        var result = await _controller.RestoreCategory(8);
+
+        result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
@@ -120,6 +142,7 @@ public class CategoriesControllerTests
     [Fact]
     public async Task CreateSubcategory_CallsStoreWithCategoryIdAndName()
     {
+        _store.CategoryToReturn = new Category { Id = 2 };
         var request = new CreateSubcategoryRequest { Name = "Dom" };
 
         var result = await _controller.CreateSubcategory(2, request);
@@ -130,9 +153,22 @@ public class CategoriesControllerTests
     }
 
     [Fact]
+    public async Task CreateSubcategory_ReturnsBadRequest_WhenParentNotFound()
+    {
+        _store.CategoryToReturn = null;
+        var request = new CreateSubcategoryRequest { Name = "Dom" };
+
+        var result = await _controller.CreateSubcategory(99, request);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _store.LastCreatedSubcategoryName.Should().BeNull();
+    }
+
+    [Fact]
     public async Task UpdateSubcategory_FetchesThenSetsFieldsAndSaves()
     {
         _store.SubcategoryToReturn = new Subcategory { Id = 10, Name = "Old", ParentCategoryId = 2 };
+        _store.CategoryToReturn = new Category { Id = 4 };
         var request = new UpdateSubcategoryRequest { Name = "Miasto", ParentCategoryId = 4 };
 
         var result = await _controller.UpdateSubcategory(2, 10, request);
@@ -155,12 +191,46 @@ public class CategoriesControllerTests
     }
 
     [Fact]
+    public async Task UpdateSubcategory_ReturnsBadRequest_WhenParentNotFound()
+    {
+        _store.SubcategoryToReturn = new Subcategory { Id = 10, Name = "Old", ParentCategoryId = 2 };
+        _store.CategoryToReturn = null;
+        var request = new UpdateSubcategoryRequest { Name = "Miasto", ParentCategoryId = 99 };
+
+        var result = await _controller.UpdateSubcategory(2, 10, request);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
     public async Task DeleteSubcategory_CallsStoreWithId()
     {
+        _store.SubcategoryToReturn = new Subcategory { Id = 15 };
+
         var result = await _controller.DeleteSubcategory(2, 15);
 
         result.Should().BeOfType<OkResult>();
         _store.LastDeletedSubcategoryId.Should().Be(15);
+    }
+
+    [Fact]
+    public async Task DeleteSubcategory_ReturnsNotFound_WhenSubcategoryNotFound()
+    {
+        _store.SubcategoryToReturn = null;
+
+        var result = await _controller.DeleteSubcategory(2, 99);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task RestoreSubcategory_ReturnsConflict_WhenNotDeleted()
+    {
+        _store.SubcategoryToReturn = new Subcategory { Id = 20, ParentCategoryId = 1, DeletedAt = null };
+
+        var result = await _controller.RestoreSubcategory(1, 20);
+
+        result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
@@ -205,5 +275,17 @@ public class CategoriesControllerTests
         _store.LastMovedSubcategoryCategoryId.Should().Be(3);
         _store.LastMovedSubcategoryId.Should().Be(12);
         _store.LastMovedSubcategoryUp.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CreateCategory_ReturnsBadRequest_WhenNameTooLong()
+    {
+        _controller.ModelState.AddModelError("Name", "The field Name must be a string or array type with a maximum length of '100'.");
+        var request = new CreateCategoryRequest { Name = new string('x', 101), IsIncome = false };
+
+        var result = await _controller.CreateCategory(request);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _store.LastCreatedCategoryName.Should().BeNull();
     }
 }

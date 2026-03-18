@@ -25,12 +25,10 @@ namespace MW.TinyMoney.Api.Categories
                 Id = Id,
                 Name = Name,
                 IsIncome = IsIncome,
-                IsDeleted = IsDeleted,
                 Subcategories = Subcategories.Select(s => new SubcategoryDto()
                 {
                     Id = s.Id,
                     Name = s.Name,
-                    IsDeleted = s.IsDeleted
                 })
             };
         }
@@ -92,10 +90,11 @@ namespace MW.TinyMoney.Api.Categories
 
         private const string GetCategoriesQuery =
             """
-            SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder', c.deleted_at AS 'deletedAt',
-                   s.id, s.name, s.sort_order AS 'sortOrder', s.deleted_at AS 'deletedAt', s.parent_category_id AS 'parentCategoryId'
+            SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder',
+                   s.id, s.name, s.sort_order AS 'sortOrder', s.parent_category_id AS 'parentCategoryId'
             FROM category c
-            LEFT JOIN subcategory s ON c.id = s.parent_category_id
+            LEFT JOIN subcategory s ON c.id = s.parent_category_id AND s.deleted_at IS NULL
+            WHERE c.deleted_at IS NULL
             ORDER BY c.sort_order, s.sort_order
             """;
 

@@ -31,6 +31,7 @@ namespace MW.TinyMoney.Api.Categories
         [HttpPost("")]
         public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             await _categoriesStore.CreateCategory(request.Name, request.IsIncome);
             return StatusCode((int)HttpStatusCode.Created);
         }
@@ -48,6 +49,8 @@ namespace MW.TinyMoney.Api.Categories
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
+            var category = await _categoriesStore.GetCategoryById(id);
+            if (category == null) return NotFound();
             await _categoriesStore.DeleteCategory(id);
             return Ok();
         }
@@ -57,6 +60,7 @@ namespace MW.TinyMoney.Api.Categories
         {
             var category = await _categoriesStore.GetCategoryById(id);
             if (category == null) return NotFound();
+            if (!category.IsDeleted) return Conflict("Kategoria nie jest archiwalna.");
             category.DeletedAt = null;
             await _categoriesStore.UpdateCategory(category);
             return Ok();
@@ -79,6 +83,8 @@ namespace MW.TinyMoney.Api.Categories
         [HttpPost("{categoryId}/subcategories")]
         public async Task<IActionResult> CreateSubcategory(int categoryId, [FromBody] CreateSubcategoryRequest request)
         {
+            var parent = await _categoriesStore.GetCategoryById(categoryId);
+            if (parent == null) return BadRequest("Kategoria nadrzędna nie istnieje.");
             await _categoriesStore.CreateSubcategory(categoryId, request.Name);
             return StatusCode((int)HttpStatusCode.Created);
         }
@@ -88,6 +94,8 @@ namespace MW.TinyMoney.Api.Categories
         {
             var subcategory = await _categoriesStore.GetSubcategoryById(id);
             if (subcategory == null) return NotFound();
+            var parent = await _categoriesStore.GetCategoryById(request.ParentCategoryId);
+            if (parent == null) return BadRequest("Kategoria nadrzędna nie istnieje.");
             subcategory.Name = request.Name;
             subcategory.ParentCategoryId = request.ParentCategoryId;
             await _categoriesStore.UpdateSubcategory(subcategory);
@@ -97,6 +105,8 @@ namespace MW.TinyMoney.Api.Categories
         [HttpDelete("{categoryId}/subcategories/{id}")]
         public async Task<IActionResult> DeleteSubcategory(int categoryId, int id)
         {
+            var subcategory = await _categoriesStore.GetSubcategoryById(id);
+            if (subcategory == null) return NotFound();
             await _categoriesStore.DeleteSubcategory(id);
             return Ok();
         }
@@ -106,6 +116,7 @@ namespace MW.TinyMoney.Api.Categories
         {
             var subcategory = await _categoriesStore.GetSubcategoryById(id);
             if (subcategory == null) return NotFound();
+            if (!subcategory.IsDeleted) return Conflict("Podkategoria nie jest archiwalna.");
             subcategory.DeletedAt = null;
             await _categoriesStore.UpdateSubcategory(subcategory);
             return Ok();

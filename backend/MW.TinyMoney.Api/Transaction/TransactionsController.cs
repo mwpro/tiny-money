@@ -121,7 +121,7 @@ namespace MW.TinyMoney.Api.Transaction
             transaction.Description = updatedTransaction.Description;
             transaction.ModifiedDate = DateTime.UtcNow;
             transaction.SubcategoryId = updatedTransaction.SubcategoryId;
-            transaction.TagIds = updatedTransaction.Tags.Select(x => x.Id.Value).ToList();
+            transaction.Tags = updatedTransaction.Tags.ToList();
             transaction.TransactionDate = updatedTransaction.TransactionDate;
             transaction.VendorId = updatedTransaction.Vendor.Id.Value;
 
@@ -176,7 +176,7 @@ namespace MW.TinyMoney.Api.Transaction
                 IsExpense = addTransactionDto.IsExpense,
                 ModifiedDate = DateTime.UtcNow,
                 SubcategoryId = addTransactionDto.SubcategoryId,
-                TagIds = addTransactionDto.Tags.Select(x => x.Id.Value).ToList(),
+                Tags = addTransactionDto.Tags.ToList(),
                 TransactionDate = addTransactionDto.TransactionDate,
                 VendorId = addTransactionDto.Vendor.Id.Value,
                 IsVerified = true,

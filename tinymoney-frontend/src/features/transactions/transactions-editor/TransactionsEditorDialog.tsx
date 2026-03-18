@@ -106,7 +106,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             if (selectedVendor) {
                 setValue("vendor", selectedVendor);
             }
-            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tagIds.includes(t.id));
+            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tags.some(tt => tt.id === t.id));
             if (selectedTags) {
                 setValue("tags", selectedTags);
             }

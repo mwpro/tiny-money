@@ -11,7 +11,6 @@ export type Transaction = {
     subcategoryId: number | null;
     subcategoryName: string | null;
     categoryName: string | null;
-    tagIds: number[];
     tags: { id: number; name: string }[];
     isVerified: boolean;
     isPossibleDuplicate: boolean;

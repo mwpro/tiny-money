@@ -1,14 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using MW.TinyMoney.Api.Tags.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction.ApiModels
 {
-    public class TransactionTag
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
     public class Transaction
     {
         public int Id { get; set; }
@@ -26,8 +21,7 @@ namespace MW.TinyMoney.Api.Transaction.ApiModels
         public int? SubcategoryId { get; set; }
         public string SubcategoryName { get; set; }
         public string CategoryName { get; set; }
-        public IList<int> TagIds { get; set; }
-        public IList<TransactionTag> Tags { get; set; }
+        public IList<TagDto> Tags { get; set; }
         public bool IsVerified { get; set; }
         public bool IsPossibleDuplicate { get; set; }
     }

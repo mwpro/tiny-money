@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Vendors.Matching;
 
 namespace MW.TinyMoney.Api.Import;
@@ -67,7 +68,7 @@ public class ImportService : IImportService
             CreatedDate = now,
             CreatedBy = TransactionPlaceholders.CreatedByImport,
             ModifiedDate = now,
-            TagIds = new List<int>()
+            Tags = new List<TagDto>()
         };
 
         await DetectDuplicates(new[] { transaction });
@@ -112,7 +113,7 @@ public class ImportService : IImportService
                 CreatedDate = now,
                 CreatedBy = TransactionPlaceholders.CreatedByImport,
                 ModifiedDate = now,
-                TagIds = new List<int>()
+                Tags = new List<TagDto>()
             };
         }).ToList();
 
