@@ -16,7 +16,7 @@ interface BudgetTableProps {
 
 export function TopEntriesTable({entries, incomes, reportSettings, transactionsUrlConfigurer}: BudgetTableProps) {
     return (
-        <div className="border rounded-md flex-1">
+        <div className="border rounded-md flex-1 [&_td]:whitespace-normal">
             <Table>
                 <TableHeader>
                     <TableRow>
