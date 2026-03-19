@@ -1,10 +1,8 @@
 ALTER TABLE category
-    ADD COLUMN sort_order INT      NOT NULL DEFAULT 0,
-    ADD COLUMN deleted_at DATETIME NULL     DEFAULT NULL;
+    ADD COLUMN sort_order INT      NOT NULL DEFAULT 0;
 
 ALTER TABLE subcategory
-    ADD COLUMN sort_order INT      NOT NULL DEFAULT 0,
-    ADD COLUMN deleted_at DATETIME NULL     DEFAULT NULL;
+    ADD COLUMN sort_order INT      NOT NULL DEFAULT 0;
 
 UPDATE category c
     JOIN (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS rn FROM category) r ON c.id = r.id

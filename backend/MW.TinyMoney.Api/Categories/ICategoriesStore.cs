@@ -159,18 +159,7 @@ namespace MW.TinyMoney.Api.Categories
             """;
 
         private const string UpdateSubcategoryQuery =
-            "UPDATE subcategory SET name = @name WHERE id = @id";
-
-        private const string ReparentSubcategoryQuery =
-            """
-            UPDATE subcategory
-            SET name = @name, parent_category_id = @parentCategoryId,
-                sort_order = COALESCE((SELECT MAX(s2.sort_order) FROM subcategory s2 WHERE s2.parent_category_id = @parentCategoryId), 0) + 1
-            WHERE id = @id
-            """;
-
-        private const string GetSubcategoryParentAndSortOrderQuery =
-            "SELECT parent_category_id AS ParentCategoryId, sort_order AS SortOrder FROM subcategory WHERE id = @id";
+            "UPDATE subcategory SET name = @name, parent_category_id = @parentCategoryId WHERE id = @id";
 
         private const string CheckSubcategoryUsageQuery =
             """
@@ -308,14 +297,7 @@ namespace MW.TinyMoney.Api.Categories
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
-
-            var current = await connection.QuerySingleAsync<(int ParentCategoryId, int SortOrder)>(
-                GetSubcategoryParentAndSortOrderQuery, new { id = subcategory.Id });
-
-            if (current.ParentCategoryId != subcategory.ParentCategoryId)
-                await connection.ExecuteAsync(ReparentSubcategoryQuery, new { id = subcategory.Id, name = subcategory.Name, parentCategoryId = subcategory.ParentCategoryId });
-            else
-                await connection.ExecuteAsync(UpdateSubcategoryQuery, new { id = subcategory.Id, name = subcategory.Name });
+            await connection.ExecuteAsync(UpdateSubcategoryQuery, new { id = subcategory.Id, name = subcategory.Name, parentCategoryId = subcategory.ParentCategoryId });
         }
 
         public async Task DeleteSubcategory(int id)
