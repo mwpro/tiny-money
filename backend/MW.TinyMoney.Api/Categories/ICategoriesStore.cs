@@ -97,9 +97,9 @@ namespace MW.TinyMoney.Api.Categories
             SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder',
                    s.id, s.name, s.sort_order AS 'sortOrder', s.parent_category_id AS 'parentCategoryId',
                    CASE WHEN s.id IS NOT NULL AND (
-                       (SELECT COUNT(*) FROM `transaction` WHERE subcategory_id = s.id) +
-                       (SELECT COUNT(*) FROM vendor WHERE default_subcategory_id = s.id)
-                   ) > 0 THEN 1 ELSE 0 END AS 'hasUsages'
+                                  EXISTS(SELECT 1 FROM `transaction` WHERE subcategory_id = s.id) OR
+                                  EXISTS(SELECT 1 FROM vendor WHERE default_subcategory_id = s.id)
+                              ) THEN 1 ELSE 0 END AS 'hasUsages'
             FROM category c
             LEFT JOIN subcategory s ON c.id = s.parent_category_id
             ORDER BY c.sort_order, s.sort_order
@@ -162,11 +162,8 @@ namespace MW.TinyMoney.Api.Categories
 
         private const string CheckSubcategoryUsageQuery =
             """
-            SELECT COUNT(*) FROM (
-                SELECT subcategory_id AS id FROM `transaction` WHERE subcategory_id = @id
-                UNION ALL
-                SELECT default_subcategory_id FROM vendor WHERE default_subcategory_id = @id
-            ) used
+            SELECT EXISTS (SELECT 1 FROM `transaction` WHERE subcategory_id = @id) OR 
+                EXISTS (SELECT 1 FROM vendor WHERE default_subcategory_id = @id)
             """;
 
         private const string HardDeleteSubcategoryQuery =
