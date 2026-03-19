@@ -63,36 +63,40 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                         <span className="text-sm text-muted-foreground">{format(new Date(t.transactionDate), dateFormat)}</span>
                         <Curr input={t.amount} colored isPositive={!t.isExpense} />
                     </div>
-                    <div className="font-semibold mt-1">{t.vendorName ?? "-"}</div>
-                    <div className="text-sm text-muted-foreground mt-0.5">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</div>
-                    {t.description && (
-                        <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
-                    )}
-                    {t.tags.length > 0 && (
-                        <div className="flex gap-1 flex-wrap mt-1">
-                            {t.tags.map((tag) => (
-                                <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
-                                    {tag.name}
-                                </Badge>
-                            ))}
-                        </div>
-                    )}
-                    <div className="flex justify-end mt-2">
-                        <ButtonGroup>
-                            {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
-                                <Button
-                                    variant="outline" size="sm"
-                                    className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
-                                    onClick={() => onVerifyClick(t)}
-                                    disabled={verifyingTransactionId === t.id}
-                                    title="Zweryfikuj"
-                                >
-                                    <ShieldCheck />
-                                </Button>
+                    <div className="flex gap-2 items-end mt-1">
+                        <div className="flex-1 min-w-0">
+                            <div className="font-semibold">{t.vendorName ?? "-"}</div>
+                            <div className="text-sm text-muted-foreground mt-0.5">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</div>
+                            {t.description && (
+                                <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
                             )}
-                            <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
-                            <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
-                        </ButtonGroup>
+                            {t.tags.length > 0 && (
+                                <div className="flex gap-1 flex-wrap mt-1">
+                                    {t.tags.map((tag) => (
+                                        <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                            {tag.name}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="shrink-0">
+                            <ButtonGroup>
+                                {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
+                                    <Button
+                                        variant="outline"
+                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
+                                        onClick={() => onVerifyClick(t)}
+                                        disabled={verifyingTransactionId === t.id}
+                                        title="Zweryfikuj"
+                                    >
+                                        <ShieldCheck />
+                                    </Button>
+                                )}
+                                <Button variant="outline" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                                <Button variant="outline" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
+                            </ButtonGroup>
+                        </div>
                     </div>
                 </div>
             ))}
