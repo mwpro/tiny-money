@@ -13,7 +13,7 @@ namespace MW.TinyMoney.Api.Vendors
     public record VendorAliasDto(int Id, string Alias);
     public record VendorWithAliasesDto(VendorDetails Details, IEnumerable<VendorAliasDto> Aliases);
     public record AddVendorAliasRequest(string Alias);
-    public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId);
+    public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId, string DefaultSubcategoryName, string DefaultCategoryName);
 
     [ApiController, Route("/api/vendors"), Authorize]
     public class VendorsController : ControllerBase
@@ -134,7 +134,7 @@ namespace MW.TinyMoney.Api.Vendors
             var vendors = await _vendorMatchingService.SuggestVendor(description, 5);
             if (!vendors.Any())
                 return NoContent();
-            return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId)));
+            return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId, vendor.SubcategoryName, vendor.CategoryName)));
         }
 
         [HttpGet("{vendorId}")]

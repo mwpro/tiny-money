@@ -73,13 +73,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
         ...dictionariesConfig
     })
 
-    const subcategoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => categoriesClient.getCategories(),
-        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
-        ...dictionariesConfig
-    })
-
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => tagsClient.getTags(),
@@ -113,7 +106,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             if (selectedVendor) {
                 setValue("vendor", selectedVendor);
             }
-            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tagIds.includes(t.id));
+            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tags.some(tt => tt.id === t.id));
             if (selectedTags) {
                 setValue("tags", selectedTags);
             }
@@ -127,10 +120,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             ? transactionsClient.editTransaction(transactionToEdit.id, newTransaction)
             : transactionsClient.addTransaction(newTransaction),
         onSuccess: (data: TransactionMutationResponse) => {
+            if (data.newVendor) {
+                queryClient.invalidateQueries({queryKey: ['vendors']})                
+            }
+            if (data.newTags?.length) {
+                queryClient.invalidateQueries({queryKey: ['tags']})
+            }
             queryClient.invalidateQueries({queryKey: ['transactions']})
-            queryClient.invalidateQueries({queryKey: ['vendors']})
-            queryClient.invalidateQueries({queryKey: ['categories']})
-            queryClient.invalidateQueries({queryKey: ['tags']})
             onTransactionSaved && onTransactionSaved()
             if (transactionToEdit) {
                 if (data.suggestedAlias) {
@@ -258,7 +254,13 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                 }} value={(field.value > 0) ? field.value.toString() : ""}>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Wybierz kategorię">
-                                            { subcategoriesQuery.data && field.value ? subcategoriesQuery.data.get(field.value) : "Kategoria" }
+                                            {(() => {
+                                                if (!field.value) return "Kategoria";
+                                                const selectedCat = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === field.value));
+                                                return selectedCat
+                                                    ? `${selectedCat.name} / ${selectedCat.subcategories.find(s => s.id === field.value)!.name}`
+                                                    : "Kategoria";
+                                            })()}
                                         </SelectValue>
                                     </SelectTrigger>
                                     

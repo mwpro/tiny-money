@@ -57,4 +57,5 @@ export class VendorsClientImpl extends ApiBase implements VendorsClient {
         const res = await this.request('DELETE', `/vendors/${vendorId}/aliases/${aliasId}`);
         if (!res.ok) throw new Error('Błąd podczas usuwania aliasu');
     }
+
 }

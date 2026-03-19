@@ -7,8 +7,11 @@ export type Transaction = {
     modifiedDate: string;
     transactionDate: string;
     vendorId: number | null;
+    vendorName: string | null;
     subcategoryId: number | null;
-    tagIds: number[];
+    subcategoryName: string | null;
+    categoryName: string | null;
+    tags: { id: number; name: string }[];
     isVerified: boolean;
     isPossibleDuplicate: boolean;
 }
@@ -233,8 +236,9 @@ export type VendorDetails = {
 };
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
 export type Subcategory = { id: number; name: string };
+export type DetailedCategory = { id: number, name: string, isIncome: boolean, subcategories: DetailedSubcategory[] };
+export type DetailedSubcategory = { id: number; name: string; hasUsages: boolean };
 export type Tag = { id: number; name: string, numberOfTransactions: number };
-export type Subcategories = Map<number, string>;
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };

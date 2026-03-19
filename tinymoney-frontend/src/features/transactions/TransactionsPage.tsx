@@ -130,12 +130,6 @@ export function TransactionsPage() {
         queryFn: () => categoriesClient.getCategories(),
         ...dictionariesConfig
     })
-    const subcategoriesQuery = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => categoriesClient.getCategories(),
-        select: data => (new Map<number, string>(data.flatMap(c => c.subcategories.map(s => ([s.id, `${c.name} / ${s.name}`]))))),
-        ...dictionariesConfig
-    })
     const tagsQuery = useQuery({
         queryKey: ['tags'],
         queryFn: () => tagsClient.getTags(),
@@ -272,12 +266,18 @@ export function TransactionsPage() {
                 }))}
                         value={(queryParams.subcategoryIdFilter) ? queryParams.subcategoryIdFilter.toString() : "__NONE__"}>
                     <SelectTrigger className={`bg-background w-full md:w-auto md:flex-1 ${!queryParams.subcategoryIdFilter ? "text-muted-foreground" : ""}`}>
-                        <SelectValue>{ subcategoriesQuery.data && queryParams.subcategoryIdFilter ? subcategoriesQuery.data.get(queryParams.subcategoryIdFilter.valueOf()) : "Kategoria" }</SelectValue>
+                        <SelectValue>{(() => {
+                            if (!queryParams.subcategoryIdFilter) return "Kategoria";
+                            const selectedCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === queryParams.subcategoryIdFilter));
+                            return selectedCategory
+                                ? `${selectedCategory.name} / ${selectedCategory.subcategories.find(s => s.id === queryParams.subcategoryIdFilter)!.name}`
+                                : "Kategoria";
+                        })()}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
                         {categoriesQuery.data && categoriesQuery.data
-                            .filter(c => queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome )
+                            .filter(c => (queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome))
                             .map(category => (
                             <SelectGroup key={category.id}>
                                 <SelectLabel>{category.name}</SelectLabel>
@@ -321,14 +321,13 @@ export function TransactionsPage() {
                     <p>Maksymalna ilość znalezionych transakcji jest ograniczona do 1000. Spróbuj użyć bardziej precyzyjnych kryteriów.</p>
                 </AlertDescription>
             </Alert>)}
-            {(transactionsQuery.isLoading || vendorsQuery.isLoading || subcategoriesQuery.isLoading || tagsQuery.isLoading) &&
+            {transactionsQuery.isLoading &&
                 <div className="p-10">Ładowanie danych...</div>}
-            {(transactionsQuery.isError || vendorsQuery.isError || subcategoriesQuery.isError || tagsQuery.isError) &&
+            {transactionsQuery.isError &&
                 <div className="p-10 text-destructive">Błąd ładowania danych</div>}
-            {transactionsQuery.data && vendorsQuery.data && subcategoriesQuery.data && tagsQuery.data &&
+            {transactionsQuery.data &&
                 <TransactionsTable
-                    transactions={transactionsQuery.data} vendors={vendorsQuery.data}
-                    subcategories={subcategoriesQuery.data} tags={tagsQuery.data}
+                    transactions={transactionsQuery.data}
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
                     selectedIds={selectedIds} onSelectionChange={setSelectedIds}
                     onVerifyClick={t => verifyMutation.mutate(t)}

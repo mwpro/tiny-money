@@ -9,3 +9,11 @@ public class CategoryDto
     public bool IsIncome { get; set; }
     public IEnumerable<SubcategoryDto> Subcategories { get; set; }
 }
+
+public class DetailedCategoryDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public bool IsIncome { get; set; }
+    public IEnumerable<DetailedSubcategoryDto> Subcategories { get; set; }
+}
