@@ -1,5 +1,4 @@
 using Dapper;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,8 +60,8 @@ namespace MW.TinyMoney.Api.Categories
     {
         Task<IReadOnlyCollection<Category>> GetCategories();
         Task<IReadOnlyCollection<Category>> GetDetailedCategories();
-        Task<Category?> GetCategoryById(int id);
-        Task<Subcategory?> GetSubcategoryById(int id);
+        Task<Category> GetCategoryById(int id);
+        Task<Subcategory> GetSubcategoryById(int id);
         Task CreateCategory(string name, bool isIncome);
         Task UpdateCategory(Category category);
         Task DeleteCategory(int id);
@@ -226,14 +225,14 @@ namespace MW.TinyMoney.Api.Categories
         public Task<IReadOnlyCollection<Category>> GetDetailedCategories() =>
             QueryCategories(GetDetailedCategoriesQuery);
 
-        public async Task<Category?> GetCategoryById(int id)
+        public async Task<Category> GetCategoryById(int id)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
             return await connection.QuerySingleOrDefaultAsync<Category>(GetCategoryByIdQuery, new { id });
         }
 
-        public async Task<Subcategory?> GetSubcategoryById(int id)
+        public async Task<Subcategory> GetSubcategoryById(int id)
         {
             using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
