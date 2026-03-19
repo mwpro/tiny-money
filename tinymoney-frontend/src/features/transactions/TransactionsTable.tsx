@@ -45,102 +45,179 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
     };
 
     return (
-    <div className="border rounded-md">
-        <Table>
-            <TableHeader>
-                <TableRow className={"border-l-4 border-l-transparent"}>
-                    <TableHead className="w-10">
-                        <Checkbox
-                            checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                            onCheckedChange={handleSelectAll}
-                            aria-label="Zaznacz wszystkie"
-                        />
-                    </TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Kategoria</TableHead>
-                    <TableHead>Sprzedawca</TableHead>
-                    <TableHead>Opis</TableHead>
-                    <TableHead>Tagi</TableHead>
-                    <TableHead className="text-right">Kwota</TableHead>
-                    <TableHead></TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {transactions.transactions.length == 0 &&
-                    <TableRow>
-                        <TableCell colSpan={8} className={"text-center"}>
-                            <Alert className="mb-6" variant="default">
-                                <AlertTitle>Nie znaleziono transakcji.</AlertTitle>
-                            </Alert>
-                        </TableCell>
-                    </TableRow> }
-                {transactions.transactions.map((t) => (
-                    <TableRow key={t.id}
-                        className={t.isPossibleDuplicate ? "border-l-4 border-l-red-500" : !t.isVerified ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-transparent"}
-                        title={!t.isVerified && t.isPossibleDuplicate ? "Niezweryfikowana · Możliwy duplikat" : !t.isVerified ? "Niezweryfikowana" : t.isPossibleDuplicate ? "Możliwy duplikat" : undefined}>
-                        <TableCell>
+    <>
+        {/* Mobile card layout (< sm) */}
+        <div className="block lg:hidden border rounded-md">
+            {transactions.transactions.length === 0 && (
+                <Alert className="m-3" variant="default">
+                    <AlertTitle>Nie znaleziono transakcji.</AlertTitle>
+                </Alert>
+            )}
+            {transactions.transactions.map((t) => (
+                <div
+                    key={t.id}
+                    className={`px-3 py-3 border-b last:border-b-0 border-l-4 ${t.isPossibleDuplicate ? "border-l-red-500" : !t.isVerified ? "border-l-amber-400" : "border-l-transparent"}`}
+                    title={!t.isVerified && t.isPossibleDuplicate ? "Niezweryfikowana · Możliwy duplikat" : !t.isVerified ? "Niezweryfikowana" : t.isPossibleDuplicate ? "Możliwy duplikat" : undefined}
+                >
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">{format(new Date(t.transactionDate), dateFormat)}</span>
+                        <Curr input={t.amount} colored isPositive={!t.isExpense} />
+                    </div>
+                    <div className="font-semibold mt-1">{t.vendorName ?? "-"}</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</div>
+                    {t.description && (
+                        <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
+                    )}
+                    {t.tags.length > 0 && (
+                        <div className="flex gap-1 flex-wrap mt-1">
+                            {t.tags.map((tag) => (
+                                <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                    {tag.name}
+                                </Badge>
+                            ))}
+                        </div>
+                    )}
+                    <div className="flex justify-end mt-2">
+                        <ButtonGroup>
+                            {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
+                                <Button
+                                    variant="outline" size="sm"
+                                    className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
+                                    onClick={() => onVerifyClick(t)}
+                                    disabled={verifyingTransactionId === t.id}
+                                    title="Zweryfikuj"
+                                >
+                                    <ShieldCheck />
+                                </Button>
+                            )}
+                            <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                            <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
+                        </ButtonGroup>
+                    </div>
+                </div>
+            ))}
+            {(transactions.summary.expensesCount > 0 || transactions.summary.incomesCount > 0) && (
+                <div className="px-3 py-2 border-t">
+                    {transactions.summary.expensesCount > 0 && (
+                        <div className="flex justify-between py-1">
+                            <span className="text-sm">Razem - wydatki ({transactions.summary.expensesCount})</span>
+                            <Curr input={transactions.summary.expensesTotal} colored isPositive={false} />
+                        </div>
+                    )}
+                    {transactions.summary.incomesCount > 0 && (
+                        <div className="flex justify-between py-1">
+                            <span className="text-sm">Razem - przychody ({transactions.summary.incomesCount})</span>
+                            <Curr input={transactions.summary.incomesTotal} colored />
+                        </div>
+                    )}
+                    {transactions.summary.expensesCount > 0 && transactions.summary.incomesCount > 0 && (
+                        <div className="flex justify-between py-1 border-t">
+                            <span className="text-sm">Bilans ({transactions.summary.expensesCount + transactions.summary.incomesCount})</span>
+                            <Curr input={transactions.summary.balance} colored />
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+
+        {/* Desktop table layout (≥ sm) */}
+        <div className="hidden lg:block border rounded-md">
+            <Table>
+                <TableHeader>
+                    <TableRow className={"border-l-4 border-l-transparent"}>
+                        <TableHead className="w-10">
                             <Checkbox
-                                    checked={selectedIds.has(t.id)}
-                                    onCheckedChange={(checked) => handleSelectOne(t.id, !!checked)}
-                                    aria-label={`Zaznacz transakcję ${t.id}`}
+                                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                                onCheckedChange={handleSelectAll}
+                                aria-label="Zaznacz wszystkie"
                             />
-                        </TableCell>
-                        <TableCell>
-                            {format(new Date(t.transactionDate), dateFormat)}
-                        </TableCell>
-                        <TableCell>{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
-                        <TableCell>{t.vendorName ?? "-"}</TableCell>
-                        <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
-                        <TableCell>
-                            <div className="flex gap-1 flex-wrap">
-                                {t.tags.map((tag) => (
-                                    <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
-                                        {tag.name}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <Curr input={t.amount} colored isPositive={!t.isExpense} />
-                        </TableCell>
-                        <TableCell>
-                            <ButtonGroup>
-                                {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
-                                    <Button
-                                        variant="outline" size="sm"
-                                        className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
-                                        onClick={() => onVerifyClick(t)}
-                                        disabled={verifyingTransactionId === t.id}
-                                        title="Zweryfikuj"
-                                    >
-                                        <ShieldCheck />
-                                    </Button>
-                                )}
-                                <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
-                                <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
-                            </ButtonGroup>
-                        </TableCell>
+                        </TableHead>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Kategoria</TableHead>
+                        <TableHead>Sprzedawca</TableHead>
+                        <TableHead>Opis</TableHead>
+                        <TableHead>Tagi</TableHead>
+                        <TableHead className="text-right">Kwota</TableHead>
+                        <TableHead></TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-            <TableFooter>
-                {transactions.summary.expensesCount > 0 && <TableRow>
-                    <TableCell className="text-right" colSpan={6}>Razem - wydatki ({transactions.summary.expensesCount})</TableCell>
-                    <TableCell className="text-right"><Curr input={transactions.summary.expensesTotal} colored isPositive={false} /></TableCell>
-                    <TableCell />
-                </TableRow>}
-                {transactions.summary.incomesCount > 0 && <TableRow>
-                    <TableCell className="text-right" colSpan={6}>Razem - przychody ({transactions.summary.incomesCount})</TableCell>
-                    <TableCell className="text-right"><Curr input={transactions.summary.incomesTotal} colored /></TableCell>
-                    <TableCell />
-                </TableRow>}
-                {transactions.summary.expensesCount > 0 && transactions.summary.incomesCount > 0 && <TableRow>
-                    <TableCell className="text-right" colSpan={6}>Bilans ({transactions.summary.expensesCount + transactions.summary.incomesCount})</TableCell>
-                    <TableCell className="text-right"><Curr input={transactions.summary.balance} colored /></TableCell>
-                    <TableCell />
-                </TableRow>}
-            </TableFooter>
-        </Table>
-    </div>
+                </TableHeader>
+                <TableBody>
+                    {transactions.transactions.length == 0 &&
+                        <TableRow>
+                            <TableCell colSpan={8} className={"text-center"}>
+                                <Alert className="mb-6" variant="default">
+                                    <AlertTitle>Nie znaleziono transakcji.</AlertTitle>
+                                </Alert>
+                            </TableCell>
+                        </TableRow> }
+                    {transactions.transactions.map((t) => (
+                        <TableRow key={t.id}
+                            className={t.isPossibleDuplicate ? "border-l-4 border-l-red-500" : !t.isVerified ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-transparent"}
+                            title={!t.isVerified && t.isPossibleDuplicate ? "Niezweryfikowana · Możliwy duplikat" : !t.isVerified ? "Niezweryfikowana" : t.isPossibleDuplicate ? "Możliwy duplikat" : undefined}>
+                            <TableCell>
+                                <Checkbox
+                                        checked={selectedIds.has(t.id)}
+                                        onCheckedChange={(checked) => handleSelectOne(t.id, !!checked)}
+                                        aria-label={`Zaznacz transakcję ${t.id}`}
+                                />
+                            </TableCell>
+                            <TableCell>
+                                {format(new Date(t.transactionDate), dateFormat)}
+                            </TableCell>
+                            <TableCell>{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
+                            <TableCell>{t.vendorName ?? "-"}</TableCell>
+                            <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
+                            <TableCell>
+                                <div className="flex gap-1 flex-wrap">
+                                    {t.tags.map((tag) => (
+                                        <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                            {tag.name}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                                <Curr input={t.amount} colored isPositive={!t.isExpense} />
+                            </TableCell>
+                            <TableCell>
+                                <ButtonGroup>
+                                    {!t.isVerified && t.vendorId !== null && t.subcategoryId !== null && (
+                                        <Button
+                                            variant="outline" size="sm"
+                                            className="hover:bg-green-100 hover:text-green-700 hover:border-green-400"
+                                            onClick={() => onVerifyClick(t)}
+                                            disabled={verifyingTransactionId === t.id}
+                                            title="Zweryfikuj"
+                                        >
+                                            <ShieldCheck />
+                                        </Button>
+                                    )}
+                                    <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                                    <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
+                                </ButtonGroup>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+                <TableFooter>
+                    {transactions.summary.expensesCount > 0 && <TableRow>
+                        <TableCell className="text-right" colSpan={6}>Razem - wydatki ({transactions.summary.expensesCount})</TableCell>
+                        <TableCell className="text-right"><Curr input={transactions.summary.expensesTotal} colored isPositive={false} /></TableCell>
+                        <TableCell />
+                    </TableRow>}
+                    {transactions.summary.incomesCount > 0 && <TableRow>
+                        <TableCell className="text-right" colSpan={6}>Razem - przychody ({transactions.summary.incomesCount})</TableCell>
+                        <TableCell className="text-right"><Curr input={transactions.summary.incomesTotal} colored /></TableCell>
+                        <TableCell />
+                    </TableRow>}
+                    {transactions.summary.expensesCount > 0 && transactions.summary.incomesCount > 0 && <TableRow>
+                        <TableCell className="text-right" colSpan={6}>Bilans ({transactions.summary.expensesCount + transactions.summary.incomesCount})</TableCell>
+                        <TableCell className="text-right"><Curr input={transactions.summary.balance} colored /></TableCell>
+                        <TableCell />
+                    </TableRow>}
+                </TableFooter>
+            </Table>
+        </div>
+    </>
     );
 }
