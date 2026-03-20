@@ -14,7 +14,7 @@ interface BudgetTableProps {
 
 export function TopTransactionsTable({transactions, incomes}: BudgetTableProps) {
     return (
-        <div className="border rounded-md flex-1">
+        <div className="border rounded-md flex-1 [&_td]:whitespace-normal">
             <Table>
                 <TableHeader>
                     <TableRow>
