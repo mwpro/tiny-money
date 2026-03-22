@@ -6,73 +6,75 @@
     <div class="layout layout--col layout--stretch-y">
 
       <!-- Header -->
-      <div class="flex flex--row" style="justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #ccc;">
-        <span class="title">tiny-money</span>
-        <span class="label">{{ 'now' | date: '%B %Y' }}</span>
-        {% if UnverifiedCount > 0 %}
-          <span class="label" style="font-weight: bold;">⚠ {{ UnverifiedCount }} unverified</span>
+      <div class="flex flex--row" style="justify-content: space-between; align-items: center; padding-bottom: 6px; border-bottom: 2px solid #000; width: 100%;">
+        <span style="font-size: 18px; font-weight: bold;">tiny-money</span>
+        <span style="font-size: 14px;">{{ 'now' | date: '%B %Y' }}</span>
+        {% if unverifiedCount > 0 %}
+          <span style="font-size: 14px; font-weight: bold;">⚠ {{ unverifiedCount }} unverified</span>
         {% else %}
-          <span class="label"></span>
+          <span></span>
         {% endif %}
       </div>
 
       <!-- Summary gauges -->
-      <div class="flex flex--row gap--medium" style="padding: 8px 0;">
-        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
-          <span class="label">Incomes</span>
-          <span class="value">{{ IncomesTotal | number_to_currency: 'zł' }}</span>
+      <div class="flex flex--row" style="width: 100%; gap: 8px; padding: 6px 0;">
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span class="label">Przychody</span>
+          <span style="font-size: 22px; font-weight: bold; white-space: nowrap;">{{ incomesTotal | number_to_currency: 'zł' }}</span>
         </div>
-        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
-          <span class="label">Expenses</span>
-          <span class="value">{{ ExpensesTotal | number_to_currency: 'zł' }}</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span class="label">Wydatki</span>
+          <span style="font-size: 22px; font-weight: bold; white-space: nowrap;">{{ expensesTotal | number_to_currency: 'zł' }}</span>
         </div>
-        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
-          <span class="label">Budget left</span>
-          <span class="value">{{ BudgetLeft | number_to_currency: 'zł' }}</span>
-          <span class="label">of {{ BudgetAmount | number_to_currency: 'zł' }}</span>
+        <div style="flex: 1; display: flex; flex-direction: column;">
+          <span class="label">Pozostały budżet</span>
+          <span style="font-size: 22px; font-weight: bold; white-space: nowrap;">{{ budgetLeft | number_to_currency: 'zł' }}</span>
+          <span class="label">of {{ budgetAmount | number_to_currency: 'zł' }}</span>
         </div>
       </div>
 
       <!-- Daily spending bar chart -->
-      <div class="flex flex--col" style="padding: 8px 0; border-top: 1px solid #ccc;">
-        <span class="label" style="margin-bottom: 4px;">Daily spending</span>
+      <div style="border-top: 1px solid #ccc; padding: 6px 0; width: 100%;">
+        <span class="label" style="display: block; margin-bottom: 2px;">Daily spending</span>
         {% assign max_expense = 0 %}
-        {% for e in DailyExpenses %}
-          {% if e.Amount > max_expense %}{% assign max_expense = e.Amount %}{% endif %}
+        {% for e in dailyExpenses %}
+          {% if e.amount > max_expense %}{% assign max_expense = e.amount %}{% endif %}
         {% endfor %}
-        <span style="font-family: monospace; font-size: 1.4em; letter-spacing: 2px; line-height: 1;">{% for e in DailyExpenses %}{% if max_expense > 0 %}{% assign bar_pct = e.Amount | times: 8 | divided_by: max_expense | round %}{% else %}{% assign bar_pct = 0 %}{% endif %}{% if e.Amount == 0 or bar_pct == 0 %}▁{% elsif bar_pct == 1 %}▂{% elsif bar_pct == 2 %}▃{% elsif bar_pct == 3 %}▄{% elsif bar_pct == 4 %}▅{% elsif bar_pct == 5 %}▆{% elsif bar_pct == 6 %}▇{% else %}█{% endif %}{% endfor %}</span>
+        <div style="font-family: monospace; font-size: 20px; line-height: 1; width: 100%; word-break: break-all;">{% for e in dailyExpenses %}{% if max_expense > 0 %}{% assign bar_pct = e.amount | times: 8 | divided_by: max_expense | round %}{% else %}{% assign bar_pct = 0 %}{% endif %}{% if e.amount == 0 or bar_pct == 0 %}▁{% elsif bar_pct == 1 %}▂{% elsif bar_pct == 2 %}▃{% elsif bar_pct == 3 %}▄{% elsif bar_pct == 4 %}▅{% elsif bar_pct == 5 %}▆{% elsif bar_pct == 6 %}▇{% else %}█{% endif %}{% endfor %}</div>
       </div>
 
       <!-- Bottom: overspent / remaining -->
-      <div class="flex flex--row gap--medium stretch-y" style="border-top: 1px solid #ccc; padding-top: 8px;">
+      <div class="flex flex--row" style="border-top: 1px solid #ccc; padding-top: 6px; width: 100%; gap: 16px; flex: 1;">
 
         <!-- Overspent -->
-        <div class="flex flex--col stretch-x">
-          <span class="label" style="font-weight: bold; margin-bottom: 4px;">⚠ Overspent</span>
-          {% if TopOverspentBudgetCategories.size > 0 %}
-            {% for cat in TopOverspentBudgetCategories %}
-              <div class="flex flex--row" style="justify-content: space-between;">
-                <span class="description">{{ cat.CategoryName }}{% if cat.SubcategoryName != '' %} · {{ cat.SubcategoryName }}{% endif %}</span>
-                <span class="description" style="font-weight: bold; white-space: nowrap; padding-left: 8px;">{{ cat.AmountLeft | number_to_currency: 'zł' }}</span>
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+          <span style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">⚠ Overspent</span>
+          {% if topOverspentBudgetCategories.size > 0 %}
+            {% for cat in topOverspentBudgetCategories %}
+              <div class="flex flex--row" style="justify-content: space-between; align-items: baseline; gap: 4px;">
+                <span style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1;">{{ cat.categoryName }}{% if cat.subcategoryName != '' %} · {{ cat.subcategoryName }}{% endif %}</span>
+                <span style="font-size: 12px; font-weight: bold; white-space: nowrap;">{{ cat.amountLeft | number_to_currency: 'zł' }}</span>
               </div>
             {% endfor %}
           {% else %}
-            <span class="description" style="color: #888;">No overspent categories</span>
+            <span style="font-size: 12px; color: #888;">No overspent categories</span>
           {% endif %}
         </div>
 
+        <div style="width: 1px; background: #ccc;"></div>
+
         <!-- Remaining -->
-        <div class="flex flex--col stretch-x">
-          <span class="label" style="font-weight: bold; margin-bottom: 4px;">✓ Remaining</span>
-          {% if TopRemainingBudgetCategories.size > 0 %}
-            {% for cat in TopRemainingBudgetCategories %}
-              <div class="flex flex--row" style="justify-content: space-between;">
-                <span class="description">{{ cat.CategoryName }}{% if cat.SubcategoryName != '' %} · {{ cat.SubcategoryName }}{% endif %}</span>
-                <span class="description" style="white-space: nowrap; padding-left: 8px;">+{{ cat.AmountLeft | number_to_currency: 'zł' }}</span>
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+          <span style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">✓ Remaining</span>
+          {% if topRemainingBudgetCategories.size > 0 %}
+            {% for cat in topRemainingBudgetCategories %}
+              <div class="flex flex--row" style="justify-content: space-between; align-items: baseline; gap: 4px;">
+                <span style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1;">{{ cat.categoryName }}{% if cat.subcategoryName != '' %} · {{ cat.subcategoryName }}{% endif %}</span>
+                <span style="font-size: 12px; white-space: nowrap;">+{{ cat.amountLeft | number_to_currency: 'zł' }}</span>
               </div>
             {% endfor %}
           {% else %}
-            <span class="description" style="color: #888;">No remaining categories</span>
+            <span style="font-size: 12px; color: #888;">No remaining categories</span>
           {% endif %}
         </div>
 
