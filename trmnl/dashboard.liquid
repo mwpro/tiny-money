@@ -1,0 +1,83 @@
+<link rel="stylesheet" href="https://usetrmnl.com/css/latest/plugins.css">
+<script src="https://usetrmnl.com/js/latest/plugins.js"></script>
+
+<div class="screen">
+  <div class="view view--full">
+    <div class="layout layout--col layout--stretch-y">
+
+      <!-- Header -->
+      <div class="flex flex--row" style="justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #ccc;">
+        <span class="title">tiny-money</span>
+        <span class="label">{{ 'now' | date: '%B %Y' }}</span>
+        {% if UnverifiedCount > 0 %}
+          <span class="label" style="font-weight: bold;">⚠ {{ UnverifiedCount }} unverified</span>
+        {% else %}
+          <span class="label"></span>
+        {% endif %}
+      </div>
+
+      <!-- Summary gauges -->
+      <div class="flex flex--row gap--medium" style="padding: 8px 0;">
+        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
+          <span class="label">Incomes</span>
+          <span class="value">{{ IncomesTotal | number_to_currency: 'zł' }}</span>
+        </div>
+        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
+          <span class="label">Expenses</span>
+          <span class="value">{{ ExpensesTotal | number_to_currency: 'zł' }}</span>
+        </div>
+        <div class="flex flex--col stretch-x" style="align-items: flex-start;">
+          <span class="label">Budget left</span>
+          <span class="value">{{ BudgetLeft | number_to_currency: 'zł' }}</span>
+          <span class="label">of {{ BudgetAmount | number_to_currency: 'zł' }}</span>
+        </div>
+      </div>
+
+      <!-- Daily spending bar chart -->
+      <div class="flex flex--col" style="padding: 8px 0; border-top: 1px solid #ccc;">
+        <span class="label" style="margin-bottom: 4px;">Daily spending</span>
+        {% assign max_expense = 0 %}
+        {% for e in DailyExpenses %}
+          {% if e.Amount > max_expense %}{% assign max_expense = e.Amount %}{% endif %}
+        {% endfor %}
+        <span style="font-family: monospace; font-size: 1.4em; letter-spacing: 2px; line-height: 1;">{% for e in DailyExpenses %}{% if max_expense > 0 %}{% assign bar_pct = e.Amount | times: 8 | divided_by: max_expense | round %}{% else %}{% assign bar_pct = 0 %}{% endif %}{% if e.Amount == 0 or bar_pct == 0 %}▁{% elsif bar_pct == 1 %}▂{% elsif bar_pct == 2 %}▃{% elsif bar_pct == 3 %}▄{% elsif bar_pct == 4 %}▅{% elsif bar_pct == 5 %}▆{% elsif bar_pct == 6 %}▇{% else %}█{% endif %}{% endfor %}</span>
+      </div>
+
+      <!-- Bottom: overspent / remaining -->
+      <div class="flex flex--row gap--medium stretch-y" style="border-top: 1px solid #ccc; padding-top: 8px;">
+
+        <!-- Overspent -->
+        <div class="flex flex--col stretch-x">
+          <span class="label" style="font-weight: bold; margin-bottom: 4px;">⚠ Overspent</span>
+          {% if TopOverspentBudgetCategories.size > 0 %}
+            {% for cat in TopOverspentBudgetCategories %}
+              <div class="flex flex--row" style="justify-content: space-between;">
+                <span class="description">{{ cat.CategoryName }}{% if cat.SubcategoryName != '' %} · {{ cat.SubcategoryName }}{% endif %}</span>
+                <span class="description" style="font-weight: bold; white-space: nowrap; padding-left: 8px;">{{ cat.AmountLeft | number_to_currency: 'zł' }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <span class="description" style="color: #888;">No overspent categories</span>
+          {% endif %}
+        </div>
+
+        <!-- Remaining -->
+        <div class="flex flex--col stretch-x">
+          <span class="label" style="font-weight: bold; margin-bottom: 4px;">✓ Remaining</span>
+          {% if TopRemainingBudgetCategories.size > 0 %}
+            {% for cat in TopRemainingBudgetCategories %}
+              <div class="flex flex--row" style="justify-content: space-between;">
+                <span class="description">{{ cat.CategoryName }}{% if cat.SubcategoryName != '' %} · {{ cat.SubcategoryName }}{% endif %}</span>
+                <span class="description" style="white-space: nowrap; padding-left: 8px;">+{{ cat.AmountLeft | number_to_currency: 'zł' }}</span>
+              </div>
+            {% endfor %}
+          {% else %}
+            <span class="description" style="color: #888;">No remaining categories</span>
+          {% endif %}
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
