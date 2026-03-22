@@ -23,7 +23,7 @@ export function SummaryLineChart({reportPeriods, splitByMonth}: SummaryLineChart
     return (
         <Card className={"mb-3"}>
             <CardContent>
-                <ChartContainer config={{}} className={"max-h-80 w-full"}>
+                <ChartContainer config={{}} className={"h-80 w-full"}>
                     <LineChart
                         accessibilityLayer
                         data={reportPeriods}
