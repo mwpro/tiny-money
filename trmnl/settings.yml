@@ -1,0 +1,23 @@
+---
+strategy: polling
+no_screen_padding: 'no'
+dark_mode: 'no'
+static_data: ''
+polling_verb: get
+framework_version: 2.3.7
+polling_url: "{{api_url}}api/reports/trmnl-dashboard"
+polling_headers: Authorization=ApiKey {{api_key}}
+polling_body: ''
+id: 264212
+custom_fields:
+- keyname: api_url
+  field_type: url
+  description: Adres Twojej instancji TINY-Money
+  name: Instancja TINY-Money
+- keyname: api_key
+  field_type: password
+  name: Klucz API
+  description: Wygeneruj w sekcji Ustawienia -> Klucze API
+  placeholder: tm_4_...
+name: tiny-money
+refresh_interval: 240
