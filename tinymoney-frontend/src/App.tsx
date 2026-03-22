@@ -35,7 +35,9 @@ function App() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated && !error) {
-            loginWithRedirect();
+            loginWithRedirect({
+                appState: { returnTo: window.location.pathname + window.location.search }
+            });
         }
     }, [isLoading, isAuthenticated, error, loginWithRedirect]);
 
