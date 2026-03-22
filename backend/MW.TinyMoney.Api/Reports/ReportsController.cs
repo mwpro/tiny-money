@@ -37,10 +37,20 @@ public class ReportsController : ControllerBase
         
     [HttpGet("dashboard/{year}/{month}")]
     [ProducesResponseType(typeof(DashboardResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetDashboard([FromServices] IDashboardReport dashboardReport, 
+    public async Task<IActionResult> GetDashboard([FromServices] IDashboardReport dashboardReport,
         [FromRoute] int year, [FromRoute] int month)
     {
         var dashboardData = await dashboardReport.GetDashboardData(year, month);
+        return Ok(dashboardData);
+    }
+
+    [HttpGet("trmnl-dashboard")]
+    [Authorize(AuthenticationSchemes = "ApiKey")]
+    [ProducesResponseType(typeof(DashboardResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTrmnlDashboard([FromServices] IDashboardReport dashboardReport)
+    {
+        var now = DateTime.UtcNow;
+        var dashboardData = await dashboardReport.GetDashboardData(now.Year, now.Month);
         return Ok(dashboardData);
     }
 }
