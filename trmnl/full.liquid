@@ -38,127 +38,130 @@
   <!-- Daily spending chart -->
   <div class="w--full">
     <span class="label">Wydatki dzienne</span>
-    <div id="daily-chart" class="w--full"></div>
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        var year = parseInt('{{ 'now' | date: '%Y' }}');
-        var month = parseInt('{{ 'now' | date: '%m' }}');
-        var today = parseInt('{{ 'now' | date: '%d' }}');
-        var daysInMonth = new Date(year, month, 0).getDate();
-
-        var expenseMap = {};
-        var budgetMap = {};
-        {% for e in dailyExpenses %}
-        expenseMap[{{ e.day }}] = {{ e.amount }};
-        budgetMap[{{ e.day }}] = {{ e.budgetLeft }};
-        {% endfor %}
-
-        var chartData = [];
-        var budgetData = [];
-        var chartCategories = [];
-        for (var d = 1; d <= daysInMonth; d++) {
-          chartCategories.push(d);
-          chartData.push(d <= today ? (expenseMap[d] || 0) : null);
-          budgetData.push(d <= today && budgetMap[d] !== undefined ? budgetMap[d] : null);
-        }
-
-        Highcharts.chart('daily-chart', {
-          chart: {
-            height: 185,
-            animation: false,
-            spacing: [5, 0, 5, 0],
-            margin: [30, 0, 20, 0]
-          },
-          title: { text: null },
-          plotOptions: {
-            series: {
-              animation: false,
-              enableMouseTracking: false,
-              states: { hover: { enabled: false } }
-            }
-          },
-          series: [
-            {
-              type: 'column',
-              data: chartData,
-              yAxis: 0,
-              borderWidth: 0,
-              pointPadding: 0.05,
-              groupPadding: 0.02,
-              color: '#000000',
-              dataLabels: {
-                enabled: true,
-                crop: false,
-                overflow: 'allow',
-                formatter: function() {
-                  if (!this.y) return null;
-                  return this.y >= 1000
-                    ? (Math.round(this.y / 100) / 10) + 'k'
-                    : Math.round(this.y);
-                },
-                style: {
-                  fontSize: '8px',
-                  fontWeight: 'normal',
-                  textOutline: 'none',
-                  color: '#000000'
-                },
-                rotation: -90,
-                align: 'left',
-                verticalAlign: 'bottom',
-                y: -2
-              }
-            },
-            {
-              type: 'spline',
-              data: budgetData,
-              yAxis: 1,
-              lineWidth: 4,
-              color: {
-                pattern: {
-                  image: 'https://trmnl.com/images/grayscale/gray-1.png',
-                  width: 12,
-                  height: 12
-                }
-              },
-              marker: { enabled: false },
-              dataLabels: { enabled: false }
-            }
-          ],
-          tooltip: { enabled: false },
-          legend: { enabled: false },
-          yAxis: [
-            {
-              labels: { enabled: true },
-              gridLineWidth: 0,
-              tickAmount: 5,
-              title: { text: null },
-              min: 0
-            },
-            {
-              gridLineWidth: 0,
-              tickAmount: 5,
-              title: { text: null },
-              opposite: true,
-              min: 0
-            }
-          ],
-          xAxis: {
-            categories: chartCategories,
-            labels: {
-              style: { fontSize: '10px', color: '#000000' }
-            },
-            lineWidth: 0,
-            gridLineWidth: 1,
-            gridLineColor: '#000000',
-            gridLineDashStyle: 'dot',
-            tickWidth: 0,
-            title: { text: null }
-          },
-          credits: { enabled: false }
-        });
-      });
-    </script>
   </div>
+  <div id="daily-chart" class="w--full"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var year = parseInt('{{ 'now' | date: '%Y' }}');
+      var month = parseInt('{{ 'now' | date: '%m' }}');
+      var today = parseInt('{{ 'now' | date: '%d' }}');
+      var daysInMonth = new Date(year, month, 0).getDate();
+
+      var totalBudget = {{ budgetAmount }};
+      var expenseMap = {};
+      var budgetMap = {};
+      {% for e in dailyExpenses %}
+      expenseMap[{{ e.day }}] = {{ e.amount }};
+      budgetMap[{{ e.day }}] = {{ e.budgetLeft }};
+      {% endfor %}
+
+      var chartData = [];
+      var budgetData = [];
+      var chartCategories = [];
+      var lastBudget = totalBudget;
+      for (var d = 1; d <= daysInMonth; d++) {
+        chartCategories.push(d);
+        chartData.push(d <= today ? (expenseMap[d] || 0) : null);
+        if (budgetMap[d] !== undefined) lastBudget = budgetMap[d];
+        budgetData.push(lastBudget);
+      }
+
+    Highcharts.chart('daily-chart', {
+      chart: {
+        height: 185,
+        animation: false,
+        spacing: [5, 0, 5, 0],
+      },
+      title: { text: null },
+      plotOptions: {
+        series: {
+          animation: false,
+          enableMouseTracking: false,
+          states: { hover: { enabled: false } }
+        }
+      },
+      series: [
+        {
+          type: 'column',
+          data: chartData,
+          yAxis: 0,
+          borderWidth: 0,
+          pointPadding: 0.05,
+          groupPadding: 0.02,
+          color: '#000000',
+          dataLabels: {
+            enabled: true,
+            crop: false,
+            overflow: 'allow',
+            formatter: function() {
+              if (!this.y) return null;
+              return this.y >= 1000
+                ? (Math.round(this.y / 100) / 10) + 'k'
+                : Math.round(this.y);
+            },
+            style: {
+              fontSize: '8px',
+              fontWeight: 'normal',
+              textOutline: 'none',
+              color: '#000000'
+            },
+            rotation: -90,
+            align: 'left',
+            verticalAlign: 'bottom',
+            y: -2
+          }
+        },
+        {
+          type: 'spline',
+          data: budgetData,
+          yAxis: 1,
+          lineWidth: 4,
+          color: {
+            pattern: {
+              image: 'https://trmnl.com/images/grayscale/gray-1.png',
+              width: 12,
+              height: 12
+            }
+          },
+          marker: { enabled: false },
+          dataLabels: { enabled: false }
+        }
+      ],
+      tooltip: { enabled: false },
+      legend: { enabled: false },
+      yAxis: [
+        {
+          labels: { enabled: true },
+          gridLineWidth: 0,
+          tickAmount: 5,
+          title: { text: null },
+          min: 0
+        },
+        {
+          labels: { enabled: true },
+          gridLineWidth: 0,
+          tickAmount: 5,
+          title: { text: null },
+          opposite: true,
+          min: 0
+        }
+      ],
+      xAxis: {
+        categories: chartCategories,
+        labels: {
+          style: { fontSize: '10px', color: '#000000' }
+        },
+        lineWidth: 0,
+        gridLineWidth: 1,
+        gridLineColor: '#000000',
+        gridLineDashStyle: 'dot',
+        tickWidth: 0,
+        title: { text: null }
+      },
+      credits: { enabled: false }
+    });
+    });
+  </script>
 
   <div class="border--h-5 w--full"></div>
 
