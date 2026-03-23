@@ -2,6 +2,7 @@ import React from "react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
 import {format, parse, subMonths, subYears} from "date-fns";
+import {monthYearFormat} from "@/lib/utils.ts";
 
 interface ComparisonTooltipProps {
     current: number;
@@ -15,13 +16,13 @@ interface ComparisonTooltipProps {
 
 function getYoyLabel(periodLabel: string, splitByMonth: boolean): string {
     if (splitByMonth) {
-        return format(subYears(parse(periodLabel, "yyyy-MM", new Date()), 1), "yyyy-MM");
+        return format(subYears(parse(periodLabel, monthYearFormat, new Date()), 1), monthYearFormat);
     }
     return (parseInt(periodLabel) - 1).toString();
 }
 
 function getMomLabel(periodLabel: string): string {
-    return format(subMonths(parse(periodLabel, "yyyy-MM", new Date()), 1), "yyyy-MM");
+    return format(subMonths(parse(periodLabel, monthYearFormat, new Date()), 1), monthYearFormat);
 }
 
 function DeltaLine({current, comparison, comparisonLabel, periodKind, lowerIsBetter}: {
@@ -43,7 +44,7 @@ function DeltaLine({current, comparison, comparisonLabel, periodKind, lowerIsBet
     }
 
     const isPositive = lowerIsBetter ? delta <= 0 : delta >= 0;
-    const colorClass = isPositive ? "text-green-400 dark:text-green-700" : "text-red-400 dark:text-red-600";
+    const colorClass = isPositive ? "text-income" : "text-expense";
 
     return (
         <>

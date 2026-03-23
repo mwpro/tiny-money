@@ -48,7 +48,7 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                                         <Curr input={period.budget} colored isPositive={period.budgetDifference >= 0}/>
                                     </TooltipTrigger>
                                     <TooltipContent side={"bottom"} className={"font-mono"}>
-                                        <p>Różnica: <Curr input={period.budgetDifference} colored /></p>
+                                        <p>Różnica: <Curr input={period.budgetDifference} colored/></p>
                                     </TooltipContent>
                                 </Tooltip></TableCell>))}
                         <TableCell></TableCell>

@@ -132,6 +132,17 @@
   --header-fg: oklch(0.95 0.01 144.33);
 }
 
+/* Tooltip background is always the inverse of the page (bg-foreground),
+   so income/expense colors must be flipped to maintain contrast. */
+[data-slot="tooltip-content"] {
+    --income: oklch(0.67 0.16 144.06);
+    --expense: oklch(0.54 0.19 26.90);
+}
+.dark [data-slot="tooltip-content"] {
+    --income: oklch(0.42 0.15 144.33);
+    --expense: oklch(0.50 0.19 26.90);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
