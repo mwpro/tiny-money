@@ -171,182 +171,184 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
-
-                    {transactionToEdit && (!transactionToEdit.isVerified || transactionToEdit.isPossibleDuplicate) && (
-                        <Alert variant="default" className="border-amber-400">
-                            <AlertTriangle className="h-4 w-4 text-amber-500" />
-                            <AlertDescription className="text-amber-700">
-                                {!transactionToEdit.isVerified && transactionToEdit.isPossibleDuplicate
-                                    ? "Ta transakcja nie została jeszcze zweryfikowana i może być duplikatem istniejącej transakcji."
-                                    : !transactionToEdit.isVerified
-                                        ? "Ta transakcja nie została jeszcze zweryfikowana."
-                                        : "Ta transakcja może być duplikatem istniejącej transakcji."
-                                }
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
-                    <div className="grid gap-2">
-                        <Label>Data</Label>
-                        <Controller control={control} name={"transactionDate"} render={({field}) => (
-                            <DatePicker value={field.value} ref={field.ref} onChange={(d) => field.onChange(d)} placeholder="Data transakcji" />
-                        )} />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label>Sprzedawca</Label>
-                        <Controller
-                            control={control}
-                            name="vendor"
-                            render={({field}) => (
-                                <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                                    o.name.toLowerCase().includes(input.toLowerCase()))}
-                                              value={field.value.name} clearQueryAfterSelection={false}
-                                              onChange={value => {
-                                                  if (!value) {
-                                                      field.onChange({id: undefined, name: ""})
-                                                      return
-                                                  }
-                                                  field.onChange({...value})
-
-                                                  if (value?.id) {
-                                                      const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
-                                                      if (selectedVendor?.defaultSubcategoryId) {
-                                                          setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
-                                                              shouldValidate: true,
-                                                              shouldDirty: true
-                                                          })
-                                                          const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === selectedVendor.defaultSubcategoryId))?.isIncome;
-                                                          if (isIncomeCategory !== undefined) {
-                                                              setValue("isExpense", !isIncomeCategory, {
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <div className="grid gap-4 -mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+                            
+                        {transactionToEdit && (!transactionToEdit.isVerified || transactionToEdit.isPossibleDuplicate) && (
+                            <Alert variant="default" className="border-amber-400">
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                <AlertDescription className="text-amber-700">
+                                    {!transactionToEdit.isVerified && transactionToEdit.isPossibleDuplicate
+                                        ? "Ta transakcja nie została jeszcze zweryfikowana i może być duplikatem istniejącej transakcji."
+                                        : !transactionToEdit.isVerified
+                                            ? "Ta transakcja nie została jeszcze zweryfikowana."
+                                            : "Ta transakcja może być duplikatem istniejącej transakcji."
+                                    }
+                                </AlertDescription>
+                            </Alert>
+                        )}
+    
+                        <div className="grid gap-2">
+                            <Label>Data</Label>
+                            <Controller control={control} name={"transactionDate"} render={({field}) => (
+                                <DatePicker value={field.value} ref={field.ref} onChange={(d) => field.onChange(d)} placeholder="Data transakcji" />
+                            )} />
+                        </div>
+    
+                        <div className="grid gap-2">
+                            <Label>Sprzedawca</Label>
+                            <Controller
+                                control={control}
+                                name="vendor"
+                                render={({field}) => (
+                                    <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
+                                        o.name.toLowerCase().includes(input.toLowerCase()))}
+                                                  value={field.value.name} clearQueryAfterSelection={false}
+                                                  onChange={value => {
+                                                      if (!value) {
+                                                          field.onChange({id: undefined, name: ""})
+                                                          return
+                                                      }
+                                                      field.onChange({...value})
+    
+                                                      if (value?.id) {
+                                                          const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
+                                                          if (selectedVendor?.defaultSubcategoryId) {
+                                                              setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
                                                                   shouldValidate: true,
                                                                   shouldDirty: true
                                                               })
+                                                              const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === selectedVendor.defaultSubcategoryId))?.isIncome;
+                                                              if (isIncomeCategory !== undefined) {
+                                                                  setValue("isExpense", !isIncomeCategory, {
+                                                                      shouldValidate: true,
+                                                                      shouldDirty: true
+                                                                  })
+                                                              }
                                                           }
                                                       }
-                                                  }
-                                              }} allowCustomValues={true}/>
-                            )}
-                        />
-                        {errors.vendor?.name &&
-                            <span className="text-red-500 text-xs">{errors.vendor.name.message}</span>}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label>Kategoria</Label>
-                        <Controller
-                            control={control}
-                            name="subcategoryId"
-                            render={({field}) => (
-                                <Select onValueChange={(val) => {
-                                    const parsedSubcategoryId = Number(val);
-                                    field.onChange(parsedSubcategoryId);
-                                    if (parsedSubcategoryId) {
-                                        const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === parsedSubcategoryId))?.isIncome;
-                                        if (isIncomeCategory !== undefined) {
-                                            setValue("isExpense", !isIncomeCategory, {
-                                                shouldValidate: true,
-                                                shouldDirty: true
-                                            })
-                                        }
-                                    }
-                                }} value={(field.value > 0) ? field.value.toString() : ""}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Wybierz kategorię">
-                                            {(() => {
-                                                if (!field.value) return "Kategoria";
-                                                const selectedCat = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === field.value));
-                                                return selectedCat
-                                                    ? `${selectedCat.name} / ${selectedCat.subcategories.find(s => s.id === field.value)!.name}`
-                                                    : "Kategoria";
-                                            })()}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    
-                                    <SelectContent>
-                                        {categoriesQuery.data && categoriesQuery.data.map(category => (
-                                            <SelectGroup key={category.id}>
-                                                <SelectLabel>{category.name}</SelectLabel>
-                                                {category.subcategories.map(subcategory => (
-                                                    <SelectItem key={subcategory.id}
-                                                                value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
-                                            </SelectGroup>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                        {errors.subcategoryId &&
-                            <span className="text-red-500 text-xs">{errors.subcategoryId.message}</span>}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label>Kwota</Label>
-                        <InputGroup>
-                            <InputGroupAddon>
-                                <Controller
-                                    control={control}
-                                    name="isExpense"
-                                    render={({field}) => (<InputGroupButton
-                                            onClick={() => field.onChange(!field.value)}
-                                            tabIndex={-1}
-                                        >
-                                            {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
-                                        </InputGroupButton>
-                                    )}
-                                />
-                                
-                            </InputGroupAddon>
-                            <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} onKeyDown={e => {
-                                if (e.key === "-" || e.key === "+") {
-                                    e.preventDefault();
-                                    setValue("isExpense", (e.key === "-"), {
-                                        shouldValidate: true,
-                                        shouldDirty: true
-                                    })
-                                }
-                            }}  />
-                            <InputGroupAddon align="inline-end">
-                                <InputGroupText>zł</InputGroupText>
-                            </InputGroupAddon>
-                        </InputGroup>
-                        {errors.amount && <span className="text-red-500 text-xs">{errors.amount.message}</span>}
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label>Opis</Label>
-                        <div className="flex gap-2">
-                            <Textarea className="grow-2" {...register("description")} />
-                            <ParsedDescription control={control as unknown as Control<WithDescription>}
-                                               onResultClick={calculatedAmount =>
-                                                   setValue("amount", calculatedAmount, {
-                                                       shouldValidate: true,
-                                                       shouldDirty: true
-                                                   })}/>
+                                                  }} allowCustomValues={true}/>
+                                )}
+                            />
+                            {errors.vendor?.name &&
+                                <span className="text-red-500 text-xs">{errors.vendor.name.message}</span>}
                         </div>
-                        {errors.description &&
-                            <span className="text-red-500 text-xs">{errors.description.message}</span>}
+    
+                        <div className="grid gap-2">
+                            <Label>Kategoria</Label>
+                            <Controller
+                                control={control}
+                                name="subcategoryId"
+                                render={({field}) => (
+                                    <Select onValueChange={(val) => {
+                                        const parsedSubcategoryId = Number(val);
+                                        field.onChange(parsedSubcategoryId);
+                                        if (parsedSubcategoryId) {
+                                            const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === parsedSubcategoryId))?.isIncome;
+                                            if (isIncomeCategory !== undefined) {
+                                                setValue("isExpense", !isIncomeCategory, {
+                                                    shouldValidate: true,
+                                                    shouldDirty: true
+                                                })
+                                            }
+                                        }
+                                    }} value={(field.value > 0) ? field.value.toString() : ""}>
+                                        <SelectTrigger className="w-full overflow-hidden">
+                                            <SelectValue placeholder="Wybierz kategorię" className={"truncate"}>
+                                                {(() => {
+                                                    if (!field.value) return "Kategoria";
+                                                    const selectedCat = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === field.value));
+                                                    return selectedCat
+                                                        ? `${selectedCat.name} / ${selectedCat.subcategories.find(s => s.id === field.value)!.name}`
+                                                        : "Kategoria";
+                                                })()}
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        
+                                        <SelectContent>
+                                            {categoriesQuery.data && categoriesQuery.data.map(category => (
+                                                <SelectGroup key={category.id}>
+                                                    <SelectLabel>{category.name}</SelectLabel>
+                                                    {category.subcategories.map(subcategory => (
+                                                        <SelectItem key={subcategory.id}
+                                                                    value={subcategory.id.toString()}>{subcategory.name}</SelectItem>))}
+                                                </SelectGroup>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.subcategoryId &&
+                                <span className="text-red-500 text-xs">{errors.subcategoryId.message}</span>}
+                        </div>
+    
+                        <div className="grid gap-2">
+                            <Label>Kwota</Label>
+                            <InputGroup>
+                                <InputGroupAddon>
+                                    <Controller
+                                        control={control}
+                                        name="isExpense"
+                                        render={({field}) => (<InputGroupButton
+                                                onClick={() => field.onChange(!field.value)}
+                                                tabIndex={-1}
+                                            >
+                                                {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
+                                            </InputGroupButton>
+                                        )}
+                                    />
+                                    
+                                </InputGroupAddon>
+                                <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} onKeyDown={e => {
+                                    if (e.key === "-" || e.key === "+") {
+                                        e.preventDefault();
+                                        setValue("isExpense", (e.key === "-"), {
+                                            shouldValidate: true,
+                                            shouldDirty: true
+                                        })
+                                    }
+                                }}  />
+                                <InputGroupAddon align="inline-end">
+                                    <InputGroupText>zł</InputGroupText>
+                                </InputGroupAddon>
+                            </InputGroup>
+                            {errors.amount && <span className="text-red-500 text-xs">{errors.amount.message}</span>}
+                        </div>
+    
+                        <div className="grid gap-2">
+                            <Label>Opis</Label>
+                            <div className="flex gap-2">
+                                <Textarea className="grow-2" {...register("description")} />
+                                <ParsedDescription control={control as unknown as Control<WithDescription>}
+                                                   onResultClick={calculatedAmount =>
+                                                       setValue("amount", calculatedAmount, {
+                                                           shouldValidate: true,
+                                                           shouldDirty: true
+                                                       })}/>
+                            </div>
+                            {errors.description &&
+                                <span className="text-red-500 text-xs">{errors.description.message}</span>}
+                        </div>
+    
+                        <div className="grid gap-2">
+                            <Label>Tagi</Label>
+    
+                            <Controller
+                                control={control}
+                                name="tags"
+                                render={({field}) => (
+                                    <TagsInput
+                                        options={tagsQuery.data || []}
+                                        value={field.value}
+                                        onChange={(val) => {
+                                            field.onChange(val)
+                                        }}/>
+                                )}
+                            />
+                        </div>
+
                     </div>
-
-                    <div className="grid gap-2">
-                        <Label>Tagi</Label>
-
-                        <Controller
-                            control={control}
-                            name="tags"
-                            render={({field}) => (
-                                <TagsInput
-                                    options={tagsQuery.data || []}
-                                    value={field.value}
-                                    onChange={(val) => {
-                                        field.onChange(val)
-                                    }}/>
-                            )}
-                        />
-                    </div>
-
-                    <DialogFooter>
+                    <DialogFooter className={"mt-4"}>
                         <Button type="submit" disabled={mutation.isPending}>
                             {mutation.isPending ? "Zapisywanie..." : "Zapisz"}
                         </Button>

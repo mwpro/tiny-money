@@ -168,9 +168,9 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                             <TableCell>
                                 {format(new Date(t.transactionDate), dateFormat)}
                             </TableCell>
-                            <TableCell>{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
-                            <TableCell>{t.vendorName ?? "-"}</TableCell>
-                            <TableCell className="font-medium whitespace-pre-wrap">{t.description}</TableCell>
+                            <TableCell className="whitespace-pre-wrap">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
+                            <TableCell className="whitespace-pre-wrap">{t.vendorName ?? "-"}</TableCell>
+                            <TableCell className="whitespace-pre-wrap">{t.description}</TableCell>
                             <TableCell>
                                 <div className="flex gap-1 flex-wrap">
                                     {t.tags.map((tag) => (
