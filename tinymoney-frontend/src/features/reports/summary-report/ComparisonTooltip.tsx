@@ -9,6 +9,7 @@ interface ComparisonTooltipProps {
     momSum?: number | null;
     periodLabel: string;
     splitByMonth: boolean;
+    lowerIsBetter?: boolean;
     children: React.ReactNode;
 }
 
@@ -23,11 +24,12 @@ function getMomLabel(periodLabel: string): string {
     return format(subMonths(parse(periodLabel, "yyyy-MM", new Date()), 1), "yyyy-MM");
 }
 
-function DeltaLine({current, comparison, comparisonLabel, periodKind}: {
+function DeltaLine({current, comparison, comparisonLabel, periodKind, lowerIsBetter}: {
     current: number;
     comparison: number;
     comparisonLabel: string;
     periodKind: string;
+    lowerIsBetter: boolean;
 }) {
     const delta = current - comparison;
     const sign = delta >= 0 ? "+" : "";
@@ -40,17 +42,18 @@ function DeltaLine({current, comparison, comparisonLabel, periodKind}: {
         pctText = ` (${pctSign}${pct.toFixed(0)}%)`;
     }
 
-    const colorClass = delta >= 0 ? "text-income" : "text-expense";
+    const isPositive = lowerIsBetter ? delta <= 0 : delta >= 0;
+    const colorClass = isPositive ? "text-green-400 dark:text-green-700" : "text-red-400 dark:text-red-600";
 
     return (
         <>
-            <p className={colorClass}>{deltaFormatted}{pctText} {periodKind}</p>
             <p>{comparisonLabel}: {formatCurrencyAsString(comparison)}</p>
+            <p className={colorClass}>{deltaFormatted}{pctText} {periodKind}</p>
         </>
     );
 }
 
-export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitByMonth, children}: ComparisonTooltipProps) {
+export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitByMonth, lowerIsBetter = false, children}: ComparisonTooltipProps) {
     if (yoySum == null && momSum == null) {
         return <>{children}</>;
     }
@@ -67,6 +70,7 @@ export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitBy
                         comparison={yoySum}
                         comparisonLabel={getYoyLabel(periodLabel, splitByMonth)}
                         periodKind="r/r"
+                        lowerIsBetter={lowerIsBetter}
                     />
                 )}
                 {momSum != null && (
@@ -75,6 +79,7 @@ export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitBy
                         comparison={momSum}
                         comparisonLabel={getMomLabel(periodLabel)}
                         periodKind="m/m"
+                        lowerIsBetter={lowerIsBetter}
                     />
                 )}
             </TooltipContent>

@@ -63,7 +63,8 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                                     yoySum={period.yoyExpensesSum}
                                     momSum={period.momExpensesSum}
                                     periodLabel={period.periodLabel}
-                                    splitByMonth={splitByMonth ?? false}>
+                                    splitByMonth={splitByMonth ?? false}
+                                    lowerIsBetter>
                                     <Curr input={period.expensesSum}/>
                                 </ComparisonTooltip>
                             </TableCell>))}

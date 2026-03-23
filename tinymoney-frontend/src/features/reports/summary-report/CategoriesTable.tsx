@@ -41,7 +41,8 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                         yoySum={period.yoySum}
                                         momSum={period.momSum}
                                         periodLabel={period.periodLabel}
-                                        splitByMonth={reportSettings.splitByMonth}>
+                                        splitByMonth={reportSettings.splitByMonth}
+                                        lowerIsBetter={!category.isIncome}>
                                         <Curr input={period.transactionsSum}/>
                                     </ComparisonTooltip>
                                 </TableCell>))}
@@ -66,7 +67,8 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                                     yoySum={period.yoySum}
                                                     momSum={period.momSum}
                                                     periodLabel={period.periodLabel}
-                                                    splitByMonth={reportSettings.splitByMonth}>
+                                                    splitByMonth={reportSettings.splitByMonth}
+                                                    lowerIsBetter={!category.isIncome}>
                                                     <Link
                                                         to={getTransactionsUrl({subcategoryId: subcategory.subcategoryId, dateFrom: parse(period.periodLabel, reportSettings.splitByMonth ? "yyyy-MM" : "yyyy", new Date()), dateTo: reportSettings.splitByMonth ? endOfMonth(parse(period.periodLabel, "yyyy-MM", new Date())) : endOfYear(parse(period.periodLabel, "yyyy", new Date()))})}
                                                         target={"_blank"}>
