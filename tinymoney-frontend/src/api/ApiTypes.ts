@@ -103,12 +103,19 @@ export interface SummaryReport {
 
 export interface ReportPeriod {
     periodLabel: string,
-    
+
     budget: number,
     budgetDifference: number,
     incomesSum: number,
     expensesSum: number,
-    balance: number
+    balance: number,
+
+    yoyExpensesSum?: number | null,
+    yoyIncomesSum?: number | null,
+    yoyBalance?: number | null,
+    momExpensesSum?: number | null,
+    momIncomesSum?: number | null,
+    momBalance?: number | null
 }
 
 export interface ReportCategory
@@ -126,7 +133,9 @@ export interface ReportCategory
 
 export interface ReportPeriodCategory {
     periodLabel: string,
-    transactionsSum: number
+    transactionsSum: number,
+    yoySum?: number | null,
+    momSum?: number | null
 }
 export interface ReportSubcategory {
     subcategoryId: number,
@@ -139,7 +148,9 @@ export interface ReportSubcategory {
 }
 export interface ReportPeriodSubcategory {
     periodLabel: string,
-    transactionsSum: number
+    transactionsSum: number,
+    yoySum?: number | null,
+    momSum?: number | null
 }
 
 export interface SankeyReport {

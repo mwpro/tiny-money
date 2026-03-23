@@ -19,12 +19,19 @@ public class SummaryReportModel
 public class ReportPeriod
 {
     public string PeriodLabel { get; set; }
-    
+
     public decimal Budget { get; set; }
     public decimal BudgetDifference { get; set; }
     public decimal IncomesSum { get; set; }
     public decimal ExpensesSum { get; set; }
     public decimal Balance { get; set; }
+
+    public decimal? YoyExpensesSum { get; set; }
+    public decimal? YoyIncomesSum { get; set; }
+    public decimal? YoyBalance { get; set; }
+    public decimal? MomExpensesSum { get; set; }
+    public decimal? MomIncomesSum { get; set; }
+    public decimal? MomBalance { get; set; }
 }
 
 public class ReportCategory
@@ -43,8 +50,10 @@ public class ReportCategory
 public class ReportPeriodCategory
 {
     public string PeriodLabel { get; set; }
-    
+
     public decimal TransactionsSum { get; set; }
+    public decimal? YoySum { get; set; }
+    public decimal? MomSum { get; set; }
 }
 
 public class ReportSubcategory
@@ -61,8 +70,10 @@ public class ReportSubcategory
 public class ReportPeriodSubcategory
 {
     public string PeriodLabel { get; set; }
-    
+
     public decimal TransactionsSum { get; set; }
+    public decimal? YoySum { get; set; }
+    public decimal? MomSum { get; set; }
 }
 
 public class TopListReportModel
