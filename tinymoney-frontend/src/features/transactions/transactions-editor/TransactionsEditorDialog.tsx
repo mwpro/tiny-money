@@ -253,8 +253,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                             }
                                         }
                                     }} value={(field.value > 0) ? field.value.toString() : ""}>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Wybierz kategorię">
+                                        <SelectTrigger className="w-full overflow-hidden">
+                                            <SelectValue placeholder="Wybierz kategorię" className={"truncate"}>
                                                 {(() => {
                                                     if (!field.value) return "Kategoria";
                                                     const selectedCat = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === field.value));
@@ -348,7 +348,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                         </div>
 
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className={"mt-4"}>
                         <Button type="submit" disabled={mutation.isPending}>
                             {mutation.isPending ? "Zapisywanie..." : "Zapisz"}
                         </Button>
