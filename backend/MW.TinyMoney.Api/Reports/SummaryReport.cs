@@ -119,14 +119,6 @@ public class SummaryReport : ISummaryReport
         return (expensesSum, incomesSum, balance);
     }
 
-    public static string GetYoyLabel(string mainLabel, bool splitByMonth) =>
-        splitByMonth
-            ? DateTime.ParseExact(mainLabel, "yyyy-MM", null).AddYears(-1).ToString("yyyy-MM")
-            : (int.Parse(mainLabel) - 1).ToString();
-
-    public static string GetMomLabel(string mainLabel) =>
-        DateTime.ParseExact(mainLabel, "yyyy-MM", null).AddMonths(-1).ToString("yyyy-MM");
-
     private List<ReportCategory> BuildCategories(List<SummaryReportQueryResult> rows, bool splitByMonth) =>
         rows.GroupBy(r => (r.CategoryId, r.IsIncome))
             .Select(category =>
