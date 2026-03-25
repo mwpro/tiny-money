@@ -146,4 +146,54 @@ public class VendorMatcherTests
     {
         Build([MakeVendor(1, "Stonka")]).MatchesVendor(1, description!).Should().BeFalse();
     }
+
+    // Autocomplete (prefixMatching: true)
+
+    [Fact]
+    public void Autocomplete_MatchesVendorByNamePrefix()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).Match("Ston", 5, prefixMatching: true);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Stonka"));
+    }
+
+    [Fact]
+    public void Autocomplete_MatchesVendorByInnerWordPrefix()
+    {
+        var result = Build([MakeVendor(1, "Robak Jedzenie")]).Match("Jedz", 5, prefixMatching: true);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Robak Jedzenie"));
+    }
+
+    [Fact]
+    public void Autocomplete_MatchesVendorByAliasPrefix()
+    {
+        var result = Build([MakeVendor(1, "Stonka")], [MakeAlias(1, "Jan Kowalski")])
+            .Match("Kow", 5, prefixMatching: true);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Stonka"));
+    }
+
+    [Fact]
+    public void Autocomplete_DoesNotMatchNonPrefix()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).Match("nka", 5, prefixMatching: true);
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Autocomplete_ExactMatchRanksAbovePartialMatch()
+    {
+        // "Stonka": prefix(1) + name_token(2) = 3
+        // "StonkaPlus": prefix(1) only = 1
+        var result = Build([MakeVendor(1, "Stonka"), MakeVendor(2, "StonkaPlus")])
+            .Match("Stonka", 5, prefixMatching: true);
+        result.Should().SatisfyRespectively(
+            s => s.Name.Should().Be("Stonka"),
+            s => s.Name.Should().Be("StonkaPlus"));
+    }
+
+    [Fact]
+    public void Autocomplete_WithoutPrefixMatching_DoesNotMatchPartialToken()
+    {
+        var result = Build([MakeVendor(1, "Stonka")]).Match("Ston", 5, prefixMatching: false);
+        result.Should().BeEmpty();
+    }
 }

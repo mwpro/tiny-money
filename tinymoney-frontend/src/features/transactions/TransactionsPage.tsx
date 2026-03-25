@@ -4,7 +4,6 @@ import {
     type Tag,
     type Transaction,
     type TransactionQueryParams,
-    type Vendor
 } from "@/api/ApiTypes.ts"
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
@@ -60,11 +59,11 @@ export function TransactionsPage() {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
     const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
+    const [pendingVendorName, setPendingVendorName] = useState<string>("")
     const [queryParams, setQueryParams] = useState<TransactionQueryParams>(() => buildTransactionQueryParamsFromSearchParams(searchParams)); 
-    const [vendorFilter, setVendorFilter] = useState<Vendor | undefined>(() => searchParams.get("vendorId") ? {
+    const [vendorFilter, setVendorFilter] = useState<{ id: number; name: string } | undefined>(() => searchParams.get("vendorId") ? {
         id: Number(searchParams.get("vendorId")),
         name: "",
-        defaultSubcategoryId: 0
     } : undefined);
     const [tagFilter, setTagFilter] = useState<Tag | undefined>(() => searchParams.get("tagId") ? {
         id: Number(searchParams.get("tagId")),
@@ -114,15 +113,17 @@ export function TransactionsPage() {
             if (data.suggestedAlias) {
                 setPendingAlias(data.suggestedAlias)
                 setPendingDescription(t.description ?? undefined)
+                setPendingVendorName(t.vendorName ?? "")
             }
         },
         onError: (error: Error) => toast.error('Błąd: ' + error.message),
     })
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
-    const vendorsQuery = useQuery({
-        queryKey: ['vendors'],
-        queryFn: () => vendorsClient.getVendors(),
+    const vendorByIdQuery = useQuery({
+        queryKey: ['vendor', queryParams.vendorIdFilter],
+        queryFn: () => vendorsClient.getVendor(queryParams.vendorIdFilter!),
+        enabled: !!queryParams.vendorIdFilter && !vendorFilter?.name,
         ...dictionariesConfig
     })
     const categoriesQuery = useQuery({
@@ -137,11 +138,11 @@ export function TransactionsPage() {
     })
 
     useEffect(() => {
-        if (vendorsQuery.data && queryParams.vendorIdFilter) {
-            const selectedVendor = vendorsQuery.data?.find(v => v.id === queryParams.vendorIdFilter)
-            setVendorFilter(selectedVendor)
+        if (vendorByIdQuery.data && queryParams.vendorIdFilter) {
+            const { details } = vendorByIdQuery.data
+            setVendorFilter({ id: details.id, name: details.name })
         }
-    }, [vendorsQuery.data, queryParams.vendorIdFilter]);
+    }, [vendorByIdQuery.data, queryParams.vendorIdFilter]);
     
     useEffect(() => {
         if (tagsQuery.data && queryParams.tagIdFilter) {
@@ -169,8 +170,8 @@ export function TransactionsPage() {
                 <AliasProposalDialog
                     suggestedAlias={pendingAlias}
                     transactionDescription={pendingDescription}
-                    vendors={vendorsQuery.data ?? []}
-                    onClose={() => { setPendingAlias(null); setPendingDescription(undefined) }}
+                    vendorName={pendingVendorName}
+                    onClose={() => { setPendingAlias(null); setPendingDescription(undefined); setPendingVendorName("") }}
                 />
                 <BulkTransactionRemovalDialog
                     transactionIds={Array.from(selectedIds)}
@@ -247,14 +248,15 @@ export function TransactionsPage() {
                 ></Input>
 
                 <Autocomplete className="bg-background w-full md:w-auto md:flex-1"
-                              fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                                  o.name.toLowerCase().includes(input.toLowerCase()))}
+                              fetchSuggestions={async input => {
+                                  const suggestions = await vendorsClient.autocompleteVendors(input);
+                                  return suggestions.map(s => ({ id: s.vendorId, name: s.vendorName }));
+                              }}
                               value={vendorFilter?.name} clearQueryAfterSelection={false}
                               onChange={value => {
                                   if (value?.id) {
-                                      const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
-                                      setVendorFilter(selectedVendor);
-                                      setQueryParams(prevState => ({...prevState, vendorIdFilter: selectedVendor?.id}));
+                                      setVendorFilter({ id: value.id, name: value.name });
+                                      setQueryParams(prevState => ({...prevState, vendorIdFilter: value.id}));
                                   } else {
                                       setVendorFilter(undefined);
                                       setQueryParams(prevState => ({...prevState, vendorIdFilter: undefined}));

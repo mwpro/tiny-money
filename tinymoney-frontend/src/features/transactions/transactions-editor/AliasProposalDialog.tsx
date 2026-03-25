@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react"
 import {useMutation} from "@tanstack/react-query"
-import {type SuggestedAlias, type Vendor} from "@/api/ApiTypes.ts"
+import {type SuggestedAlias} from "@/api/ApiTypes.ts"
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog"
@@ -14,11 +14,11 @@ import {useApiClient} from "@/api/ApiClientProvider.tsx"
 interface AliasProposalDialogProps {
     suggestedAlias: SuggestedAlias | null;
     transactionDescription: string | undefined;
-    vendors: Vendor[];
+    vendorName: string;
     onClose: () => void;
 }
 
-export function AliasProposalDialog({suggestedAlias, transactionDescription, vendors, onClose}: AliasProposalDialogProps) {
+export function AliasProposalDialog({suggestedAlias, transactionDescription, vendorName, onClose}: AliasProposalDialogProps) {
     const {vendorsClient} = useApiClient()
     const [editedAlias, setEditedAlias] = useState(suggestedAlias?.alias ?? "")
 
@@ -27,10 +27,6 @@ export function AliasProposalDialog({suggestedAlias, transactionDescription, ven
             setEditedAlias(suggestedAlias.alias)
         }
     }, [suggestedAlias])
-
-    const vendorName = suggestedAlias
-        ? (vendors.find(v => v.id === suggestedAlias.vendorId)?.name ?? "")
-        : ""
 
     const addAliasMutation = useMutation({
         mutationFn: () => vendorsClient.addVendorAlias(suggestedAlias!.vendorId, editedAlias.trim()),
