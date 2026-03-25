@@ -1,9 +1,8 @@
-import type {Vendor, VendorAlias, VendorDetails, VendorWithAliases} from "@/api/ApiTypes.ts";
+import type {VendorAlias, VendorDetails, VendorSuggestion, VendorWithAliases} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 import type {VendorInputs} from "@/features/vendors/VendorEditorDialog.tsx";
 
 export interface VendorsClient {
-    getVendors(): Promise<Vendor[]>;
     getVendorsDetails(): Promise<VendorDetails[]>;
     addVendor(newVendor: VendorInputs): Promise<void>;
     editVendor(vendorId: number, newVendor: VendorInputs): Promise<void>;
@@ -11,18 +10,20 @@ export interface VendorsClient {
     getVendor(vendorId: number): Promise<VendorWithAliases>;
     addVendorAlias(vendorId: number, alias: string): Promise<VendorAlias>;
     deleteVendorAlias(vendorId: number, aliasId: number): Promise<void>;
+    suggestVendors(query: string): Promise<VendorSuggestion[]>;
 }
 
 export class VendorsClientImpl extends ApiBase implements VendorsClient {
-    async getVendors(): Promise<Vendor[]> {
+    async getVendorsDetails(): Promise<VendorDetails[]> {
         const res = await this.request('GET', '/vendors');
         if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
         return res.json();
     }
 
-    async getVendorsDetails(): Promise<VendorDetails[]> {
-        const res = await this.request('GET', '/vendors?detailed=true');
-        if (!res.ok) throw new Error('Błąd pobierania sprzedawców');
+    async suggestVendors(query: string): Promise<VendorSuggestion[]> {
+        const res = await this.request('GET', `/vendors/suggest?query=${encodeURIComponent(query)}`);
+        if (res.status === 204) return [];
+        if (!res.ok) throw new Error('Błąd pobierania sugestii sprzedawców');
         return res.json();
     }
 

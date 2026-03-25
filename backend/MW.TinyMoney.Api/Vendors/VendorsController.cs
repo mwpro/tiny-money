@@ -30,21 +30,10 @@ namespace MW.TinyMoney.Api.Vendors
         }
 
         [HttpGet("")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDto>))]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDetails>))]
-        public async Task<IActionResult> GetVendors([FromQuery] bool? detailed = false)
+        public async Task<IActionResult> GetVendors()
         {
-            if (detailed.HasValue && detailed.Value)
-            {
-                return Ok(await _vendorStore.GetDetailedVendors());
-            }
-
-            return Ok((await _vendorStore.GetVendors()).Select(x => new VendorDto()
-            {
-                Id = x.Id,
-                Name = x.Name,
-                DefaultSubcategoryId = x.DefaultSubcategoryId
-            }));
+            return Ok(await _vendorStore.GetDetailedVendors());
         }
         
         [HttpPost("")]
@@ -129,9 +118,9 @@ namespace MW.TinyMoney.Api.Vendors
         [HttpGet("suggest")]
         [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> SuggestVendor([FromQuery] string description)
+        public async Task<IActionResult> SuggestVendor([FromQuery] string query)
         {
-            var vendors = await _vendorMatchingService.SuggestVendor(description, 5);
+            var vendors = await _vendorMatchingService.SuggestVendor(query, 5);
             if (!vendors.Any())
                 return NoContent();
             return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId, vendor.SubcategoryName, vendor.CategoryName)));

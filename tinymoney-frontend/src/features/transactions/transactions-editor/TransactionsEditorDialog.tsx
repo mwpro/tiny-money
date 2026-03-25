@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 import {type Control, Controller, useForm} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
@@ -7,7 +7,8 @@ import {
     type NewTransaction,
     type SuggestedAlias,
     type Transaction,
-    type TransactionMutationResponse
+    type TransactionMutationResponse,
+    type VendorSuggestion
 } from "@/api/ApiTypes.ts"
 
 import {Button} from "@/components/ui/button"
@@ -48,6 +49,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
     const [isOpen, setIsOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
     const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
+    const [pendingVendorName, setPendingVendorName] = useState<string>("")
+    const lastVendorSuggestions = useRef<VendorSuggestion[]>([])
     const queryClient = useQueryClient()
     const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
     
@@ -60,12 +63,6 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
     }, [isOpen]);
 
     const dictionariesConfig = {staleTime: 1000 * 60 * 5}
-
-    const vendorsQuery = useQuery({
-        queryKey: ['vendors'],
-        queryFn: () => vendorsClient.getVendors(),
-        ...dictionariesConfig
-    })
 
     const categoriesQuery = useQuery({
         queryKey: ['categories'],
@@ -102,9 +99,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             if (transactionToEdit.subcategoryId !== null) {
                 setValue("subcategoryId", transactionToEdit.subcategoryId);
             }
-            const selectedVendor = transactionToEdit.vendorId !== null ? vendorsQuery.data?.find(v => v.id === transactionToEdit.vendorId) : undefined
-            if (selectedVendor) {
-                setValue("vendor", selectedVendor);
+            if (transactionToEdit.vendorId !== null && transactionToEdit.vendorName !== null) {
+                setValue("vendor", { id: transactionToEdit.vendorId, name: transactionToEdit.vendorName });
             }
             const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tags.some(tt => tt.id === t.id));
             if (selectedTags) {
@@ -121,7 +117,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             : transactionsClient.addTransaction(newTransaction),
         onSuccess: (data: TransactionMutationResponse) => {
             if (data.newVendor) {
-                queryClient.invalidateQueries({queryKey: ['vendors']})                
+                queryClient.invalidateQueries({queryKey: ['vendors-details']})
             }
             if (data.newTags?.length) {
                 queryClient.invalidateQueries({queryKey: ['tags']})
@@ -132,6 +128,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                 if (data.suggestedAlias) {
                     setPendingAlias(data.suggestedAlias)
                     setPendingDescription(transactionToEdit.description)
+                    setPendingVendorName(getValues("vendor").name)
                 }
                 reset();
                 setIsOpen(false);
@@ -153,8 +150,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
         <AliasProposalDialog
             suggestedAlias={pendingAlias}
             transactionDescription={pendingDescription}
-            vendors={vendorsQuery.data ?? []}
-            onClose={() => { setPendingAlias(null); setPendingDescription(undefined) }}
+            vendorName={pendingVendorName}
+            onClose={() => { setPendingAlias(null); setPendingDescription(undefined); setPendingVendorName("") }}
         />
         <Dialog open={isOpen} onOpenChange={(v) => {
             setIsOpen(v);
@@ -201,8 +198,11 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                 control={control}
                                 name="vendor"
                                 render={({field}) => (
-                                    <Autocomplete fetchSuggestions={async input => (vendorsQuery.data || []).filter(o =>
-                                        o.name.toLowerCase().includes(input.toLowerCase()))}
+                                    <Autocomplete fetchSuggestions={async input => {
+                                                      const suggestions = await vendorsClient.suggestVendors(input);
+                                                      lastVendorSuggestions.current = suggestions;
+                                                      return suggestions.map(s => ({ id: s.vendorId, name: s.vendorName }));
+                                                  }}
                                                   value={field.value.name} clearQueryAfterSelection={false}
                                                   onChange={value => {
                                                       if (!value) {
@@ -210,15 +210,15 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                                           return
                                                       }
                                                       field.onChange({...value})
-    
+
                                                       if (value?.id) {
-                                                          const selectedVendor = vendorsQuery.data?.find(v => v.id === value.id)
-                                                          if (selectedVendor?.defaultSubcategoryId) {
-                                                              setValue("subcategoryId", selectedVendor.defaultSubcategoryId, {
+                                                          const suggestion = lastVendorSuggestions.current.find(s => s.vendorId === value.id)
+                                                          if (suggestion?.defaultSubcategoryId) {
+                                                              setValue("subcategoryId", suggestion.defaultSubcategoryId, {
                                                                   shouldValidate: true,
                                                                   shouldDirty: true
                                                               })
-                                                              const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === selectedVendor.defaultSubcategoryId))?.isIncome;
+                                                              const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === suggestion.defaultSubcategoryId))?.isIncome;
                                                               if (isIncomeCategory !== undefined) {
                                                                   setValue("isExpense", !isIncomeCategory, {
                                                                       shouldValidate: true,

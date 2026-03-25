@@ -227,7 +227,7 @@ export type TagUpsert = {
     name: string
 }
 
-export type Vendor = { id: number; name: string, defaultSubcategoryId: number };
+export type VendorSuggestion = { vendorId: number; vendorName: string; defaultSubcategoryId: number; defaultSubcategoryName: string; defaultCategoryName: string };
 export type VendorAlias = { id: number; alias: string };
 export type VendorWithAliases = { details: VendorDetails; aliases: VendorAlias[] };
 export type VendorDetails = {

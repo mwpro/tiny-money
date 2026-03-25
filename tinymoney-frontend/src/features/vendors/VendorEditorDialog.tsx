@@ -116,7 +116,6 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
             : vendorsClient.addVendor(newVendor),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
-            queryClient.invalidateQueries({queryKey: ['vendors']})
             queryClient.invalidateQueries({queryKey: ['vendors-details']})
             reset();
             setIsOpen(false);

@@ -30,7 +30,6 @@ export function VendorRemovalDialog({vendorToRemove, vendors, onClose}: VendorRe
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['vendors-details']})
-            queryClient.invalidateQueries({queryKey: ['vendors']})
             toast.success("Sprzedawca usunięty")
             setIsOpen(false);
         },

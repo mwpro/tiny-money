@@ -6,7 +6,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from "@/components/ui/alert-dialog.tsx";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {type Transaction} from "@/api/ApiTypes.ts";
 import {toast} from "sonner";
 import {Curr} from "@/components/Curr.tsx";
@@ -19,7 +19,7 @@ interface TransactionRemovalDialogProps {
 }
 
 export function TransactionRemovalDialog({transactionToRemove, onClose}: TransactionRemovalDialogProps) {
-    const { transactionsClient, vendorsClient } = useApiClient();
+    const { transactionsClient } = useApiClient();
     const queryClient = useQueryClient();
     const [isOpen, setIsOpen] = useState(false)
 
@@ -39,19 +39,7 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
         setIsOpen(!!transactionToRemove);
     }, [transactionToRemove]);
 
-    const dictionariesConfig = { staleTime: 1000 * 60 * 5 }
-    const vendorsQuery = useQuery({
-        queryKey: ['vendors'],
-        queryFn: () => vendorsClient.getVendors(),
-        ...dictionariesConfig
-    })
-    
-    const getVendorName = (id: number | null) => {
-        if (id === null) return "-";
-        return vendorsQuery.data?.find(v => v.id === id)?.name || "-"
-    }
-    
-    if (!transactionToRemove) 
+    if (!transactionToRemove)
         return null;
     
     return (
@@ -60,7 +48,7 @@ export function TransactionRemovalDialog({transactionToRemove, onClose}: Transac
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć transakcję?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        <Curr input={transactionToRemove.amount} colored isPositive={!transactionToRemove.isExpense}/> w {getVendorName(transactionToRemove.vendorId)} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
+                        <Curr input={transactionToRemove.amount} colored isPositive={!transactionToRemove.isExpense}/> w {transactionToRemove.vendorName ?? "-"} z dnia {new Date(transactionToRemove.transactionDate).toLocaleDateString('pl-PL')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
