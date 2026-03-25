@@ -11,6 +11,6 @@ public class VendorMatchingServiceStub : IVendorMatchingService
     public string SuggestAliasResult { get; set; }
 
     public Task<string> SuggestAlias(int vendorId, string description) => Task.FromResult(SuggestAliasResult);
-    public Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit) => throw new NotImplementedException();
+    public Task<IEnumerable<Vendor>> AutocompleteVendors(string query, int limit) => throw new NotImplementedException();
     public Task<IVendorMatcher> CreateMatcher() => throw new NotImplementedException();
 }

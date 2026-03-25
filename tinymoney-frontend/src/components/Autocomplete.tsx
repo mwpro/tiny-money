@@ -42,11 +42,12 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     }, [value]);
     
     useEffect(() => {
-        if (query && isFocused) {
-            fetchSuggestionsCallback(query)
-        } else {
+        if (!query || !isFocused) {
             setSuggestions([])
+            return
         }
+        const timer = setTimeout(() => fetchSuggestionsCallback(query), 300)
+        return () => clearTimeout(timer)
     }, [query, fetchSuggestionsCallback, isFocused])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -7,7 +7,7 @@ namespace MW.TinyMoney.Api.Vendors;
 
 public interface IVendorMatcher
 {
-    IEnumerable<Vendor> Match(string description, int limit = 1);
+    IEnumerable<Vendor> Match(string description, int limit = 1, bool prefixMatching = false);
     bool MatchesVendor(int vendorId, string description);
 }
 
@@ -23,11 +23,11 @@ public class VendorMatcher : IVendorMatcher
         _vendorById = vendors.ToDictionary(v => v.Id);
         _index = new Dictionary<string, List<(int vendorId, int score)>>(StringComparer.Ordinal);
 
-        // Alias tokens score 2 (explicit user mapping), vendor name tokens score 1 (implicit)
+        // Alias tokens score 3 (explicit user mapping), vendor name tokens score 2 (implicit)
         foreach (var alias in aliases)
-            AddToIndex(alias.Alias, alias.VendorId, 2);
+            AddToIndex(alias.Alias, alias.VendorId, 3);
         foreach (var vendor in vendors)
-            AddToIndex(vendor.Name, vendor.Id, 1);
+            AddToIndex(vendor.Name, vendor.Id, 2);
     }
 
     private void AddToIndex(string text, int vendorId, int score)
@@ -58,17 +58,26 @@ public class VendorMatcher : IVendorMatcher
         return false;
     }
 
-    public IEnumerable<Vendor> Match(string description, int limit = 1)
+    public IEnumerable<Vendor> Match(string description, int limit = 1, bool prefixMatching = false)
     {
         if (string.IsNullOrWhiteSpace(description))
             return [];
 
-        var preprocessed = _preprocessor.Preprocess(description);
         var scores = new Dictionary<int, int>();
 
+        var preprocessed = _preprocessor.Preprocess(description);
+
+        if (prefixMatching)
+        {
+            foreach (var (token, entries) in _index)
+            {
+                if (!token.StartsWith(preprocessed, StringComparison.OrdinalIgnoreCase)) continue;
+                foreach (var (vendorId, score) in entries)
+                    scores[vendorId] = scores.GetValueOrDefault(vendorId) + 1;
+            }
+        }
         var tokens = _preprocessor.Tokenize(preprocessed)
             .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed));
-        
         foreach (var token in tokens)
         {
             if (!_index.TryGetValue(token, out var entries)) continue;
@@ -76,12 +85,9 @@ public class VendorMatcher : IVendorMatcher
                 scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
         }
 
-        if (scores.Count == 0)
-            return [];
-
         return scores
             .OrderByDescending(kv => kv.Value)
-            .Select(bestId => _vendorById.GetValueOrDefault(bestId.Key))
+            .Select(kv => _vendorById.GetValueOrDefault(kv.Key))
             .Where(v => v != null)
             .Take(limit)
             .ToList();

@@ -249,7 +249,7 @@ export function TransactionsPage() {
 
                 <Autocomplete className="bg-background w-full md:w-auto md:flex-1"
                               fetchSuggestions={async input => {
-                                  const suggestions = await vendorsClient.suggestVendors(input);
+                                  const suggestions = await vendorsClient.autocompleteVendors(input);
                                   return suggestions.map(s => ({ id: s.vendorId, name: s.vendorName }));
                               }}
                               value={vendorFilter?.name} clearQueryAfterSelection={false}

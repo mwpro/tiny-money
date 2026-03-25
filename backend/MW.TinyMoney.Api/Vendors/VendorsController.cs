@@ -115,15 +115,14 @@ namespace MW.TinyMoney.Api.Vendors
             }
         }
 
-        [HttpGet("suggest")]
+        [HttpGet("autocomplete")]
         [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> SuggestVendor([FromQuery] string query)
+        public async Task<IActionResult> AutocompleteVendor([FromQuery] string query)
         {
-            var vendors = await _vendorMatchingService.SuggestVendor(query, 5);
-            if (!vendors.Any())
-                return NoContent();
-            return Ok(vendors.Select(vendor => new VendorSuggestionDto(vendor.Id, vendor.Name, vendor.DefaultSubcategoryId, vendor.SubcategoryName, vendor.CategoryName)));
+            if (string.IsNullOrWhiteSpace(query))
+                return Ok(Enumerable.Empty<VendorSuggestionDto>());
+            var vendors = await _vendorMatchingService.AutocompleteVendors(query, 5);
+            return Ok(vendors.Select(v => new VendorSuggestionDto(v.Id, v.Name, v.DefaultSubcategoryId, v.SubcategoryName, v.CategoryName)));
         }
 
         [HttpGet("{vendorId}")]

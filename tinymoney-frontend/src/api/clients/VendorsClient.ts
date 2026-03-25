@@ -10,7 +10,7 @@ export interface VendorsClient {
     getVendor(vendorId: number): Promise<VendorWithAliases>;
     addVendorAlias(vendorId: number, alias: string): Promise<VendorAlias>;
     deleteVendorAlias(vendorId: number, aliasId: number): Promise<void>;
-    suggestVendors(query: string): Promise<VendorSuggestion[]>;
+    autocompleteVendors(query: string): Promise<VendorSuggestion[]>;
 }
 
 export class VendorsClientImpl extends ApiBase implements VendorsClient {
@@ -20,9 +20,8 @@ export class VendorsClientImpl extends ApiBase implements VendorsClient {
         return res.json();
     }
 
-    async suggestVendors(query: string): Promise<VendorSuggestion[]> {
-        const res = await this.request('GET', `/vendors/suggest?query=${encodeURIComponent(query)}`);
-        if (res.status === 204) return [];
+    async autocompleteVendors(query: string): Promise<VendorSuggestion[]> {
+        const res = await this.request('GET', `/vendors/autocomplete?query=${encodeURIComponent(query)}`);
         if (!res.ok) throw new Error('Błąd pobierania sugestii sprzedawców');
         return res.json();
     }

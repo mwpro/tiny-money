@@ -199,7 +199,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                 name="vendor"
                                 render={({field}) => (
                                     <Autocomplete fetchSuggestions={async input => {
-                                                      const suggestions = await vendorsClient.suggestVendors(input);
+                                                      const suggestions = await vendorsClient.autocompleteVendors(input);
                                                       lastVendorSuggestions.current = suggestions;
                                                       return suggestions.map(s => ({ id: s.vendorId, name: s.vendorName }));
                                                   }}

@@ -7,7 +7,7 @@ namespace MW.TinyMoney.Api.Vendors.Matching;
 
 public interface IVendorMatchingService
 {
-    Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit);
+    Task<IEnumerable<Vendor>> AutocompleteVendors(string query, int limit);
     Task<IVendorMatcher> CreateMatcher();
     Task<string> SuggestAlias(int vendorId, string description);
 }
@@ -27,10 +27,10 @@ public class VendorMatchingService : IVendorMatchingService
         _preprocessor = preprocessor;
     }
 
-    public async Task<IEnumerable<Vendor>> SuggestVendor(string description, int limit)
+    public async Task<IEnumerable<Vendor>> AutocompleteVendors(string query, int limit)
     {
         var matcher = await CreateMatcher();
-        return matcher.Match(description, limit);
+        return matcher.Match(query, limit, prefixMatching: true);
     }
 
     public async Task<IVendorMatcher> CreateMatcher()
