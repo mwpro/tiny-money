@@ -101,6 +101,9 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     const handleBlur = () => {
         // Delay hiding suggestions to allow for click events on suggestions
         setTimeout(() => {
+            if (allowCustomValues && query.trim() && query.trim() !== value) {
+                handleSuggestionChosen(suggestions[0] ?? {name: query.trim()})
+            }
             setIsFocused(false)
             setSuggestions([])
             setSelectedIndex(-1)
