@@ -1,13 +1,12 @@
 import React from "react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
-import {format, parse, subMonths, subYears} from "date-fns";
+import {format, parse, subYears} from "date-fns";
 import {monthYearFormat} from "@/lib/utils.ts";
 
 interface ComparisonTooltipProps {
     current: number;
     yoySum?: number | null;
-    momSum?: number | null;
     periodLabel: string;
     splitByMonth: boolean;
     lowerIsBetter?: boolean;
@@ -19,10 +18,6 @@ function getYoyLabel(periodLabel: string, splitByMonth: boolean): string {
         return format(subYears(parse(periodLabel, monthYearFormat, new Date()), 1), monthYearFormat);
     }
     return (parseInt(periodLabel) - 1).toString();
-}
-
-function getMomLabel(periodLabel: string): string {
-    return format(subMonths(parse(periodLabel, monthYearFormat, new Date()), 1), monthYearFormat);
 }
 
 function DeltaLine({current, comparison, comparisonLabel, periodKind, lowerIsBetter}: {
@@ -54,8 +49,8 @@ function DeltaLine({current, comparison, comparisonLabel, periodKind, lowerIsBet
     );
 }
 
-export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitByMonth, lowerIsBetter = false, children}: ComparisonTooltipProps) {
-    if (yoySum == null && momSum == null) {
+export function ComparisonTooltip({current, yoySum, periodLabel, splitByMonth, lowerIsBetter = false, children}: ComparisonTooltipProps) {
+    if (yoySum == null) {
         return <>{children}</>;
     }
 
@@ -65,24 +60,13 @@ export function ComparisonTooltip({current, yoySum, momSum, periodLabel, splitBy
                 <span className="inline">{children}</span>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="font-mono">
-                {yoySum != null && (
-                    <DeltaLine
-                        current={current}
-                        comparison={yoySum}
-                        comparisonLabel={getYoyLabel(periodLabel, splitByMonth)}
-                        periodKind="r/r"
-                        lowerIsBetter={lowerIsBetter}
-                    />
-                )}
-                {momSum != null && (
-                    <DeltaLine
-                        current={current}
-                        comparison={momSum}
-                        comparisonLabel={getMomLabel(periodLabel)}
-                        periodKind="m/m"
-                        lowerIsBetter={lowerIsBetter}
-                    />
-                )}
+                <DeltaLine
+                    current={current}
+                    comparison={yoySum}
+                    comparisonLabel={getYoyLabel(periodLabel, splitByMonth)}
+                    periodKind="r/r"
+                    lowerIsBetter={lowerIsBetter}
+                />
             </TooltipContent>
         </Tooltip>
     );

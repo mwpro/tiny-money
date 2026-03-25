@@ -30,7 +30,6 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                                 <ComparisonTooltip
                                     current={period.incomesSum}
                                     yoySum={period.yoyIncomesSum}
-                                    momSum={period.momIncomesSum}
                                     periodLabel={period.periodLabel}
                                     splitByMonth={splitByMonth ?? false}>
                                     <Curr input={period.incomesSum}/>
@@ -61,7 +60,6 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                                 <ComparisonTooltip
                                     current={period.expensesSum}
                                     yoySum={period.yoyExpensesSum}
-                                    momSum={period.momExpensesSum}
                                     periodLabel={period.periodLabel}
                                     splitByMonth={splitByMonth ?? false}
                                     lowerIsBetter>
@@ -78,7 +76,6 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                                 <ComparisonTooltip
                                     current={period.balance}
                                     yoySum={period.yoyBalance}
-                                    momSum={period.momBalance}
                                     periodLabel={period.periodLabel}
                                     splitByMonth={splitByMonth ?? false}>
                                     <Curr input={period.balance} colored/>

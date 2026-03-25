@@ -43,7 +43,6 @@ public class SummaryReport : ISummaryReport
                             DATE_FORMAT(DATE_SUB(STR_TO_DATE(CONCAT(p.period_name, '-01'), '%Y-%m-%d'), INTERVAL 1 YEAR), '%Y-%m'),
                             DATE_FORMAT(DATE_SUB(STR_TO_DATE(CONCAT(p.period_name, '-01-01'), '%Y-%m-%d'), INTERVAL 1 YEAR), '%Y')
                         ) AS yoy_period_name,
-                        DATE_FORMAT(DATE_SUB(STR_TO_DATE(CONCAT(p.period_name, '-01'), '%Y-%m-%d'), INTERVAL 1 MONTH), '%Y-%m') AS mom_period_name,
                         c.id AS catId, c.is_income AS isIncome, c.name AS catName,
                         s.id AS subId, s.name AS subName
                     FROM periods p
@@ -67,27 +66,16 @@ public class SummaryReport : ISummaryReport
                       AND (@yoyDateTo IS NULL OR transaction_date <= @yoyDateTo)
                       AND is_verified = 1
                     GROUP BY period_name, subcategory_id
-                ),
-                mom_sums AS (
-                    SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS period_name,
-                           subcategory_id, SUM(amount) AS total_amount
-                    FROM transaction
-                    WHERE (@momDateFrom IS NULL OR transaction_date >= @momDateFrom)
-                      AND (@momDateTo IS NULL OR transaction_date <= @momDateTo)
-                      AND is_verified = 1
-                    GROUP BY period_name, subcategory_id
                 )
                 SELECT
                     ac.period_name AS 'period',
                     ac.catId AS 'categoryId', ac.isIncome AS 'isIncome', ac.catName AS 'categoryName',
                     ac.subId AS 'subcategoryId', ac.subName AS 'subcategoryName',
                     COALESCE(ms.total_amount, 0) AS 'transactionsSum',
-                    yoy.total_amount AS 'yoySum',
-                    mom.total_amount AS 'momSum'
+                    yoy.total_amount AS 'yoySum'
                 FROM all_combinations ac
                 LEFT JOIN monthly_sums ms  ON ac.period_name     = ms.period_name  AND ac.subId = ms.subcategory_id
                 LEFT JOIN yoy_sums yoy     ON ac.yoy_period_name = yoy.period_name AND ac.subId = yoy.subcategory_id
-                LEFT JOIN mom_sums mom     ON ac.mom_period_name = mom.period_name AND ac.subId = mom.subcategory_id
                 ORDER BY period, categoryId, subcategoryId;";
 
     private class SummaryReportQueryResult
@@ -100,7 +88,6 @@ public class SummaryReport : ISummaryReport
         public string SubcategoryName { get; set; }
         public decimal TransactionsSum { get; set; }
         public decimal? YoySum { get; set; }
-        public decimal? MomSum { get; set; }
     }
 
     private static (decimal? ExpensesSum, decimal? IncomesSum, decimal? Balance) AggregateComparison(
@@ -119,7 +106,7 @@ public class SummaryReport : ISummaryReport
         return (expensesSum, incomesSum, balance);
     }
 
-    private List<ReportCategory> BuildCategories(List<SummaryReportQueryResult> rows, bool splitByMonth) =>
+    private List<ReportCategory> BuildCategories(List<SummaryReportQueryResult> rows) =>
         rows.GroupBy(r => (r.CategoryId, r.IsIncome))
             .Select(category =>
             {
@@ -130,7 +117,6 @@ public class SummaryReport : ISummaryReport
                         PeriodLabel = p.Key,
                         TransactionsSum = p.Sum(t => t.TransactionsSum),
                         YoySum = p.Any(r => r.YoySum.HasValue) ? p.Sum(r => r.YoySum.GetValueOrDefault()) : null,
-                        MomSum = splitByMonth && p.Any(r => r.MomSum.HasValue) ? p.Sum(r => r.MomSum.GetValueOrDefault()) : null,
                     })
                     .ToList();
 
@@ -147,7 +133,6 @@ public class SummaryReport : ISummaryReport
                                     PeriodLabel = p.Key,
                                     TransactionsSum = p.Sum(t => t.TransactionsSum),
                                     YoySum = row.YoySum,
-                                    MomSum = splitByMonth ? row.MomSum : null,
                                 };
                             })
                             .ToList();
@@ -186,10 +171,6 @@ public class SummaryReport : ISummaryReport
 
                 var (yoyExpensesSum, yoyIncomesSum, yoyBalance) = AggregateComparison(p, r => r.YoySum);
 
-                decimal? momExpensesSum = null, momIncomesSum = null, momBalance = null;
-                if (splitByMonth)
-                    (momExpensesSum, momIncomesSum, momBalance) = AggregateComparison(p, r => r.MomSum);
-
                 return new ReportPeriod
                 {
                     PeriodLabel = p.Key,
@@ -201,9 +182,6 @@ public class SummaryReport : ISummaryReport
                     YoyExpensesSum = yoyExpensesSum,
                     YoyIncomesSum  = yoyIncomesSum,
                     YoyBalance     = yoyBalance,
-                    MomExpensesSum = momExpensesSum,
-                    MomIncomesSum  = momIncomesSum,
-                    MomBalance     = momBalance,
                 };
             })
             .ToList();
@@ -219,8 +197,6 @@ public class SummaryReport : ISummaryReport
                 dateFrom, dateTo,
                 periodPattern = splitByMonth ? "%Y-%m" : "%Y",
                 yoyDateFrom = dateFrom?.AddYears(-1), yoyDateTo = dateTo?.AddYears(-1),
-                momDateFrom = splitByMonth ? dateFrom?.AddMonths(-1) : (DateTime?)null,
-                momDateTo   = splitByMonth ? dateTo?.AddMonths(-1)   : (DateTime?)null,
             });
 
         var budgets = await connection.QueryAsync<(string Period, decimal Budget)>(GetBudgetsQuery,
@@ -234,7 +210,7 @@ public class SummaryReport : ISummaryReport
 
         return new SummaryReportModel
         {
-            Categories  = BuildCategories(rows, splitByMonth),
+            Categories  = BuildCategories(rows),
             Periods     = periods,
             IncomesAvg  = periods.Count > 0 ? periods.Average(p => p.IncomesSum)  : 0,
             IncomesSum  = periods.Sum(p => p.IncomesSum),

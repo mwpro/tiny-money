@@ -29,9 +29,6 @@ public class ReportPeriod
     public decimal? YoyExpensesSum { get; set; }
     public decimal? YoyIncomesSum { get; set; }
     public decimal? YoyBalance { get; set; }
-    public decimal? MomExpensesSum { get; set; }
-    public decimal? MomIncomesSum { get; set; }
-    public decimal? MomBalance { get; set; }
 }
 
 public class ReportCategory
@@ -53,8 +50,8 @@ public class ReportPeriodCategory
 
     public decimal TransactionsSum { get; set; }
     public decimal? YoySum { get; set; }
-    public decimal? MomSum { get; set; }
 }
+
 
 public class ReportSubcategory
 {
@@ -73,7 +70,6 @@ public class ReportPeriodSubcategory
 
     public decimal TransactionsSum { get; set; }
     public decimal? YoySum { get; set; }
-    public decimal? MomSum { get; set; }
 }
 
 public class TopListReportModel

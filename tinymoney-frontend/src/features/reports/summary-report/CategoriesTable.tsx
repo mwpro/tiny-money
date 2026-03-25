@@ -39,7 +39,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                     <ComparisonTooltip
                                         current={period.transactionsSum}
                                         yoySum={period.yoySum}
-                                        momSum={period.momSum}
+
                                         periodLabel={period.periodLabel}
                                         splitByMonth={reportSettings.splitByMonth}
                                         lowerIsBetter={!category.isIncome}>
@@ -65,7 +65,7 @@ export function CategoriesTable({categories, reportSettings}: BudgetTableProps) 
                                                 <ComparisonTooltip
                                                     current={period.transactionsSum}
                                                     yoySum={period.yoySum}
-                                                    momSum={period.momSum}
+            
                                                     periodLabel={period.periodLabel}
                                                     splitByMonth={reportSettings.splitByMonth}
                                                     lowerIsBetter={!category.isIncome}>
