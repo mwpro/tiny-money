@@ -11,6 +11,7 @@ import {TransactionsEditorDialog} from "@/features/transactions/transactions-edi
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {BulkTransactionRemovalDialog} from "@/features/transactions/BulkTransactionRemovalDialog.tsx";
+import {SelectionSummaryBar} from "@/features/transactions/SelectionSummaryBar.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
 import {
@@ -28,7 +29,7 @@ import {Input} from "@/components/ui/input.tsx";
 import {useDebouncedValue} from "@tanstack/react-pacer";
 import {toast} from "sonner";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert.tsx";
-import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark, Trash2} from "lucide-react";
+import {AlertCircleIcon, Diff, Minus, Plus, ShieldQuestionMark} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {dateFormat, prepareTitleText} from "@/lib/utils.ts";
@@ -157,12 +158,6 @@ export function TransactionsPage() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Lista transakcji</h1>
                 <div className="flex gap-2">
-                    {selectedIds.size > 0 && (
-                        <Button variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
-                            <Trash2 />
-                            Usuń zaznaczone ({selectedIds.size})
-                        </Button>
-                    )}
                     <ImportBankStatementDialog />
                     <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 </div>
@@ -346,6 +341,13 @@ export function TransactionsPage() {
                         setQueryParams(prev => ({ ...prev, tagIdFilter: tag.id }));
                     }}/>
             }
+            {transactionsQuery.data && selectedIds.size > 0 && (
+                <SelectionSummaryBar
+                    selectedIds={selectedIds}
+                    transactions={transactionsQuery.data.transactions}
+                    onDelete={() => setBulkDeleteOpen(true)}
+                />
+            )}
         </div>
     )
 }
