@@ -171,17 +171,19 @@ public class SummaryReport : ISummaryReport
 
                 var (yoyExpensesSum, yoyIncomesSum, yoyBalance) = AggregateComparison(p, r => r.YoySum);
 
+                var balance = incomesSum - expensesSum;
                 return new ReportPeriod
                 {
                     PeriodLabel = p.Key,
                     ExpensesSum = expensesSum,
                     IncomesSum  = incomesSum,
-                    Balance     = incomesSum - expensesSum,
+                    Balance     = balance,
                     Budget = budget,
                     BudgetDifference = budget > 0 ? budget - expensesSum : 0,
                     YoyExpensesSum = yoyExpensesSum,
                     YoyIncomesSum  = yoyIncomesSum,
                     YoyBalance     = yoyBalance,
+                    SavingsRate = incomesSum == 0 ? 0 : balance / incomesSum * 100m,
                 };
             })
             .ToList();
@@ -208,16 +210,22 @@ public class SummaryReport : ISummaryReport
         var rows = queryResults.ToList();
         var periods = BuildPeriods(rows, budgets, splitByMonth);
 
+        var incomesSum  = periods.Sum(p => p.IncomesSum);
+        var expensesSum = periods.Sum(p => p.ExpensesSum);
+        var balanceSum  = periods.Sum(p => p.Balance);
+
         return new SummaryReportModel
         {
             Categories  = BuildCategories(rows),
             Periods     = periods,
             IncomesAvg  = periods.Count > 0 ? periods.Average(p => p.IncomesSum)  : 0,
-            IncomesSum  = periods.Sum(p => p.IncomesSum),
+            IncomesSum  = incomesSum,
             ExpensesAvg = periods.Count > 0 ? periods.Average(p => p.ExpensesSum) : 0,
-            ExpensesSum = periods.Sum(p => p.ExpensesSum),
+            ExpensesSum = expensesSum,
             BalanceAvg  = periods.Count > 0 ? periods.Average(p => p.Balance)     : 0,
-            BalanceSum  = periods.Sum(p => p.Balance),
+            BalanceSum  = balanceSum,
+            SavingsRateAvg   = periods.Count > 0 ? periods.Average(p => p.SavingsRate) : 0,
+            SavingsRateTotal = incomesSum == 0 ? 0 : balanceSum / incomesSum * 100m,
         };
     }
 }

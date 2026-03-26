@@ -3,6 +3,7 @@ import {Button} from "@/components/ui/button"
 import {useAuth0} from "@auth0/auth0-react";
 import {endOfMonth, startOfMonth} from "date-fns";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
+import * as Sentry from "@sentry/react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -117,7 +118,13 @@ export function Layout() {
             </header>
 
             <main className="flex-1 py-8 px-4 sm:px-6 pb-mobile-nav md:pb-8">
-                <Outlet/>
+                <Sentry.ErrorBoundary fallback={
+                    <div className="max-w-7xl mx-auto">
+                        <p className="text-destructive">Coś poszło nie tak. Odśwież stronę lub spróbuj ponownie później.</p>
+                    </div>
+                } key={location.pathname}>
+                    <Outlet/>
+                </Sentry.ErrorBoundary>
             </main>
 
             <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t bg-header-bg text-header-fg z-50 flex flex-col" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>

@@ -7,13 +7,15 @@ public class SummaryReportModel
 {
     public IEnumerable<ReportPeriod> Periods { get; set; }
     public IEnumerable<ReportCategory> Categories { get; set; }
-    
+
     public decimal IncomesAvg { get; set; }
     public decimal IncomesSum { get; set; }
     public decimal ExpensesAvg { get; set; }
     public decimal ExpensesSum { get; set; }
     public decimal BalanceAvg { get; set; }
     public decimal BalanceSum { get; set; }
+    public decimal SavingsRateAvg { get; set; }
+    public decimal SavingsRateTotal { get; set; }
 }
 
 public class ReportPeriod
@@ -29,6 +31,8 @@ public class ReportPeriod
     public decimal? YoyExpensesSum { get; set; }
     public decimal? YoyIncomesSum { get; set; }
     public decimal? YoyBalance { get; set; }
+
+    public decimal SavingsRate { get; set; }
 }
 
 public class ReportCategory

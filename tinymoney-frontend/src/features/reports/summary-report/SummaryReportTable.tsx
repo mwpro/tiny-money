@@ -84,6 +84,25 @@ export function SummaryReportTable({reportData, splitByMonth}: BudgetTableProps)
                         <TableCell><Curr input={reportData.balanceSum} colored/></TableCell>
                         <TableCell><Curr input={reportData.balanceAvg} colored/></TableCell>
                     </TableRow>
+                    <TableRow>
+                        <TableCell>Stopa oszczędności</TableCell>
+                        {reportData.periods.map(period => (
+                            <TableCell key={period.periodLabel} className="text-right">
+                                <span className={`font-mono tabular-nums ${period.savingsRate >= 0 ? "text-income" : "text-expense"}`}>
+                                    {period.savingsRate.toFixed(1)}%
+                                </span>
+                            </TableCell>))}
+                        <TableCell>
+                            <span className={`font-mono tabular-nums ${reportData.savingsRateTotal >= 0 ? "text-income" : "text-expense"}`}>
+                                {reportData.savingsRateTotal.toFixed(1)}%
+                            </span>
+                        </TableCell>
+                        <TableCell>
+                            <span className={`font-mono tabular-nums ${reportData.savingsRateAvg >= 0 ? "text-income" : "text-expense"}`}>
+                                {reportData.savingsRateAvg.toFixed(1)}%
+                            </span>
+                        </TableCell>
+                    </TableRow>
                 </TableBody>
             </Table>
         </div>

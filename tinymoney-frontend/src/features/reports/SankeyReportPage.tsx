@@ -145,7 +145,7 @@ export function SankeyReportPage() {
         if (!searchParams.size) {
             handlePeriodChange(startOfMonth(subMonths(new Date(), 12)), endOfMonth(new Date()))
         }
-    }, [reportSettings]);
+    }, []);
 
     const reportQuery = useQuery({
         queryKey: ['sankeyReport', reportSettings],
