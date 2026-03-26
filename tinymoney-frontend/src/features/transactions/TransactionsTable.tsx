@@ -70,12 +70,12 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                         <div className="flex-1 min-w-0">
                             <div className="font-semibold">
                                 {t.vendorId !== null && onVendorFilterClick
-                                    ? <button className="hover:underline cursor-pointer" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
+                                    ? <button className="hover:underline cursor-pointer text-left" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
                                     : (t.vendorName ?? "-")}
                             </div>
                             <div className="text-sm text-muted-foreground mt-0.5">
                                 {t.subcategoryId !== null && onSubcategoryFilterClick
-                                    ? <button className="hover:underline cursor-pointer" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
+                                    ? <button className="hover:underline cursor-pointer text-left" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
                                     : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
                             </div>
                             {t.description && (
@@ -182,12 +182,12 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                             </TableCell>
                             <TableCell className="whitespace-pre-wrap">
                                 {t.subcategoryId !== null && onSubcategoryFilterClick
-                                    ? <button className="hover:underline cursor-pointer" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
+                                    ? <button className="hover:underline cursor-pointer text-left" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
                                     : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
                             </TableCell>
                             <TableCell className="whitespace-pre-wrap">
                                 {t.vendorId !== null && onVendorFilterClick
-                                    ? <button className="hover:underline cursor-pointer" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
+                                    ? <button className="hover:underline cursor-pointer text-left" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
                                     : (t.vendorName ?? "-")}
                             </TableCell>
                             <TableCell className="whitespace-pre-wrap">{t.description}</TableCell>
