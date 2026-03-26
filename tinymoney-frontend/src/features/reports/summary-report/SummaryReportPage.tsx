@@ -58,11 +58,12 @@ export function SummaryReportPage() {
         if (!searchParams.size) {
             handlePeriodChange(startOfMonth(subMonths(new Date(), 12)), endOfMonth(new Date()))
         }
-    }, [reportSettings]);
+    }, []);
 
     const reportQuery = useQuery({
         queryKey: ['summaryReport', reportSettings],
-        queryFn: () => reportsClient.getSummaryReport(reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth)
+        queryFn: () => reportsClient.getSummaryReport(reportSettings.dateFrom, reportSettings.dateTo, reportSettings.splitByMonth),
+        enabled: !!searchParams.get("dateFrom")
     })
 
     return (

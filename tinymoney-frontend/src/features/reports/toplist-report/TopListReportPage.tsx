@@ -43,11 +43,12 @@ export function TopListReportPage() {
         if (!searchParams.size) {
             handlePeriodChange(startOfMonth(subMonths(new Date(), 12)), endOfMonth(new Date()))
         }
-    }, [reportSettings]);
+    }, []);
 
     const reportQuery = useQuery({
-        queryKey: ['summaryReport', reportSettings],
-        queryFn: () => reportsClient.getTopListReport(reportSettings.dateFrom, reportSettings.dateTo)
+        queryKey: ['topListReport', reportSettings],
+        queryFn: () => reportsClient.getTopListReport(reportSettings.dateFrom, reportSettings.dateTo),
+        enabled: !!searchParams.get("dateFrom")
     })
 
     return (
