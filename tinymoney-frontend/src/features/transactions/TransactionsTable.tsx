@@ -18,10 +18,13 @@ interface TransactionsTableProps {
     verifyingTransactionId?: number
     selectedIds: Set<number>;
     onSelectionChange: (ids: Set<number>) => void;
+    onVendorFilterClick?: (vendor: { id: number; name: string }) => void;
+    onSubcategoryFilterClick?: (subcategoryId: number) => void;
+    onTagFilterClick?: (tag: { id: number; name: string }) => void;
 }
 
 
-export function TransactionsTable({transactions, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange}: TransactionsTableProps) {
+export function TransactionsTable({transactions, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange, onVendorFilterClick, onSubcategoryFilterClick, onTagFilterClick}: TransactionsTableProps) {
     const allIds = transactions.transactions.map(t => t.id);
     const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
     const someSelected = allIds.some(id => selectedIds.has(id)) && !allSelected;
@@ -65,15 +68,24 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                     </div>
                     <div className="flex gap-2 items-end mt-1">
                         <div className="flex-1 min-w-0">
-                            <div className="font-semibold">{t.vendorName ?? "-"}</div>
-                            <div className="text-sm text-muted-foreground mt-0.5">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</div>
+                            <div className="font-semibold">
+                                {t.vendorId !== null && onVendorFilterClick
+                                    ? <button className="hover:underline cursor-pointer" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
+                                    : (t.vendorName ?? "-")}
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-0.5">
+                                {t.subcategoryId !== null && onSubcategoryFilterClick
+                                    ? <button className="hover:underline cursor-pointer" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
+                                    : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
+                            </div>
                             {t.description && (
                                 <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
                             )}
                             {t.tags.length > 0 && (
                                 <div className="flex gap-1 flex-wrap mt-1">
                                     {t.tags.map((tag) => (
-                                        <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                        <Badge key={tag.id} variant="secondary" className={`text-xs font-normal ${onTagFilterClick ? "cursor-pointer hover:underline" : ""}`}
+                                               onClick={onTagFilterClick ? () => onTagFilterClick(tag) : undefined}>
                                             {tag.name}
                                         </Badge>
                                     ))}
@@ -168,13 +180,22 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                             <TableCell>
                                 {format(new Date(t.transactionDate), dateFormat)}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">{t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-"}</TableCell>
-                            <TableCell className="whitespace-pre-wrap">{t.vendorName ?? "-"}</TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                                {t.subcategoryId !== null && onSubcategoryFilterClick
+                                    ? <button className="hover:underline cursor-pointer" onClick={() => onSubcategoryFilterClick(t.subcategoryId!)}>{t.categoryName} / {t.subcategoryName}</button>
+                                    : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
+                            </TableCell>
+                            <TableCell className="whitespace-pre-wrap">
+                                {t.vendorId !== null && onVendorFilterClick
+                                    ? <button className="hover:underline cursor-pointer" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
+                                    : (t.vendorName ?? "-")}
+                            </TableCell>
                             <TableCell className="whitespace-pre-wrap">{t.description}</TableCell>
                             <TableCell>
                                 <div className="flex gap-1 flex-wrap">
                                     {t.tags.map((tag) => (
-                                        <Badge key={tag.id} variant="secondary" className="text-xs font-normal">
+                                        <Badge key={tag.id} variant="secondary" className={`text-xs font-normal ${onTagFilterClick ? "cursor-pointer hover:underline" : ""}`}
+                                               onClick={onTagFilterClick ? () => onTagFilterClick(tag) : undefined}>
                                             {tag.name}
                                         </Badge>
                                     ))}

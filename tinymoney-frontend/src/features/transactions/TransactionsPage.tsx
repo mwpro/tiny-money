@@ -333,7 +333,18 @@ export function TransactionsPage() {
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
                     selectedIds={selectedIds} onSelectionChange={setSelectedIds}
                     onVerifyClick={t => verifyMutation.mutate(t)}
-                    verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}/>
+                    verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}
+                    onVendorFilterClick={vendor => {
+                        setVendorFilter(vendor);
+                        setQueryParams(prev => ({ ...prev, vendorIdFilter: vendor.id }));
+                    }}
+                    onSubcategoryFilterClick={subcategoryId => {
+                        setQueryParams(prev => ({ ...prev, subcategoryIdFilter: subcategoryId }));
+                    }}
+                    onTagFilterClick={tag => {
+                        setTagFilter(tagsQuery.data?.find(t => t.id === tag.id));
+                        setQueryParams(prev => ({ ...prev, tagIdFilter: tag.id }));
+                    }}/>
             }
         </div>
     )
