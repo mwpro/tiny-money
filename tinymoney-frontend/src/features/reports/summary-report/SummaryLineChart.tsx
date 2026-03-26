@@ -1,5 +1,5 @@
 import type {ReportPeriod} from "@/api/ApiTypes.ts";
-import {CartesianGrid, Line, LineChart, XAxis, YAxis} from "recharts"
+import {CartesianGrid, Line, LineChart, type TooltipProps, XAxis, YAxis} from "recharts"
 import {
     Card,
     CardContent
@@ -10,8 +10,9 @@ import {
     ChartLegend,
 } from "@/components/ui/chart"
 import {useState} from "react";
+import type {NameType, ValueType} from "recharts/types/component/DefaultTooltipContent";
 
-function SummaryTooltip({active, payload, label}: {active?: boolean, payload?: any[], label?: string}) {
+function SummaryTooltip({active, payload, label}: TooltipProps<ValueType, NameType>) {
     if (!active || !payload?.length) return null;
     return (
         <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
