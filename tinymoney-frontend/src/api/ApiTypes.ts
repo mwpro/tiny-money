@@ -98,7 +98,9 @@ export interface SummaryReport {
     expensesAvg: number,
     expensesSum: number,
     balanceAvg: number,
-    balanceSum: number
+    balanceSum: number,
+    savingsRateAvg: number,
+    savingsRateTotal: number
 }
 
 export interface ReportPeriod {
@@ -112,7 +114,9 @@ export interface ReportPeriod {
 
     yoyExpensesSum?: number | null,
     yoyIncomesSum?: number | null,
-    yoyBalance?: number | null
+    yoyBalance?: number | null,
+
+    savingsRate: number
 }
 
 export interface ReportCategory
