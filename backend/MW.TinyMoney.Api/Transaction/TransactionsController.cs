@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
+using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
@@ -238,6 +239,61 @@ namespace MW.TinyMoney.Api.Transaction
                 Transaction = transaction,
                 SuggestedAlias = await TrySuggestAlias(transaction, wasVerified)
             });
+        }
+
+        [HttpPost("{transactionId}/split")]
+        public async Task<IActionResult> SplitTransaction([FromRoute] int transactionId, [FromBody] ApiModels.SplitTransactionDto dto)
+        {
+            var transaction = await _transactionStore.GetTransaction(transactionId);
+            if (transaction == null)
+                return NotFound();
+
+            if (dto.Splits == null || dto.Splits.Count() < 2)
+                return BadRequest("Split requires at least 2 parts.");
+
+            var totalSplitAmount = dto.Splits.Sum(s => s.Amount);
+            if (totalSplitAmount != transaction.Amount)
+                return BadRequest($"Sum of split amounts ({totalSplitAmount}) must equal the transaction amount ({transaction.Amount}).");
+
+            var vendorNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var split in dto.Splits.Where(s => s.Vendor?.Id == null && !string.IsNullOrWhiteSpace(s.Vendor?.Name))
+                                             .DistinctBy(s => s.Vendor.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                var vendor = new Vendor { Name = split.Vendor.Name, DefaultSubcategoryId = split.SubcategoryId };
+                await _vendorStore.SaveVendor(vendor);
+                vendorNameToId[split.Vendor.Name] = vendor.Id;
+            }
+
+            var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in dto.Splits.SelectMany(s => s.Tags ?? [])
+                                           .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
+                                           .Select(t => t.Name)
+                                           .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var newTag = new Tag { Name = name };
+                await _tagStore.SaveTag(newTag);
+                tagNameToId[name] = newTag.Id;
+            }
+
+            var newTransactions = dto.Splits.Select(split => new ApiModels.Transaction
+            {
+                Amount = split.Amount,
+                IsExpense = split.IsExpense,
+                TransactionDate = transaction.TransactionDate,
+                Description = transaction.Description,
+                SubcategoryId = split.SubcategoryId,
+                VendorId = split.Vendor?.Id ?? (split.Vendor?.Name != null && vendorNameToId.TryGetValue(split.Vendor.Name, out var vid) ? vid : (int?)null),
+                IsVerified = true,
+                IsPossibleDuplicate = false,
+                CreatedDate = transaction.CreatedDate,
+                CreatedBy = transaction.CreatedBy,
+                ModifiedDate = DateTime.UtcNow,
+                Tags = (split.Tags ?? []).Select(t => new TagDto { Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null), Name = t.Name }).ToList()
+            }).ToList();
+
+            await _transactionStore.SplitTransaction(transaction, newTransactions);
+
+            return Ok();
         }
 
         [HttpDelete]

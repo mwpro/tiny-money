@@ -102,7 +102,8 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         // Delay hiding suggestions to allow for click events on suggestions
         setTimeout(() => {
             if (allowCustomValues && query.trim() && query.trim() !== value) {
-                handleSuggestionChosen(suggestions[0] ?? {name: query.trim()})
+                const exactMatch = suggestions.find(s => s.name.toLowerCase() === query.trim().toLowerCase())
+                handleSuggestionChosen(exactMatch ?? {name: query.trim()})
             }
             setIsFocused(false)
             setSuggestions([])

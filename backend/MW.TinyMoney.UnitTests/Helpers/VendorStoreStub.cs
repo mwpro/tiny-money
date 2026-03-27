@@ -9,7 +9,8 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 public class VendorStoreStub : IVendorStore
 {
     public Action<Vendor> SaveVendorMutation { get; set; }
-    public Task SaveVendor(Vendor vendor) { SaveVendorMutation?.Invoke(vendor); return Task.CompletedTask; }
+    public int SaveVendorCallCount { get; private set; }
+    public Task SaveVendor(Vendor vendor) { SaveVendorCallCount++; SaveVendorMutation?.Invoke(vendor); return Task.CompletedTask; }
     
     public int GetVendorsCallCount { get; private set; }
     public IEnumerable<Vendor> Vendors { get; set; }

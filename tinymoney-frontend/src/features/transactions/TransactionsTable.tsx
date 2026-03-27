@@ -8,13 +8,14 @@ import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
-import {ShieldCheck, SquarePen, Trash2} from "lucide-react";
+import {Scissors, ShieldCheck, SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
     onDeleteClick: (transaction: Transaction) => void
     onEditClick: (transaction: Transaction) => void
     onVerifyClick: (transaction: Transaction) => void
+    onSplitClick: (transaction: Transaction) => void
     verifyingTransactionId?: number
     selectedIds: Set<number>;
     onSelectionChange: (ids: Set<number>) => void;
@@ -24,7 +25,7 @@ interface TransactionsTableProps {
 }
 
 
-export function TransactionsTable({transactions, onEditClick, onDeleteClick, onVerifyClick, verifyingTransactionId, selectedIds, onSelectionChange, onVendorFilterClick, onSubcategoryFilterClick, onTagFilterClick}: TransactionsTableProps) {
+export function TransactionsTable({transactions, onEditClick, onDeleteClick, onVerifyClick, onSplitClick, verifyingTransactionId, selectedIds, onSelectionChange, onVendorFilterClick, onSubcategoryFilterClick, onTagFilterClick}: TransactionsTableProps) {
     const allIds = transactions.transactions.map(t => t.id);
     const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
     const someSelected = allIds.some(id => selectedIds.has(id)) && !allSelected;
@@ -106,6 +107,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                     </Button>
                                 )}
                                 <Button variant="outline" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                                <Button variant="outline" onClick={() => onSplitClick(t)} title="Podziel"><Scissors /></Button>
                                 <Button variant="outline" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
                             </ButtonGroup>
                         </div>
@@ -218,6 +220,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                         </Button>
                                     )}
                                     <Button variant="outline" size="sm" onClick={() => onEditClick(t)}><SquarePen /></Button>
+                                    <Button variant="outline" size="sm" onClick={() => onSplitClick(t)} title="Podziel"><Scissors /></Button>
                                     <Button variant="outline" size="sm" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
                                 </ButtonGroup>
                             </TableCell>

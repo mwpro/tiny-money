@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Tags.ApiModels;
+using MW.TinyMoney.Api.Transaction.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction
 {
@@ -20,6 +21,7 @@ namespace MW.TinyMoney.Api.Transaction
             bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
         Task DeleteTransactions(IReadOnlyList<int> transactionIds);
+        Task SplitTransaction(Transaction.ApiModels.Transaction parent, IEnumerable<Transaction.ApiModels.Transaction> newTransactions);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -283,6 +285,26 @@ namespace MW.TinyMoney.Api.Transaction
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.ExecuteAsync(DeleteTransactionsBulkQuery, new {transactionIds});
+        }
+
+        public async Task SplitTransaction(ApiModels.Transaction parent, IEnumerable<ApiModels.Transaction> newTransactions)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await using var dbTransaction = await connection.BeginTransactionAsync();
+
+            await connection.ExecuteAsync(DeleteTransactionQuery, new { transactionId = parent.Id }, dbTransaction);
+
+            foreach (var newTransaction in newTransactions)
+            {
+                newTransaction.Id = await connection.QuerySingleAsync<int>(SaveTransactionQuery, newTransaction, dbTransaction);
+
+                await connection.ExecuteAsync(SaveTransactionTags,
+                    newTransaction.Tags.Select(t => new { transactionId = newTransaction.Id, tagId = t.Id }),
+                    dbTransaction);
+            }
+
+            await dbTransaction.CommitAsync();
         }
     }
 }

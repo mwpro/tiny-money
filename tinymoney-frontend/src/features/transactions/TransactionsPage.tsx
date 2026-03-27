@@ -8,6 +8,7 @@ import {
 import {useEffect, useState} from "react";
 import {TransactionRemovalDialog} from "@/features/transactions/TransactionRemovalDialog.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
+import {SplitTransactionDialog} from "@/features/transactions/SplitTransactionDialog.tsx";
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {BulkTransactionRemovalDialog} from "@/features/transactions/BulkTransactionRemovalDialog.tsx";
@@ -56,6 +57,7 @@ export function TransactionsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [transactionToRemove, setTransactionToRemove] = useState<Transaction | undefined>(undefined)
     const [transactionToEdit, setTransactionToEdit] = useState<Transaction | undefined>(undefined)
+    const [transactionToSplit, setTransactionToSplit] = useState<Transaction | undefined>(undefined)
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
@@ -162,6 +164,7 @@ export function TransactionsPage() {
                     <TransactionsEditorDialog transactionToEdit={transactionToEdit} onClose={() => setTransactionToEdit(undefined)} />
                 </div>
                 <TransactionRemovalDialog transactionToRemove={transactionToRemove} onClose={() => setTransactionToRemove(undefined)} />
+                <SplitTransactionDialog transaction={transactionToSplit} onClose={() => setTransactionToSplit(undefined)} />
                 <AliasProposalDialog
                     suggestedAlias={pendingAlias}
                     transactionDescription={pendingDescription}
@@ -326,6 +329,7 @@ export function TransactionsPage() {
                 <TransactionsTable
                     transactions={transactionsQuery.data}
                     onEditClick={t => setTransactionToEdit(t)} onDeleteClick={t => setTransactionToRemove(t)}
+                    onSplitClick={t => setTransactionToSplit(t)}
                     selectedIds={selectedIds} onSelectionChange={setSelectedIds}
                     onVerifyClick={t => verifyMutation.mutate(t)}
                     verifyingTransactionId={verifyMutation.isPending ? verifyMutation.variables?.id : undefined}
