@@ -247,13 +247,14 @@ namespace MW.TinyMoney.Api.Transaction
             if (transaction == null)
                 return NotFound();
 
-            if (dto.Splits == null || dto.Splits.Count < 2)
-                return BadRequest("Podział wymaga co najmniej 2 części.");
+            if (dto.Splits == null || dto.Splits.Count() < 2)
+                return BadRequest("Split requires at least 2 parts.");
 
             var totalSplitAmount = dto.Splits.Sum(s => s.Amount);
             if (totalSplitAmount != transaction.Amount)
-                return BadRequest($"Suma części ({totalSplitAmount}) musi być równa kwocie transakcji ({transaction.Amount}).");
+                return BadRequest($"Sum of split amounts ({totalSplitAmount}) must equal the transaction amount ({transaction.Amount}).");
 
+            var newTransactions = new List<ApiModels.Transaction>();
             foreach (var split in dto.Splits)
             {
                 if (split.Vendor?.Id == null && !string.IsNullOrWhiteSpace(split.Vendor?.Name))
@@ -267,15 +268,31 @@ namespace MW.TinyMoney.Api.Transaction
                     split.Vendor.Id = vendor.Id;
                 }
 
-                foreach (var newTag in split.Tags.Where(t => t.Id is null))
+                foreach (var newTag in (split.Tags ?? []).Where(t => t.Id is null))
                 {
                     var tag = new Tag { Name = newTag.Name };
                     await _tagStore.SaveTag(tag);
                     newTag.Id = tag.Id;
                 }
+
+                newTransactions.Add(new ApiModels.Transaction
+                {
+                    Amount = split.Amount,
+                    IsExpense = split.IsExpense,
+                    TransactionDate = transaction.TransactionDate,
+                    Description = transaction.Description,
+                    SubcategoryId = split.SubcategoryId,
+                    VendorId = split.Vendor?.Id,
+                    IsVerified = true,
+                    IsPossibleDuplicate = false,
+                    CreatedDate = transaction.CreatedDate,
+                    CreatedBy = transaction.CreatedBy,
+                    ModifiedDate = DateTime.UtcNow,
+                    Tags = split.Tags?.ToList() ?? []
+                });
             }
 
-            await _transactionStore.SplitTransactionAsync(transaction, dto);
+            await _transactionStore.SplitTransaction(transaction, newTransactions);
 
             return Ok();
         }

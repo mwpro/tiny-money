@@ -10,7 +10,7 @@ public class TransactionStoreStub : ITransactionStore
 {
     public Transaction Transaction { get; set; }
     public bool SplitTransactionCalled { get; private set; }
-    public SplitTransactionDto LastSplitDto { get; private set; }
+    public IEnumerable<Transaction> LastSplitTransactions { get; private set; }
 
     public Task<Transaction> GetTransaction(int transactionId)
         => Task.FromResult(Transaction);
@@ -18,10 +18,10 @@ public class TransactionStoreStub : ITransactionStore
     public Task UpdateTransaction(Transaction transaction)
         => Task.CompletedTask;
 
-    public Task SplitTransactionAsync(Transaction parent, SplitTransactionDto dto)
+    public Task SplitTransaction(Transaction parent, IEnumerable<Transaction> newTransactions)
     {
         SplitTransactionCalled = true;
-        LastSplitDto = dto;
+        LastSplitTransactions = newTransactions;
         return Task.CompletedTask;
     }
 

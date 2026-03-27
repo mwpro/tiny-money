@@ -13,11 +13,13 @@ public static class TransactionsHelper
         int? subcategoryId = 4321,
         bool isVerified = false,
         string createdBy = TransactionPlaceholders.CreatedByImport,
-        string description = "some description") =>
+        string description = "some description",
+        decimal amount = 10,
+        DateTime? createdDate = null) =>
         new()
         {
             Id = 1,
-            Amount = 10,
+            Amount = amount,
             IsExpense = true,
             TransactionDate = DateTime.UtcNow,
             Description = description,
@@ -25,7 +27,7 @@ public static class TransactionsHelper
             SubcategoryId = subcategoryId,
             IsVerified = isVerified,
             IsPossibleDuplicate = false,
-            CreatedDate = DateTime.UtcNow,
+            CreatedDate = createdDate ?? DateTime.UtcNow,
             CreatedBy = createdBy,
             ModifiedDate = DateTime.UtcNow,
             Tags = new List<TagDto>()
