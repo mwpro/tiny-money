@@ -12,8 +12,15 @@ public class TransactionStoreStub : ITransactionStore
     public bool SplitTransactionCalled { get; private set; }
     public IEnumerable<Transaction> LastSplitTransactions { get; private set; }
 
+    public IReadOnlyCollection<Transaction> TransactionsByIds { get; set; } = new List<Transaction>();
+    public bool MergeTransactionCalled { get; private set; }
+    public Transaction MergedTransaction { get; private set; }
+
     public Task<Transaction> GetTransaction(int transactionId)
         => Task.FromResult(Transaction);
+
+    public Task<IReadOnlyCollection<Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds)
+        => Task.FromResult(TransactionsByIds);
 
     public Task UpdateTransaction(Transaction transaction)
         => Task.CompletedTask;
@@ -22,6 +29,13 @@ public class TransactionStoreStub : ITransactionStore
     {
         SplitTransactionCalled = true;
         LastSplitTransactions = newTransactions;
+        return Task.CompletedTask;
+    }
+
+    public Task MergeTransactions(IReadOnlyList<Transaction> sources, Transaction merged)
+    {
+        MergeTransactionCalled = true;
+        MergedTransaction = merged;
         return Task.CompletedTask;
     }
 

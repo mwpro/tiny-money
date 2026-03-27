@@ -228,6 +228,15 @@ export type SplitTransactionRequest = {
     splits: SplitPart[];
 }
 
+export type MergeTransactionsRequest = {
+    transactionIds: number[];
+    transactionDate: string;
+    description?: string;
+    subcategoryId: number;
+    vendor: VendorUpsert;
+    tags: TagUpsert[];
+}
+
 export type ImportBankStatementResult = {
     numberOfImportedTransactions: number;
     numberOfPossibleDuplicates: number;

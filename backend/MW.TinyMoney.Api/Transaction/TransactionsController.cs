@@ -306,6 +306,70 @@ namespace MW.TinyMoney.Api.Transaction
             return Ok();
         }
 
+        [HttpPost("merge")]
+        public async Task<IActionResult> MergeTransactions([FromBody] ApiModels.MergeTransactionsDto dto)
+        {
+            var transactionIds = dto.TransactionIds?.ToList();
+            if (transactionIds == null || transactionIds.Count < 2)
+                return BadRequest("Merge requires at least 2 transactions.");
+
+            if (dto.Vendor == null || string.IsNullOrWhiteSpace(dto.Vendor.Name))
+                return BadRequest("Vendor is required.");
+
+            if (dto.SubcategoryId <= 0)
+                return BadRequest("Category is required.");
+
+            var sources = await _transactionStore.GetTransactionsByIds(transactionIds);
+            if (sources.Count != transactionIds.Count)
+                return NotFound();
+
+            var net = sources.Sum(t => t.IsExpense ? -t.Amount : t.Amount);
+            if (net == 0)
+                return BadRequest("Net amount of merged transactions is zero.");
+
+            if (dto.Vendor.Id == null)
+            {
+                var vendor = new Vendor { Name = dto.Vendor.Name, DefaultSubcategoryId = dto.SubcategoryId };
+                await _vendorStore.SaveVendor(vendor);
+                dto.Vendor.Id = vendor.Id;
+            }
+
+            var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in (dto.Tags ?? [])
+                                 .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
+                                 .Select(t => t.Name)
+                                 .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var newTag = new Tag { Name = name };
+                await _tagStore.SaveTag(newTag);
+                tagNameToId[name] = newTag.Id;
+            }
+
+            var merged = new ApiModels.Transaction
+            {
+                Amount = Math.Abs(net),
+                IsExpense = net < 0,
+                TransactionDate = dto.TransactionDate,
+                Description = dto.Description,
+                SubcategoryId = dto.SubcategoryId,
+                VendorId = dto.Vendor.Id.Value,
+                IsVerified = true,
+                IsPossibleDuplicate = false,
+                CreatedDate = DateTime.UtcNow,
+                CreatedBy = TransactionPlaceholders.CreatedByApi,
+                ModifiedDate = DateTime.UtcNow,
+                Tags = (dto.Tags ?? []).Select(t => new TagDto
+                {
+                    Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null),
+                    Name = t.Name
+                }).ToList()
+            };
+
+            await _transactionStore.MergeTransactions(sources.ToList(), merged);
+
+            return Ok();
+        }
+
         private async Task<SuggestedAliasDto> TrySuggestAlias(ApiModels.Transaction transaction, bool wasVerified)
         {
             var becameVerified = !wasVerified && transaction.IsVerified;

@@ -8,7 +8,7 @@ import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
-import {Scissors, ShieldCheck, SquarePen, Trash2} from "lucide-react";
+import {CheckSquare, Scissors, ShieldCheck, Square, SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -109,6 +109,13 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                 <Button variant="outline" onClick={() => onEditClick(t)}><SquarePen /></Button>
                                 <Button variant="outline" onClick={() => onSplitClick(t)} title="Podziel"><Scissors /></Button>
                                 <Button variant="outline" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
+                                <Button
+                                    variant={selectedIds.has(t.id) ? "default" : "outline"}
+                                    onClick={() => handleSelectOne(t.id, !selectedIds.has(t.id))}
+                                    title="Zaznacz"
+                                >
+                                    {selectedIds.has(t.id) ? <CheckSquare /> : <Square />}
+                                </Button>
                             </ButtonGroup>
                         </div>
                     </div>

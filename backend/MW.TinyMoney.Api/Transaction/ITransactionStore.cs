@@ -16,12 +16,14 @@ namespace MW.TinyMoney.Api.Transaction
         Task SaveTransactionsBatch(IReadOnlyList<Transaction.ApiModels.Transaction> transactions);
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
+        Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
             bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
         Task DeleteTransactions(IReadOnlyList<int> transactionIds);
         Task SplitTransaction(Transaction.ApiModels.Transaction parent, IEnumerable<Transaction.ApiModels.Transaction> newTransactions);
+        Task MergeTransactions(IReadOnlyList<Transaction.ApiModels.Transaction> sources, Transaction.ApiModels.Transaction merged);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -136,6 +138,25 @@ namespace MW.TinyMoney.Api.Transaction
               FROM transaction_tag tt
               JOIN tag t ON tt.tag_id = t.id
               WHERE tt.transaction_id in @transactionIds";
+
+        private const string GetTransactionsByIdsQuery =
+            """
+            SELECT
+                t.id,
+                t.amount,
+                t.created_date AS 'createdDate',
+                t.description,
+                t.created_by AS 'createdBy',
+                t.is_expense AS 'isExpense',
+                t.modified_date AS 'modifiedDate',
+                t.transaction_date AS 'transactionDate',
+                t.vendor_id AS 'vendorId',
+                t.subcategory_id AS 'subcategoryId',
+                t.is_verified AS 'isVerified',
+                t.is_possible_duplicate AS 'isPossibleDuplicate'
+            FROM transaction t
+            WHERE t.id IN @transactionIds
+            """;
 
 
         public void SaveTransaction(Transaction.ApiModels.Transaction transaction)
@@ -303,6 +324,35 @@ namespace MW.TinyMoney.Api.Transaction
                     newTransaction.Tags.Select(t => new { transactionId = newTransaction.Id, tagId = t.Id }),
                     dbTransaction);
             }
+
+            await dbTransaction.CommitAsync();
+        }
+
+        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+
+            var transactions = await connection.QueryAsync<ApiModels.Transaction>(
+                GetTransactionsByIdsQuery, new { transactionIds });
+
+            return transactions.ToList();
+        }
+
+        public async Task MergeTransactions(IReadOnlyList<ApiModels.Transaction> sources, ApiModels.Transaction merged)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await using var dbTransaction = await connection.BeginTransactionAsync();
+
+            var sourceIds = sources.Select(t => t.Id).ToList();
+            await connection.ExecuteAsync(DeleteTransactionsBulkQuery, new { transactionIds = sourceIds }, dbTransaction);
+
+            merged.Id = await connection.QuerySingleAsync<int>(SaveTransactionQuery, merged, dbTransaction);
+
+            await connection.ExecuteAsync(SaveTransactionTags,
+                merged.Tags.Select(t => new { transactionId = merged.Id, tagId = t.Id }),
+                dbTransaction);
 
             await dbTransaction.CommitAsync();
         }
