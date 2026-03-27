@@ -1,5 +1,6 @@
 import type {
     ImportBankStatementResult,
+    MergeTransactionsRequest,
     NewTransaction,
     SplitTransactionRequest,
     TransactionMutationResponse,
@@ -19,6 +20,7 @@ export interface TransactionsClient {
     removeTransactions(transactionIds: number[]): Promise<void>;
     importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
     splitTransaction(transactionId: number, request: SplitTransactionRequest): Promise<void>;
+    mergeTransactions(request: MergeTransactionsRequest): Promise<void>;
 }
 
 export class TransactionsClientImpl extends ApiBase implements TransactionsClient {
@@ -86,6 +88,14 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
         if (!res.ok) {
             const message = await res.text();
             throw new Error(message || 'Błąd podczas podziału transakcji');
+        }
+    }
+
+    async mergeTransactions(request: MergeTransactionsRequest): Promise<void> {
+        const res = await this.request('POST', '/transactions/merge', request);
+        if (!res.ok) {
+            const message = await res.text();
+            throw new Error(message || 'Błąd podczas łączenia transakcji');
         }
     }
 }

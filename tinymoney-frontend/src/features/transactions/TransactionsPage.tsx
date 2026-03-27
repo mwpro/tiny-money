@@ -12,6 +12,7 @@ import {SplitTransactionDialog} from "@/features/transactions/SplitTransactionDi
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 import {ImportBankStatementDialog} from "@/features/transactions/ImportBankStatementDialog.tsx";
 import {BulkTransactionRemovalDialog} from "@/features/transactions/BulkTransactionRemovalDialog.tsx";
+import {MergeTransactionsDialog} from "@/features/transactions/MergeTransactionsDialog.tsx";
 import {SelectionSummaryBar} from "@/features/transactions/SelectionSummaryBar.tsx";
 import {DateRangePicker, transactionsListPresets} from "@/components/DateRangePicker.tsx";
 import {format, parse} from 'date-fns';
@@ -60,6 +61,7 @@ export function TransactionsPage() {
     const [transactionToSplit, setTransactionToSplit] = useState<Transaction | undefined>(undefined)
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+    const [mergeOpen, setMergeOpen] = useState(false)
     const [pendingAlias, setPendingAlias] = useState<SuggestedAlias | null>(null)
     const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
     const [pendingVendorName, setPendingVendorName] = useState<string>("")
@@ -176,6 +178,13 @@ export function TransactionsPage() {
                     isOpen={bulkDeleteOpen}
                     onClose={() => setBulkDeleteOpen(false)}
                     onSuccess={() => setSelectedIds(new Set())}
+                />
+                <MergeTransactionsDialog
+                    open={mergeOpen}
+                    selectedIds={selectedIds}
+                    transactions={transactionsQuery.data?.transactions ?? []}
+                    onClose={() => setMergeOpen(false)}
+                    onSuccess={() => { setMergeOpen(false); setSelectedIds(new Set()) }}
                 />
             </div>
 
@@ -350,6 +359,7 @@ export function TransactionsPage() {
                     selectedIds={selectedIds}
                     transactions={transactionsQuery.data.transactions}
                     onDelete={() => setBulkDeleteOpen(true)}
+                    onMerge={() => setMergeOpen(true)}
                 />
             )}
         </div>

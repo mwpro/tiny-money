@@ -8,7 +8,7 @@ import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
-import {Scissors, ShieldCheck, SquarePen, Trash2} from "lucide-react";
+import {CheckSquare, Scissors, ShieldCheck, Square, SquarePen, Trash2} from "lucide-react";
 
 interface TransactionsTableProps {
     transactions: TransactionsResponse;
@@ -80,7 +80,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                     : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
                             </div>
                             {t.description && (
-                                <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
+                                <div className="text-sm mt-0.5 whitespace-pre-wrap line-clamp-10">{t.description}</div>
                             )}
                             {t.tags.length > 0 && (
                                 <div className="flex gap-1 flex-wrap mt-1">
@@ -109,6 +109,13 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                 <Button variant="outline" onClick={() => onEditClick(t)}><SquarePen /></Button>
                                 <Button variant="outline" onClick={() => onSplitClick(t)} title="Podziel"><Scissors /></Button>
                                 <Button variant="outline" className={"hover:bg-destructive hover:text-white"} onClick={() => onDeleteClick(t)}><Trash2 /></Button>
+                                <Button
+                                    variant={selectedIds.has(t.id) ? "default" : "outline"}
+                                    onClick={() => handleSelectOne(t.id, !selectedIds.has(t.id))}
+                                    title="Zaznacz"
+                                >
+                                    {selectedIds.has(t.id) ? <CheckSquare /> : <Square />}
+                                </Button>
                             </ButtonGroup>
                         </div>
                     </div>
@@ -192,7 +199,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                     ? <button className="hover:underline cursor-pointer text-left" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
                                     : (t.vendorName ?? "-")}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">{t.description}</TableCell>
+                            <TableCell><div className="whitespace-pre-wrap line-clamp-10">{t.description}</div></TableCell>
                             <TableCell>
                                 <div className="flex gap-1 flex-wrap">
                                     {t.tags.map((tag) => (
