@@ -80,7 +80,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                     : (t.categoryName && t.subcategoryName ? `${t.categoryName} / ${t.subcategoryName}` : "-")}
                             </div>
                             {t.description && (
-                                <div className="text-sm mt-0.5 whitespace-pre-wrap">{t.description}</div>
+                                <div className="text-sm mt-0.5 whitespace-pre-wrap line-clamp-10">{t.description}</div>
                             )}
                             {t.tags.length > 0 && (
                                 <div className="flex gap-1 flex-wrap mt-1">
@@ -199,7 +199,7 @@ export function TransactionsTable({transactions, onEditClick, onDeleteClick, onV
                                     ? <button className="hover:underline cursor-pointer text-left" onClick={() => onVendorFilterClick({ id: t.vendorId!, name: t.vendorName! })}>{t.vendorName}</button>
                                     : (t.vendorName ?? "-")}
                             </TableCell>
-                            <TableCell className="whitespace-pre-wrap">{t.description}</TableCell>
+                            <TableCell><div className="whitespace-pre-wrap line-clamp-10">{t.description}</div></TableCell>
                             <TableCell>
                                 <div className="flex gap-1 flex-wrap">
                                     {t.tags.map((tag) => (
