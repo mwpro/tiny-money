@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, Delete } from 'lucide-react'
@@ -22,6 +22,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     const [selectedIndex, setSelectedIndex] = useState(-1)
     const [isLoading, setIsLoading] = useState(false)
     const [isFocused, setIsFocused] = useState(false)
+    const justChoseSuggestion = useRef(false)
 
     const fetchSuggestionsCallback = useCallback(async (q: string) => {
         if (q.trim() === '') {
@@ -88,6 +89,7 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     }
 
     const handleSuggestionChosen = (suggestion: { id?: number; name: string } | undefined) => {
+        justChoseSuggestion.current = true
         setQuery(clearQueryAfterSelection || !suggestion ? "" : suggestion.name)
         onChange?.(suggestion)
         setSuggestions([])
@@ -101,10 +103,11 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
     const handleBlur = () => {
         // Delay hiding suggestions to allow for click events on suggestions
         setTimeout(() => {
-            if (allowCustomValues && query.trim() && query.trim() !== value) {
+            if (!justChoseSuggestion.current && allowCustomValues && query.trim() && query.trim() !== value) {
                 const exactMatch = suggestions.find(s => s.name.toLowerCase() === query.trim().toLowerCase())
                 handleSuggestionChosen(exactMatch ?? {name: query.trim()})
             }
+            justChoseSuggestion.current = false
             setIsFocused(false)
             setSuggestions([])
             setSelectedIndex(-1)
