@@ -1,5 +1,5 @@
 import {useEffect} from "react"
-import {useFieldArray, useForm} from "react-hook-form"
+import {useFieldArray, useForm, useWatch, type Control} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {z} from "zod"
 import {useMutation, useQueryClient} from "@tanstack/react-query"
@@ -34,6 +34,35 @@ const splitFormSchema = z.object({
 
 export type SplitFormValues = z.infer<typeof splitFormSchema>
 
+interface SplitFooterProps {
+    control: Control<SplitFormValues>
+    total: number
+    isPending: boolean
+}
+
+function SplitFooter({control, total, isPending}: SplitFooterProps) {
+    const splits = useWatch({control, name: "splits"})
+    const totalAssigned = splits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
+    const remaining = total - totalAssigned
+    const isBalanced = Math.abs(remaining) < 0.001
+
+    return (
+        <>
+            <div className="flex justify-between items-center mt-4 py-2 border-t text-sm">
+                <span>Przypisano <br/><Curr input={totalAssigned}/> z <Curr input={total}/></span>
+                <span className={!isBalanced ? "text-red-500 font-medium" : "text-green-600 font-medium"}>
+                    Pozostało: <br/><Curr input={remaining}/>
+                </span>
+            </div>
+            <DialogFooter className="mt-4">
+                <Button type="submit" disabled={!isBalanced || isPending}>
+                    {isPending ? "Dzielenie..." : "Podziel"}
+                </Button>
+            </DialogFooter>
+        </>
+    )
+}
+
 interface SplitTransactionDialogProps {
     transaction: Transaction | undefined
     onClose: () => void
@@ -43,7 +72,7 @@ export function SplitTransactionDialog({transaction, onClose}: SplitTransactionD
     const {transactionsClient} = useApiClient()
     const queryClient = useQueryClient()
 
-    const {control, handleSubmit, setValue, watch, reset, register, formState: {errors}} = useForm<SplitFormValues>({
+    const {control, handleSubmit, setValue, reset, register} = useForm<SplitFormValues>({
         resolver: zodResolver(splitFormSchema),
         defaultValues: {splits: []}
     })
@@ -66,11 +95,6 @@ export function SplitTransactionDialog({transaction, onClose}: SplitTransactionD
     }, [transaction])
 
     const {fields, append, remove} = useFieldArray({control, name: "splits"})
-
-    const splits = watch("splits")
-    const totalAssigned = splits.reduce((sum, s) => sum + (Number(s.amount) || 0), 0)
-    const remaining = (transaction?.amount ?? 0) - totalAssigned
-    const isBalanced = Math.abs(remaining) < 0.001
 
     const mutation = useMutation({
         mutationFn: (data: SplitFormValues) =>
@@ -125,10 +149,8 @@ export function SplitTransactionDialog({transaction, onClose}: SplitTransactionD
                                 control={control}
                                 register={register}
                                 setValue={setValue}
-                                currentSubcategoryId={splits[index]?.subcategoryId}
-                                errors={errors}
+                                remove={remove}
                                 canRemove={fields.length > 2}
-                                onRemove={() => remove(index)}
                             />
                         ))}
 
@@ -137,18 +159,11 @@ export function SplitTransactionDialog({transaction, onClose}: SplitTransactionD
                         </Button>
                     </div>
 
-                    <div className="flex justify-between items-center mt-4 py-2 border-t text-sm">
-                        <span>Przypisano <br/><Curr input={totalAssigned}/> z <Curr input={transaction?.amount ?? 0}/></span>
-                        <span className={!isBalanced ? "text-red-500 font-medium" : "text-green-600 font-medium"}>
-                            Pozostało: <br/><Curr input={remaining}/>
-                        </span>
-                    </div>
-
-                    <DialogFooter className="mt-4">
-                        <Button type="submit" disabled={!isBalanced || mutation.isPending}>
-                            {mutation.isPending ? "Dzielenie..." : "Podziel"}
-                        </Button>
-                    </DialogFooter>
+                    <SplitFooter
+                        control={control}
+                        total={transaction?.amount ?? 0}
+                        isPending={mutation.isPending}
+                    />
                 </form>
             </DialogContent>
         </Dialog>

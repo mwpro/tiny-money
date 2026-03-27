@@ -1,5 +1,5 @@
-import {useRef} from "react"
-import {Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue} from "react-hook-form"
+import {memo, useRef} from "react"
+import {Controller, useFormState, useWatch, type Control, type UseFormRegister, type UseFormSetValue, type UseFieldArrayRemove} from "react-hook-form"
 import {useQuery} from "@tanstack/react-query"
 import {Button} from "@/components/ui/button"
 import {Label} from "@/components/ui/label"
@@ -17,13 +17,11 @@ interface SplitPartEditorProps {
     control: Control<SplitFormValues>
     register: UseFormRegister<SplitFormValues>
     setValue: UseFormSetValue<SplitFormValues>
-    currentSubcategoryId: number | undefined
-    errors: FieldErrors<SplitFormValues>
+    remove: UseFieldArrayRemove
     canRemove: boolean
-    onRemove: () => void
 }
 
-export function SplitPartEditor({index, control, register, setValue, currentSubcategoryId, errors, canRemove, onRemove}: SplitPartEditorProps) {
+export const SplitPartEditor = memo(function SplitPartEditor({index, control, register, setValue, remove, canRemove}: SplitPartEditorProps) {
     const {vendorsClient, categoriesClient, tagsClient} = useApiClient()
     const lastVendorSuggestions = useRef<VendorSuggestion[]>([])
 
@@ -31,12 +29,15 @@ export function SplitPartEditor({index, control, register, setValue, currentSubc
     const categoriesQuery = useQuery({queryKey: ['categories'], queryFn: () => categoriesClient.getCategories(), ...dictionariesConfig})
     const tagsQuery = useQuery({queryKey: ['tags'], queryFn: () => tagsClient.getTags(), ...dictionariesConfig})
 
+    const currentSubcategoryId = useWatch({control, name: `splits.${index}.subcategoryId`})
+    const {errors} = useFormState({control, name: `splits.${index}` as "splits"})
+
     return (
         <div className="border rounded-md p-3 grid gap-3">
             <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Część {index + 1}</span>
                 {canRemove && (
-                    <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
                         <Trash2 className="h-4 w-4"/>
                     </Button>
                 )}
@@ -151,4 +152,4 @@ export function SplitPartEditor({index, control, register, setValue, currentSubc
             </div>
         </div>
     )
-}
+})
