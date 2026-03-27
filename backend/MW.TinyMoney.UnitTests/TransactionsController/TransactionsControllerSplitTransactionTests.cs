@@ -211,4 +211,38 @@ public class TransactionsControllerSplitTransactionTests
         var firstSplit = _transactionStore.LastSplitTransactions.First();
         firstSplit.Tags.Should().ContainSingle(t => t.Name == "new-tag" && t.Id == 1);
     }
+
+    [Fact]
+    public async Task DoesNotCreateDuplicateVendor_WhenMultipleSplitsHaveSameNewVendorName()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(amount: 100);
+
+        await _controller.SplitTransaction(1, new SplitTransactionDto
+        {
+            Splits =
+            [
+                new() { Amount = 60, IsExpense = true, SubcategoryId = 10, Vendor = new VendorDto { Name = "New Shop" } },
+                new() { Amount = 40, IsExpense = true, SubcategoryId = 20, Vendor = new VendorDto { Name = "New Shop" } }
+            ]
+        });
+
+        _vendorStore.SaveVendorCallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task DoesNotCreateDuplicateTag_WhenMultipleSplitsHaveSameNewTagName()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(amount: 100);
+
+        await _controller.SplitTransaction(1, new SplitTransactionDto
+        {
+            Splits =
+            [
+                new() { Amount = 60, IsExpense = true, Tags = [new TagDto { Name = "promo" }] },
+                new() { Amount = 40, IsExpense = true, Tags = [new TagDto { Name = "promo" }] }
+            ]
+        });
+
+        _tagStore.SaveTagCallCount.Should().Be(1);
+    }
 }

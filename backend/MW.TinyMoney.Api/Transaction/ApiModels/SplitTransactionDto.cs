@@ -13,7 +13,7 @@ public class SplitPartDto
 {
     public decimal Amount { get; set; }
     public bool IsExpense { get; set; }
-    public int? SubcategoryId { get; set; }
+    public int SubcategoryId { get; set; }
     public VendorDto Vendor { get; set; }
     public IEnumerable<TagDto> Tags { get; set; }
 }

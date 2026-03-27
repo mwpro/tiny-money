@@ -46,7 +46,7 @@ export const SplitPartEditor = memo(function SplitPartEditor({index, control, re
             <div className="grid gap-2">
                 <Label>Kwota</Label>
                 <InputGroup>
-                    <InputGroupInput type="number" step="0.01" placeholder="0.00" {...register(`splits.${index}.amount`)} />
+                    <InputGroupInput type="number" step="0.01" min="0" placeholder="0.00" onKeyDown={e => e.key === "-" && e.preventDefault()} {...register(`splits.${index}.amount`)} />
                     <InputGroupAddon align="inline-end"><InputGroupText>zł</InputGroupText></InputGroupAddon>
                 </InputGroup>
                 {errors.splits?.[index]?.amount && (

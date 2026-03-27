@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
+using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
@@ -254,43 +255,41 @@ namespace MW.TinyMoney.Api.Transaction
             if (totalSplitAmount != transaction.Amount)
                 return BadRequest($"Sum of split amounts ({totalSplitAmount}) must equal the transaction amount ({transaction.Amount}).");
 
-            var newTransactions = new List<ApiModels.Transaction>();
-            foreach (var split in dto.Splits)
+            var vendorNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var split in dto.Splits.Where(s => s.Vendor?.Id == null && !string.IsNullOrWhiteSpace(s.Vendor?.Name))
+                                             .DistinctBy(s => s.Vendor.Name, StringComparer.OrdinalIgnoreCase))
             {
-                if (split.Vendor?.Id == null && !string.IsNullOrWhiteSpace(split.Vendor?.Name))
-                {
-                    var vendor = new Vendor()
-                    {
-                        Name = split.Vendor.Name,
-                        DefaultSubcategoryId = split.SubcategoryId ?? 0
-                    };
-                    await _vendorStore.SaveVendor(vendor);
-                    split.Vendor.Id = vendor.Id;
-                }
-
-                foreach (var newTag in (split.Tags ?? []).Where(t => t.Id is null))
-                {
-                    var tag = new Tag { Name = newTag.Name };
-                    await _tagStore.SaveTag(tag);
-                    newTag.Id = tag.Id;
-                }
-
-                newTransactions.Add(new ApiModels.Transaction
-                {
-                    Amount = split.Amount,
-                    IsExpense = split.IsExpense,
-                    TransactionDate = transaction.TransactionDate,
-                    Description = transaction.Description,
-                    SubcategoryId = split.SubcategoryId,
-                    VendorId = split.Vendor?.Id,
-                    IsVerified = true,
-                    IsPossibleDuplicate = false,
-                    CreatedDate = transaction.CreatedDate,
-                    CreatedBy = transaction.CreatedBy,
-                    ModifiedDate = DateTime.UtcNow,
-                    Tags = split.Tags?.ToList() ?? []
-                });
+                var vendor = new Vendor { Name = split.Vendor.Name, DefaultSubcategoryId = split.SubcategoryId };
+                await _vendorStore.SaveVendor(vendor);
+                vendorNameToId[split.Vendor.Name] = vendor.Id;
             }
+
+            var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in dto.Splits.SelectMany(s => s.Tags ?? [])
+                                           .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
+                                           .Select(t => t.Name)
+                                           .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                var newTag = new Tag { Name = name };
+                await _tagStore.SaveTag(newTag);
+                tagNameToId[name] = newTag.Id;
+            }
+
+            var newTransactions = dto.Splits.Select(split => new ApiModels.Transaction
+            {
+                Amount = split.Amount,
+                IsExpense = split.IsExpense,
+                TransactionDate = transaction.TransactionDate,
+                Description = transaction.Description,
+                SubcategoryId = split.SubcategoryId,
+                VendorId = split.Vendor?.Id ?? (split.Vendor?.Name != null && vendorNameToId.TryGetValue(split.Vendor.Name, out var vid) ? vid : (int?)null),
+                IsVerified = true,
+                IsPossibleDuplicate = false,
+                CreatedDate = transaction.CreatedDate,
+                CreatedBy = transaction.CreatedBy,
+                ModifiedDate = DateTime.UtcNow,
+                Tags = (split.Tags ?? []).Select(t => new TagDto { Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null), Name = t.Name }).ToList()
+            }).ToList();
 
             await _transactionStore.SplitTransaction(transaction, newTransactions);
 
