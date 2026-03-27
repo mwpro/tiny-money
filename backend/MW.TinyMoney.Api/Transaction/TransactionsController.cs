@@ -365,7 +365,7 @@ namespace MW.TinyMoney.Api.Transaction
                 }).ToList()
             };
 
-            await _transactionStore.MergeTransactions(sources.ToList(), merged);
+            await _transactionStore.MergeTransactions(sources, merged);
 
             return Ok();
         }

@@ -19,7 +19,7 @@ public class TransactionStoreStub : ITransactionStore
     public Task<Transaction> GetTransaction(int transactionId)
         => Task.FromResult(Transaction);
 
-    public Task<IReadOnlyCollection<Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds)
+    public Task<IReadOnlyCollection<Transaction>> GetTransactionsByIds(IEnumerable<int> transactionIds)
         => Task.FromResult(TransactionsByIds);
 
     public Task UpdateTransaction(Transaction transaction)
@@ -32,7 +32,7 @@ public class TransactionStoreStub : ITransactionStore
         return Task.CompletedTask;
     }
 
-    public Task MergeTransactions(IReadOnlyList<Transaction> sources, Transaction merged)
+    public Task MergeTransactions(IEnumerable<Transaction> sources, Transaction merged)
     {
         MergeTransactionCalled = true;
         MergedTransaction = merged;
@@ -43,5 +43,5 @@ public class TransactionStoreStub : ITransactionStore
     public Task SaveTransactionsBatch(IReadOnlyList<Transaction> transactions) => throw new NotImplementedException();
     public Task<IReadOnlyCollection<Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo, bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId, bool? isVerified) => throw new NotImplementedException();
     public Task DeleteTransaction(Transaction transaction) => throw new NotImplementedException();
-    public Task DeleteTransactions(IReadOnlyList<int> transactionIds) => throw new NotImplementedException();
+    public Task DeleteTransactions(IEnumerable<int> transactionIds) => throw new NotImplementedException();
 }

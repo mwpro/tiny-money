@@ -12,7 +12,7 @@ import {Textarea} from "@/components/ui/textarea.tsx"
 import {TagsInput} from "@/components/TagsInput.tsx"
 import Autocomplete from "@/components/Autocomplete.tsx"
 import {DatePicker} from "@/components/DatePicker.tsx"
-import {Curr} from "@/components/Curr.tsx"
+import {Curr, formatCurrencyAsString} from "@/components/Curr.tsx"
 import {format} from "date-fns"
 import {dateFormat} from "@/lib/utils.ts"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
@@ -47,12 +47,9 @@ function buildDefaultDescription(sources: Transaction[], net: number): string {
         const dateStr = format(new Date(t.transactionDate), dateFormat)
         const label = t.description ?? t.vendorName ?? ""
         const signedAmount = t.isExpense ? -t.amount : t.amount
-        const amtStr = signedAmount >= 0
-            ? `(${signedAmount.toFixed(2)} zł)`
-            : `(${signedAmount.toFixed(2)} zł)`
-        return `${dateStr} ${label} ${amtStr}`
+        return `${dateStr} ${label} (${formatCurrencyAsString(signedAmount)})`
     })
-    const netStr = `= ${net.toFixed(2)} zł`
+    const netStr = `= ${formatCurrencyAsString(net)}`
     return [...lines, netStr].join("\n")
 }
 
@@ -65,7 +62,7 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
     const categoriesQuery = useQuery({queryKey: ['categories'], queryFn: () => categoriesClient.getCategories(), ...dictionariesConfig})
     const tagsQuery = useQuery({queryKey: ['tags'], queryFn: () => tagsClient.getTags(), ...dictionariesConfig})
 
-    const {control, handleSubmit, reset, formState: {errors}} = useForm<MergeFormValues>({
+    const {control, handleSubmit, reset, setValue, formState: {errors}} = useForm<MergeFormValues>({
         resolver: zodResolver(mergeFormSchema),
         defaultValues: {
             transactionDate: format(new Date(), dateFormat),
@@ -185,6 +182,17 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
                                         clearQueryAfterSelection={false}
                                         onChange={value => {
                                             f.onChange(value ? {...value} : {id: undefined, name: ""})
+                                            if (value?.id) {
+                                                const suggestion = lastVendorSuggestions.current.find(s => s.vendorId === value.id)
+                                                if (suggestion?.defaultSubcategoryId) {
+                                                    const category = categoriesQuery.data?.find(c =>
+                                                        c.subcategories.some(s => s.id === suggestion.defaultSubcategoryId))
+                                                    const matchesType = category && (isExpenseResult ? !category.isIncome : category.isIncome)
+                                                    if (matchesType) {
+                                                        setValue("subcategoryId", suggestion.defaultSubcategoryId)
+                                                    }
+                                                }
+                                            }
                                         }}
                                         allowCustomValues={true}
                                     />

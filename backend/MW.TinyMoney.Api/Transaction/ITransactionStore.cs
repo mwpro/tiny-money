@@ -16,14 +16,14 @@ namespace MW.TinyMoney.Api.Transaction
         Task SaveTransactionsBatch(IReadOnlyList<Transaction.ApiModels.Transaction> transactions);
         Task UpdateTransaction(Transaction.ApiModels.Transaction transaction);
         Task<Transaction.ApiModels.Transaction> GetTransaction(int transactionId);
-        Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds);
+        Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IEnumerable<int> transactionIds);
         Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactions(DateTime? dateFrom, DateTime? dateTo,
             bool? isExpense, decimal? amountFrom, decimal? amountTo, int? vendorId, int? subcategoryId, int? tagId,
             bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
-        Task DeleteTransactions(IReadOnlyList<int> transactionIds);
+        Task DeleteTransactions(IEnumerable<int> transactionIds);
         Task SplitTransaction(Transaction.ApiModels.Transaction parent, IEnumerable<Transaction.ApiModels.Transaction> newTransactions);
-        Task MergeTransactions(IReadOnlyList<Transaction.ApiModels.Transaction> sources, Transaction.ApiModels.Transaction merged);
+        Task MergeTransactions(IEnumerable<Transaction.ApiModels.Transaction> sources, Transaction.ApiModels.Transaction merged);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -302,7 +302,7 @@ namespace MW.TinyMoney.Api.Transaction
             }
         }
 
-        public async Task DeleteTransactions(IReadOnlyList<int> transactionIds)
+        public async Task DeleteTransactions(IEnumerable<int> transactionIds)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.ExecuteAsync(DeleteTransactionsBulkQuery, new {transactionIds});
@@ -328,7 +328,7 @@ namespace MW.TinyMoney.Api.Transaction
             await dbTransaction.CommitAsync();
         }
 
-        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IReadOnlyList<int> transactionIds)
+        public async Task<IReadOnlyCollection<ApiModels.Transaction>> GetTransactionsByIds(IEnumerable<int> transactionIds)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
@@ -339,7 +339,7 @@ namespace MW.TinyMoney.Api.Transaction
             return transactions.ToList();
         }
 
-        public async Task MergeTransactions(IReadOnlyList<ApiModels.Transaction> sources, ApiModels.Transaction merged)
+        public async Task MergeTransactions(IEnumerable<ApiModels.Transaction> sources, ApiModels.Transaction merged)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
