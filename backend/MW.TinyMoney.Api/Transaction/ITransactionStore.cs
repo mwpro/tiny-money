@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Tags.ApiModels;
+using MW.TinyMoney.Api.Transaction.ApiModels;
 
 namespace MW.TinyMoney.Api.Transaction
 {
@@ -20,6 +21,7 @@ namespace MW.TinyMoney.Api.Transaction
             bool? isVerified);
         Task DeleteTransaction(Transaction.ApiModels.Transaction transaction);
         Task DeleteTransactions(IReadOnlyList<int> transactionIds);
+        Task SplitTransactionAsync(Transaction.ApiModels.Transaction parent, Transaction.ApiModels.SplitTransactionDto dto);
     }
 
     public class MySqlTransactionStore : ITransactionStore
@@ -283,6 +285,42 @@ namespace MW.TinyMoney.Api.Transaction
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.ExecuteAsync(DeleteTransactionsBulkQuery, new {transactionIds});
+        }
+
+        public async Task SplitTransactionAsync(ApiModels.Transaction parent, SplitTransactionDto dto)
+        {
+            await using var connection = _mySqlConnectionFactory.CreateConnection();
+            await connection.OpenAsync();
+            await using var dbTransaction = await connection.BeginTransactionAsync();
+
+            await connection.ExecuteAsync(DeleteTransactionQuery, new { transactionId = parent.Id }, dbTransaction);
+
+            foreach (var split in dto.Splits)
+            {
+                var newTransaction = new ApiModels.Transaction
+                {
+                    Amount = split.Amount,
+                    IsExpense = split.IsExpense,
+                    TransactionDate = parent.TransactionDate,
+                    Description = parent.Description,
+                    SubcategoryId = split.SubcategoryId,
+                    VendorId = split.Vendor?.Id,
+                    IsVerified = parent.IsVerified,
+                    IsPossibleDuplicate = false,
+                    CreatedDate = DateTime.UtcNow,
+                    CreatedBy = parent.CreatedBy,
+                    ModifiedDate = DateTime.UtcNow,
+                    Tags = split.Tags.ToList()
+                };
+
+                newTransaction.Id = await connection.QuerySingleAsync<int>(SaveTransactionQuery, newTransaction, dbTransaction);
+
+                await connection.ExecuteAsync(SaveTransactionTags,
+                    split.Tags.Select(t => new { transactionId = newTransaction.Id, tagId = t.Id }),
+                    dbTransaction);
+            }
+
+            await dbTransaction.CommitAsync();
         }
     }
 }

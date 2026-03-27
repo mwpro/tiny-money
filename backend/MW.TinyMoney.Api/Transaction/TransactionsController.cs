@@ -240,6 +240,46 @@ namespace MW.TinyMoney.Api.Transaction
             });
         }
 
+        [HttpPost("{transactionId}/split")]
+        public async Task<IActionResult> SplitTransaction([FromRoute] int transactionId, [FromBody] ApiModels.SplitTransactionDto dto)
+        {
+            var transaction = await _transactionStore.GetTransaction(transactionId);
+            if (transaction == null)
+                return NotFound();
+
+            if (dto.Splits == null || dto.Splits.Count < 2)
+                return BadRequest("Podział wymaga co najmniej 2 części.");
+
+            var totalSplitAmount = dto.Splits.Sum(s => s.Amount);
+            if (totalSplitAmount != transaction.Amount)
+                return BadRequest($"Suma części ({totalSplitAmount}) musi być równa kwocie transakcji ({transaction.Amount}).");
+
+            foreach (var split in dto.Splits)
+            {
+                if (split.Vendor?.Id == null && !string.IsNullOrWhiteSpace(split.Vendor?.Name))
+                {
+                    var vendor = new Vendor()
+                    {
+                        Name = split.Vendor.Name,
+                        DefaultSubcategoryId = split.SubcategoryId ?? 0
+                    };
+                    await _vendorStore.SaveVendor(vendor);
+                    split.Vendor.Id = vendor.Id;
+                }
+
+                foreach (var newTag in split.Tags.Where(t => t.Id is null))
+                {
+                    var tag = new Tag { Name = newTag.Name };
+                    await _tagStore.SaveTag(tag);
+                    newTag.Id = tag.Id;
+                }
+            }
+
+            await _transactionStore.SplitTransactionAsync(transaction, dto);
+
+            return Ok();
+        }
+
         [HttpDelete]
         public async Task<IActionResult> DeleteTransactions([FromBody] IReadOnlyList<int> transactionIds)
         {

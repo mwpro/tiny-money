@@ -1,6 +1,7 @@
 import type {
     ImportBankStatementResult,
     NewTransaction,
+    SplitTransactionRequest,
     TransactionMutationResponse,
     TransactionQueryParams,
     TransactionsResponse
@@ -17,6 +18,7 @@ export interface TransactionsClient {
     removeTransaction(transactionId: number): Promise<void>;
     removeTransactions(transactionIds: number[]): Promise<void>;
     importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
+    splitTransaction(transactionId: number, request: SplitTransactionRequest): Promise<void>;
 }
 
 export class TransactionsClientImpl extends ApiBase implements TransactionsClient {
@@ -73,9 +75,17 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
         const formData = new FormData();
         formData.append('file', file);
         formData.append('fileType', fileType);
-        
+
         const res = await this.requestFormData('POST', `/transactions/import/file`, formData);
         if (!res.ok) throw new Error('Błąd podczas importu transakcji');
         return res.json();
+    }
+
+    async splitTransaction(transactionId: number, request: SplitTransactionRequest): Promise<void> {
+        const res = await this.request('POST', `/transactions/${transactionId}/split`, request);
+        if (!res.ok) {
+            const message = await res.text();
+            throw new Error(message || 'Błąd podczas podziału transakcji');
+        }
     }
 }

@@ -9,12 +9,21 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 public class TransactionStoreStub : ITransactionStore
 {
     public Transaction Transaction { get; set; }
+    public bool SplitTransactionCalled { get; private set; }
+    public SplitTransactionDto LastSplitDto { get; private set; }
 
     public Task<Transaction> GetTransaction(int transactionId)
         => Task.FromResult(Transaction);
 
     public Task UpdateTransaction(Transaction transaction)
         => Task.CompletedTask;
+
+    public Task SplitTransactionAsync(Transaction parent, SplitTransactionDto dto)
+    {
+        SplitTransactionCalled = true;
+        LastSplitDto = dto;
+        return Task.CompletedTask;
+    }
 
     public void SaveTransaction(Transaction transaction) => throw new NotImplementedException();
     public Task SaveTransactionsBatch(IReadOnlyList<Transaction> transactions) => throw new NotImplementedException();

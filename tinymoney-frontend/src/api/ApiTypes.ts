@@ -216,6 +216,18 @@ export type NewTransaction = {
     tags: TagUpsert[];
 }
 
+export type SplitPart = {
+    amount: number;
+    isExpense: boolean;
+    subcategoryId?: number;
+    vendor?: VendorUpsert;
+    tags: TagUpsert[];
+}
+
+export type SplitTransactionRequest = {
+    splits: SplitPart[];
+}
+
 export type ImportBankStatementResult = {
     numberOfImportedTransactions: number;
     numberOfPossibleDuplicates: number;
