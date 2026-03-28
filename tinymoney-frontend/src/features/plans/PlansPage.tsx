@@ -1,16 +1,15 @@
 import {useQuery} from "@tanstack/react-query"
 import {Link} from "react-router-dom"
 import {format, parseISO} from "date-fns"
-import {pl} from "date-fns/locale/pl"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
-import {prepareTitleText} from "@/lib/utils.ts"
+import {dateFormat, prepareTitleText} from "@/lib/utils.ts"
 import {PlanProgressBar} from "@/features/plans/PlanProgressBar.tsx"
 import {PlanEditorDialog} from "@/features/plans/PlanEditorDialog.tsx"
 import {Curr} from "@/components/Curr.tsx"
 import type {PlanSummary} from "@/api/ApiTypes.ts"
 
 function formatPlanDate(dateStr: string) {
-    return format(parseISO(dateStr), "d MMM yyyy", {locale: pl})
+    return format(parseISO(dateStr), dateFormat)
 }
 
 function PlanDateRange({plan}: { plan: PlanSummary }) {
@@ -31,7 +30,7 @@ function PlanRow({plan}: { plan: PlanSummary }) {
                 </div>
             </div>
             <div className="flex flex-col gap-1 sm:w-48">
-                <PlanProgressBar spent={plan.totalSpent} budget={plan.totalBudget}/>
+                <PlanProgressBar percent={plan.spentPercent}/>
                 <div className="flex justify-between text-xs text-muted-foreground">
                     <Curr input={plan.totalSpent}/>
                     <span className="text-muted-foreground/60">z</span>

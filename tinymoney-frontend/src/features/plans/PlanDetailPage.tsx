@@ -1,7 +1,7 @@
 import {useQuery} from "@tanstack/react-query"
 import {Link, useParams} from "react-router-dom"
 import {format, parseISO} from "date-fns"
-import {pl} from "date-fns/locale/pl"
+import {dateFormat} from "@/lib/utils.ts"
 import {ChevronLeftIcon, PencilIcon} from "lucide-react"
 import {useState} from "react"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
@@ -14,7 +14,7 @@ import {Curr} from "@/components/Curr.tsx"
 import {Button} from "@/components/ui/button"
 
 function formatDate(dateStr: string) {
-    return format(parseISO(dateStr), "d MMMM yyyy", {locale: pl})
+    return format(parseISO(dateStr), dateFormat)
 }
 
 export function PlanDetailPage() {
@@ -80,7 +80,7 @@ export function PlanDetailPage() {
                                     <Curr input={totalBudget}/>
                                 </span>
                             </div>
-                            <PlanProgressBar spent={totalSpent} budget={totalBudget}/>
+                            <PlanProgressBar percent={totalBudget > 0 ? totalSpent / totalBudget * 100 : 0}/>
                         </div>
                     </>
                 )}

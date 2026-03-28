@@ -10,7 +10,7 @@ export function ActivePlansWidget({activePlans}: Props) {
     return (
         <Card className="sm:col-span-2">
             <CardHeader>
-                <CardDescription>Aktywne plany</CardDescription>
+                <CardDescription>Plany</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
                 {activePlans.length === 0
@@ -25,7 +25,7 @@ export function ActivePlansWidget({activePlans}: Props) {
                                     <Curr input={p.totalSpent}/> z <Curr input={p.totalBudget}/>
                                 </span>
                             </div>
-                            <PlanProgressBar spent={p.totalSpent} budget={p.totalBudget}/>
+                            <PlanProgressBar percent={p.spentPercent}/>
                         </div>
                     ))
                 }

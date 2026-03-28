@@ -29,7 +29,7 @@ export function PlanTagLinesTable({plan}: PlanTagLinesTableProps) {
     const [tagToDelete, setTagToDelete] = useState<PlanTagLine | undefined>(undefined)
 
     const deleteMutation = useMutation({
-        mutationFn: (planTagId: number) => plansClient.deletePlanTag(plan.id, planTagId),
+        mutationFn: (tagId: number) => plansClient.deletePlanTag(plan.id, tagId),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['plans', plan.id]})
             setTagToDelete(undefined)
@@ -73,7 +73,7 @@ export function PlanTagLinesTable({plan}: PlanTagLinesTableProps) {
                         {plan.tagLines.map(line => {
                             const remaining = line.amount - line.spent
                             return (
-                                <TableRow key={line.id}>
+                                <TableRow key={line.tagId}>
                                     <TableCell>
                                         <div>
                                             <Link
@@ -82,7 +82,7 @@ export function PlanTagLinesTable({plan}: PlanTagLinesTableProps) {
                                             >
                                                 {line.tagName}
                                             </Link>
-                                            <PlanProgressBar spent={line.spent} budget={line.amount} className="mt-1"/>
+                                            <PlanProgressBar percent={line.spentPercent} className="mt-1"/>
                                             {line.description && (
                                                 <p className="text-xs text-muted-foreground mt-0.5">{line.description}</p>
                                             )}
@@ -140,7 +140,7 @@ export function PlanTagLinesTable({plan}: PlanTagLinesTableProps) {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Anuluj</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => tagToDelete && deleteMutation.mutate(tagToDelete.id)}
+                            onClick={() => tagToDelete && deleteMutation.mutate(tagToDelete.tagId)}
                             disabled={deleteMutation.isPending}
                             className="bg-destructive text-white hover:bg-destructive/90"
                         >

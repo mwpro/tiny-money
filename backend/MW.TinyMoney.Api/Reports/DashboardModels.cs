@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Reports;
 
-public record ActivePlanSummary(int Id, string Title, decimal TotalBudget, decimal TotalSpent);
+public record ActivePlanSummary(int Id, string Title, decimal TotalBudget, decimal TotalSpent, decimal SpentPercent);
 
 public record DailyExpense(int Day, decimal Amount, decimal BudgetLeft);
 

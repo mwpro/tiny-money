@@ -44,7 +44,7 @@ export function PlanTagEditDialog({planId, tagLine, onClose}: PlanTagEditDialogP
 
     const mutation = useMutation({
         mutationFn: (data: FormInputs) =>
-            plansClient.updatePlanTag(planId, tagLine!.id, {
+            plansClient.updatePlanTag(planId, tagLine!.tagId, {
                 amount: Number(data.amount),
                 description: data.description || undefined
             }),

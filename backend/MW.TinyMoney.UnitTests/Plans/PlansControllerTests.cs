@@ -27,8 +27,6 @@ public class PlansControllerTests
     [Fact]
     public async Task CreatePlan_Returns201_WhenValid()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "Test", DateFrom = new DateTime(2026, 1, 1) };
-
         var result = await _controller.CreatePlan(new CreatePlanRequest
         {
             Title = "Test",
@@ -40,8 +38,10 @@ public class PlansControllerTests
     }
 
     [Fact]
-    public async Task CreatePlan_Returns400_WhenDateToBeforeDateFrom()
+    public async Task CreatePlan_Returns400_WhenModelStateInvalid()
     {
+        _controller.ModelState.AddModelError("DateTo", "DateTo must be after DateFrom");
+
         var result = await _controller.CreatePlan(new CreatePlanRequest
         {
             Title = "Test",
@@ -92,7 +92,7 @@ public class PlansControllerTests
             DateFrom = new DateTime(2026, 1, 1),
             TagLines = new List<PlanTag>
             {
-                new() { Id = 10, TagId = 5, TagName = "Plumbing", Amount = 3000, Spent = 300 }
+                new() { TagId = 5, TagName = "Plumbing", Amount = 3000, Spent = 300 }
             }
         };
 
@@ -117,9 +117,9 @@ public class PlansControllerTests
     }
 
     [Fact]
-    public async Task UpdatePlan_Returns400_WhenDateToBeforeDateFrom()
+    public async Task UpdatePlan_Returns400_WhenModelStateInvalid()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
+        _controller.ModelState.AddModelError("DateTo", "DateTo must be after DateFrom");
 
         var result = await _controller.UpdatePlan(1, new UpdatePlanRequest
         {
@@ -170,12 +170,25 @@ public class PlansControllerTests
     public async Task AddPlanTag_Returns201_WhenSuccess()
     {
         _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
-        _planStore.CreatedPlanTagId = 42;
 
         var result = await _controller.AddPlanTag(1, new AddPlanTagRequest { TagId = 5, Amount = 1000 });
 
-        var dto = result.Should().BeOfType<ObjectResult>()
+        result.Should().BeOfType<StatusCodeResult>()
             .Which.StatusCode.Should().Be(StatusCodes.Status201Created);
+    }
+
+    [Fact]
+    public async Task AddPlanTag_Returns409_WhenTagAlreadyAdded()
+    {
+        _planStore.PlanDetail = new PlanDetail
+        {
+            Id = 1, Title = "X", DateFrom = DateTime.Today,
+            TagLines = new List<PlanTag> { new() { TagId = 5, TagName = "Test", Amount = 100 } }
+        };
+
+        var result = await _controller.AddPlanTag(1, new AddPlanTagRequest { TagId = 5, Amount = 1000 });
+
+        result.Should().BeOfType<ConflictObjectResult>();
     }
 
     // ---- UpdatePlanTag ----

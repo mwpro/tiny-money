@@ -3,7 +3,6 @@ import type {
     CreatePlanRequest,
     PlanDetail,
     PlanSummary,
-    PlanTagLine,
     UpdatePlanRequest,
     UpdatePlanTagRequest
 } from "@/api/ApiTypes.ts";
@@ -15,9 +14,9 @@ export interface PlansClient {
     createPlan(req: CreatePlanRequest): Promise<PlanSummary>;
     updatePlan(planId: number, req: UpdatePlanRequest): Promise<void>;
     deletePlan(planId: number): Promise<void>;
-    addPlanTag(planId: number, req: AddPlanTagRequest): Promise<PlanTagLine>;
-    updatePlanTag(planId: number, planTagId: number, req: UpdatePlanTagRequest): Promise<void>;
-    deletePlanTag(planId: number, planTagId: number): Promise<void>;
+    addPlanTag(planId: number, req: AddPlanTagRequest): Promise<void>;
+    updatePlanTag(planId: number, tagId: number, req: UpdatePlanTagRequest): Promise<void>;
+    deletePlanTag(planId: number, tagId: number): Promise<void>;
 }
 
 export class PlansClientImpl extends ApiBase implements PlansClient {
@@ -50,19 +49,21 @@ export class PlansClientImpl extends ApiBase implements PlansClient {
         if (!res.ok) throw new Error('Błąd usuwania planu');
     }
 
-    async addPlanTag(planId: number, req: AddPlanTagRequest): Promise<PlanTagLine> {
+    async addPlanTag(planId: number, req: AddPlanTagRequest): Promise<void> {
         const res = await this.request('POST', `/plans/${planId}/tags`, req);
-        if (!res.ok) throw new Error('Błąd dodawania pozycji');
-        return res.json();
+        if (!res.ok) {
+            const msg = res.status === 409 ? await res.text() : 'Błąd dodawania pozycji';
+            throw new Error(msg);
+        }
     }
 
-    async updatePlanTag(planId: number, planTagId: number, req: UpdatePlanTagRequest): Promise<void> {
-        const res = await this.request('PUT', `/plans/${planId}/tags/${planTagId}`, req);
+    async updatePlanTag(planId: number, tagId: number, req: UpdatePlanTagRequest): Promise<void> {
+        const res = await this.request('PUT', `/plans/${planId}/tags/${tagId}`, req);
         if (!res.ok) throw new Error('Błąd aktualizacji pozycji');
     }
 
-    async deletePlanTag(planId: number, planTagId: number): Promise<void> {
-        const res = await this.request('DELETE', `/plans/${planId}/tags/${planTagId}`);
+    async deletePlanTag(planId: number, tagId: number): Promise<void> {
+        const res = await this.request('DELETE', `/plans/${planId}/tags/${tagId}`);
         if (!res.ok) throw new Error('Błąd usuwania pozycji');
     }
 }

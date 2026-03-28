@@ -9,12 +9,9 @@ public class PlanStoreStub : IPlanStore
 {
     public PlanDetail PlanDetail { get; set; }
     public int CreatedPlanId { get; set; } = 1;
-    public int CreatedPlanTagId { get; set; } = 10;
     public bool DeletePlanCalled { get; private set; }
 
     public Task<IEnumerable<PlanSummary>> GetPlans() => Task.FromResult<IEnumerable<PlanSummary>>([]);
-
-    public Task<IEnumerable<PlanSummary>> GetActivePlans(DateTime today) => Task.FromResult<IEnumerable<PlanSummary>>([]);
 
     public Task<PlanDetail> GetPlanDetail(int planId) => Task.FromResult(PlanDetail);
 
@@ -30,10 +27,9 @@ public class PlanStoreStub : IPlanStore
         return Task.CompletedTask;
     }
 
-    public Task<int> AddPlanTag(int planId, int tagId, decimal amount, string description)
-        => Task.FromResult(CreatedPlanTagId);
+    public Task AddPlanTag(int planId, int tagId, decimal amount, string description) => Task.CompletedTask;
 
-    public Task UpdatePlanTag(int planTagId, decimal amount, string description) => Task.CompletedTask;
+    public Task UpdatePlanTag(int planId, int tagId, decimal amount, string description) => Task.CompletedTask;
 
-    public Task DeletePlanTag(int planTagId) => Task.CompletedTask;
+    public Task DeletePlanTag(int planId, int tagId) => Task.CompletedTask;
 }

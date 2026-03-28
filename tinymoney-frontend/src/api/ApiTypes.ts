@@ -273,7 +273,7 @@ export type Tag = { id: number; name: string, numberOfTransactions: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
-export type ActivePlanSummary = { id: number; title: string; totalBudget: number; totalSpent: number };
+export type ActivePlanSummary = { id: number; title: string; totalBudget: number; totalSpent: number; spentPercent: number };
 export type DashboardResponse = {
     incomesTotal: number;
     expensesTotal: number;
@@ -295,16 +295,17 @@ export type PlanSummary = {
     dateTo: string | null;
     totalBudget: number;
     totalSpent: number;
+    spentPercent: number;
     isActive: boolean;
 };
 
 export type PlanTagLine = {
-    id: number;
     tagId: number;
     tagName: string;
     amount: number;
     description: string | null;
     spent: number;
+    spentPercent: number;
 };
 
 export type PlanDetail = {

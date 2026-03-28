@@ -1,16 +1,14 @@
 import {cn} from "@/lib/utils.ts";
 
 interface PlanProgressBarProps {
-    spent: number;
-    budget: number;
+    percent: number;
     className?: string;
     showPercent?: boolean;
 }
 
-export function PlanProgressBar({spent, budget, className, showPercent = true}: PlanProgressBarProps) {
-    const rawPct = budget > 0 ? (spent / budget) * 100 : 0;
-    const barPct = Math.min(100, rawPct);
-    const isOver = spent > budget;
+export function PlanProgressBar({percent, className, showPercent = true}: PlanProgressBarProps) {
+    const barPct = Math.min(100, percent);
+    const isOver = percent > 100;
 
     return (
         <div className={cn("flex items-center gap-2", className)}>
@@ -22,7 +20,7 @@ export function PlanProgressBar({spent, budget, className, showPercent = true}: 
             </div>
             {showPercent && (
                 <span className={cn("text-xs tabular-nums w-9 text-right shrink-0", isOver ? "text-expense" : "text-income")}>
-                    {Math.round(rawPct)}%
+                    {Math.round(percent)}%
                 </span>
             )}
         </div>
