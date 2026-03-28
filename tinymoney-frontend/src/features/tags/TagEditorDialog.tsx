@@ -50,10 +50,14 @@ export function TagEditorDialog({tagToEdit, onClose}: TagEditorDialogProps) {
         }
     }, [tagToEdit]);
 
-    const mutation = useMutation({
-        mutationFn: (newTag: TagInputs) => tagToEdit
-            ? tagsClient.editTag(tagToEdit.id, newTag)
-            : tagsClient.addTag(newTag),
+    const mutation = useMutation<void, Error, TagInputs>({
+        mutationFn: async (newTag: TagInputs) => {
+            if (tagToEdit) {
+                await tagsClient.editTag(tagToEdit.id, newTag)
+            } else {
+                await tagsClient.addTag(newTag)
+            }
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['transactions']})
             queryClient.invalidateQueries({queryKey: ['tags']})

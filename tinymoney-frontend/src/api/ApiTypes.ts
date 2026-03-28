@@ -273,6 +273,7 @@ export type Tag = { id: number; name: string, numberOfTransactions: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
+export type ActivePlanSummary = { id: number; title: string; totalBudget: number; totalSpent: number };
 export type DashboardResponse = {
     incomesTotal: number;
     expensesTotal: number;
@@ -283,7 +284,42 @@ export type DashboardResponse = {
     dailyExpenses: DailyExpense[];
     topRemainingBudgetCategories: CategoryBudgetSummary[];
     topOverspentBudgetCategories: CategoryBudgetSummary[];
+    activePlans: ActivePlanSummary[];
 };
+
+export type PlanSummary = {
+    id: number;
+    title: string;
+    description: string | null;
+    dateFrom: string;
+    dateTo: string | null;
+    totalBudget: number;
+    totalSpent: number;
+    isActive: boolean;
+};
+
+export type PlanTagLine = {
+    id: number;
+    tagId: number;
+    tagName: string;
+    amount: number;
+    description: string | null;
+    spent: number;
+};
+
+export type PlanDetail = {
+    id: number;
+    title: string;
+    description: string | null;
+    dateFrom: string;
+    dateTo: string | null;
+    tagLines: PlanTagLine[];
+};
+
+export type CreatePlanRequest = { title: string; description?: string; dateFrom: string; dateTo?: string };
+export type UpdatePlanRequest = { title: string; description?: string; dateFrom: string; dateTo?: string };
+export type AddPlanTagRequest = { tagId: number; amount: number; description?: string };
+export type UpdatePlanTagRequest = { amount: number; description?: string };
 
 export type ApiKeySummary = {
     id: number;

@@ -35,11 +35,9 @@ namespace MW.TinyMoney.Api.Tags
         [ProducesResponseType((int)HttpStatusCode.Created)]
         public async Task<IActionResult> AddTag([FromBody] NewTagDto newTag)
         {
-            await _tagStore.SaveTag(new Tag()
-            {
-                Name = newTag.Name
-            });
-            return StatusCode(StatusCodes.Status201Created);
+            var tag = new Tag { Name = newTag.Name };
+            await _tagStore.SaveTag(tag);
+            return StatusCode(StatusCodes.Status201Created, new { id = tag.Id });
         }
         
         [HttpPut("{tagId}")]

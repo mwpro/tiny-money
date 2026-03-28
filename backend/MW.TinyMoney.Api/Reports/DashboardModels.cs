@@ -2,6 +2,8 @@ using System.Collections.Generic;
 
 namespace MW.TinyMoney.Api.Reports;
 
+public record ActivePlanSummary(int Id, string Title, decimal TotalBudget, decimal TotalSpent);
+
 public record DailyExpense(int Day, decimal Amount, decimal BudgetLeft);
 
 public record CategoryBudgetSummary(int SubcategoryId, string CategoryName, string SubcategoryName, decimal Amount, decimal AmountLeft, string Notes);
@@ -17,4 +19,5 @@ public class DashboardResponse
     public IReadOnlyCollection<DailyExpense> DailyExpenses { get; set; } = [];
     public IReadOnlyCollection<CategoryBudgetSummary> TopRemainingBudgetCategories { get; set; } = [];
     public IReadOnlyCollection<CategoryBudgetSummary> TopOverspentBudgetCategories { get; set; } = [];
+    public IReadOnlyCollection<ActivePlanSummary> ActivePlans { get; set; } = [];
 }

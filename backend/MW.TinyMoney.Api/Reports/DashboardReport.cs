@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
+using MW.TinyMoney.Api.Plans;
 
 namespace MW.TinyMoney.Api.Reports;
 
@@ -15,10 +16,12 @@ public interface IDashboardReport
 public class DashboardReport : IDashboardReport
 {
     private readonly MySqlConnectionFactory _mySqlConnectionFactory;
+    private readonly IPlanStore _planStore;
 
-    public DashboardReport(MySqlConnectionFactory mySqlConnectionFactory)
+    public DashboardReport(MySqlConnectionFactory mySqlConnectionFactory, IPlanStore planStore)
     {
         _mySqlConnectionFactory = mySqlConnectionFactory;
+        _planStore = planStore;
     }
 
     private const string DashboardQuery =
@@ -97,7 +100,9 @@ public class DashboardReport : IDashboardReport
         var topOverspentBudgetCategories = (await reader.ReadAsync<CategoryBudgetSummary>()).ToList();
         var topRemainingBudgetCategories = (await reader.ReadAsync<CategoryBudgetSummary>()).ToList();
         var budgetSummary = await reader.ReadFirstAsync<(decimal Amount, decimal UsedAmount, decimal AmountLeft)>();
-            
+
+        var activePlans = (await _planStore.GetActivePlans(DateTime.Today)).ToList();
+
         return new DashboardResponse
         {
             IncomesTotal = gauges.IncomesTotal,
@@ -108,7 +113,8 @@ public class DashboardReport : IDashboardReport
             TopRemainingBudgetCategories = topRemainingBudgetCategories,
             BudgetAmount = budgetSummary.Amount,
             BudgetUsed = budgetSummary.UsedAmount,
-            BudgetLeft =  budgetSummary.AmountLeft
+            BudgetLeft = budgetSummary.AmountLeft,
+            ActivePlans = activePlans.Select(p => new ActivePlanSummary(p.Id, p.Title, p.TotalBudget, p.TotalSpent)).ToList()
         };
     }
 

@@ -4,7 +4,7 @@ import type {TagInputs} from "@/features/tags/TagEditorDialog.tsx";
 
 export interface TagsClient {
     getTags(): Promise<Tag[]>;
-    addTag(newTag: TagInputs): Promise<void>;
+    addTag(newTag: TagInputs): Promise<{ id: number }>;
     editTag(tagId: number, newTag: TagInputs): Promise<void>;
     removeTag(tagId: number): Promise<void>;
 }
@@ -16,9 +16,10 @@ export class TagsClientImpl extends ApiBase implements TagsClient {
         return res.json();
     }
 
-    async addTag(newTag: TagInputs): Promise<void> {
+    async addTag(newTag: TagInputs): Promise<{ id: number }> {
         const res = await this.request('POST', '/tags', newTag);
         if (!res.ok) throw new Error('Błąd podczas dodawania tagu');
+        return res.json();
     }
 
     async editTag(tagId: number, newTag: TagInputs): Promise<void> {
