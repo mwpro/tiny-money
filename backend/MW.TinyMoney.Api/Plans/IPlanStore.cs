@@ -6,40 +6,10 @@ using MW.TinyMoney.Api.Infrastructure;
 
 namespace MW.TinyMoney.Api.Plans;
 
-public class PlanSummary
-{
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public DateTime DateFrom { get; set; }
-    public DateTime? DateTo { get; set; }
-    public decimal TotalBudget { get; set; }
-    public decimal TotalSpent { get; set; }
-}
-
-public class PlanTag
-{
-    public int TagId { get; set; }
-    public string TagName { get; set; }
-    public decimal Amount { get; set; }
-    public string TagDescription { get; set; }
-    public decimal Spent { get; set; }
-}
-
-public class PlanDetail
-{
-    public int Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public DateTime DateFrom { get; set; }
-    public DateTime? DateTo { get; set; }
-    public IList<PlanTag> TagLines { get; set; } = new List<PlanTag>();
-}
-
 public interface IPlanStore
 {
     Task<IEnumerable<PlanSummary>> GetPlans();
-    Task<PlanDetail> GetPlanDetail(int planId);
+    Task<Plan> GetPlanDetail(int planId);
     Task<int> CreatePlan(string title, string description, DateTime dateFrom, DateTime? dateTo);
     Task UpdatePlan(int planId, string title, string description, DateTime dateFrom, DateTime? dateTo);
     Task DeletePlan(int planId);
@@ -140,13 +110,13 @@ public class MySqlPlanStore : IPlanStore
         return await connection.QueryAsync<PlanSummary>(GetPlansQuery);
     }
 
-    public async Task<PlanDetail> GetPlanDetail(int planId)
+    public async Task<Plan> GetPlanDetail(int planId)
     {
         await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
 
-        PlanDetail plan = null;
-        await connection.QueryAsync<PlanDetail, PlanTag, PlanDetail>(
+        Plan plan = null;
+        await connection.QueryAsync<Plan, PlanTag, Plan>(
             GetPlanDetailQuery,
             (p, pt) =>
             {

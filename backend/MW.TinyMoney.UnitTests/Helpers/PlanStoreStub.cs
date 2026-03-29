@@ -7,13 +7,13 @@ namespace MW.TinyMoney.UnitTests.Helpers;
 
 public class PlanStoreStub : IPlanStore
 {
-    public PlanDetail PlanDetail { get; set; }
+    public Plan Plan { get; set; }
     public int CreatedPlanId { get; set; } = 1;
     public bool DeletePlanCalled { get; private set; }
 
     public Task<IEnumerable<PlanSummary>> GetPlans() => Task.FromResult<IEnumerable<PlanSummary>>([]);
 
-    public Task<PlanDetail> GetPlanDetail(int planId) => Task.FromResult(PlanDetail);
+    public Task<Plan> GetPlanDetail(int planId) => Task.FromResult(Plan);
 
     public Task<int> CreatePlan(string title, string description, DateTime dateFrom, DateTime? dateTo)
         => Task.FromResult(CreatedPlanId);

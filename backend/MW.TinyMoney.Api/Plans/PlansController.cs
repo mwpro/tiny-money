@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -21,16 +20,15 @@ public class PlansController : ControllerBase
     }
 
     [HttpGet("")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<PlanSummaryDto>))]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<PlanSummaryResponse>))]
     public async Task<IActionResult> GetPlans()
     {
-        var today = DateTime.Today;
         var plans = await _planStore.GetPlans();
-        return Ok(plans.Select(p => ToSummaryDto(p, today)));
+        return Ok(plans.Select(p => p.ToResponseModel()));
     }
 
     [HttpGet("{planId:int}")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PlanDetailDto))]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(PlanResponse))]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<IActionResult> GetPlanDetail([FromRoute] int planId)
     {
@@ -38,21 +36,13 @@ public class PlansController : ControllerBase
         if (plan == null)
             return NotFound();
 
-        return Ok(new PlanDetailDto
-        {
-            Id = plan.Id,
-            Title = plan.Title,
-            Description = plan.Description,
-            DateFrom = plan.DateFrom,
-            DateTo = plan.DateTo,
-            TagLines = plan.TagLines.Select(ToTagDto)
-        });
+        return Ok(plan.ToResponseModel());
     }
 
     [HttpPost("")]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> CreatePlan([FromBody] CreatePlanRequest request)
+    public async Task<IActionResult> CreatePlan([FromBody] UpdatePlanRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
         var id = await _planStore.CreatePlan(request.Title, request.Description, request.DateFrom, request.DateTo);
@@ -129,27 +119,4 @@ public class PlansController : ControllerBase
         await _planStore.DeletePlanTag(planId, tagId);
         return Accepted();
     }
-
-    private static PlanSummaryDto ToSummaryDto(PlanSummary p, DateTime today) => new()
-    {
-        Id = p.Id,
-        Title = p.Title,
-        Description = p.Description,
-        DateFrom = p.DateFrom,
-        DateTo = p.DateTo,
-        TotalBudget = p.TotalBudget,
-        TotalSpent = p.TotalSpent,
-        SpentPercent = p.TotalBudget > 0 ? p.TotalSpent / p.TotalBudget * 100m : 0m,
-        IsActive = p.DateFrom <= today && (!p.DateTo.HasValue || p.DateTo.Value >= today)
-    };
-
-    private static PlanTagDto ToTagDto(PlanTag pt) => new()
-    {
-        TagId = pt.TagId,
-        TagName = pt.TagName,
-        Amount = pt.Amount,
-        Description = pt.TagDescription,
-        Spent = pt.Spent,
-        SpentPercent = pt.Amount > 0 ? pt.Spent / pt.Amount * 100m : 0m
-    };
 }

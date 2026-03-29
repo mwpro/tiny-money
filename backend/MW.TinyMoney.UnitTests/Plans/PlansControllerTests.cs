@@ -27,7 +27,7 @@ public class PlansControllerTests
     [Fact]
     public async Task CreatePlan_Returns201_WhenValid()
     {
-        var result = await _controller.CreatePlan(new CreatePlanRequest
+        var result = await _controller.CreatePlan(new UpdatePlanRequest()
         {
             Title = "Test",
             DateFrom = new DateTime(2026, 1, 1)
@@ -42,7 +42,7 @@ public class PlansControllerTests
     {
         _controller.ModelState.AddModelError("DateTo", "DateTo must be after DateFrom");
 
-        var result = await _controller.CreatePlan(new CreatePlanRequest
+        var result = await _controller.CreatePlan(new UpdatePlanRequest
         {
             Title = "Test",
             DateFrom = new DateTime(2026, 6, 1),
@@ -57,7 +57,7 @@ public class PlansControllerTests
     [Fact]
     public async Task GetPlanDetail_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.GetPlanDetail(99);
 
@@ -67,7 +67,7 @@ public class PlansControllerTests
     [Fact]
     public async Task GetPlanDetail_Returns200_WithEmptyTagLines()
     {
-        _planStore.PlanDetail = new PlanDetail
+        _planStore.Plan = new Plan
         {
             Id = 1,
             Title = "Home Renovation",
@@ -78,14 +78,14 @@ public class PlansControllerTests
         var result = await _controller.GetPlanDetail(1);
 
         var dto = result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<PlanDetailDto>().Subject;
+            .Which.Value.Should().BeOfType<PlanResponse>().Subject;
         dto.TagLines.Should().BeEmpty();
     }
 
     [Fact]
     public async Task GetPlanDetail_Returns200_WithTagLines()
     {
-        _planStore.PlanDetail = new PlanDetail
+        _planStore.Plan = new Plan
         {
             Id = 1,
             Title = "Home Renovation",
@@ -99,7 +99,7 @@ public class PlansControllerTests
         var result = await _controller.GetPlanDetail(1);
 
         var dto = result.Should().BeOfType<OkObjectResult>()
-            .Which.Value.Should().BeOfType<PlanDetailDto>().Subject;
+            .Which.Value.Should().BeOfType<PlanResponse>().Subject;
         dto.TagLines.Should().ContainSingle()
             .Which.TagName.Should().Be("Plumbing");
     }
@@ -109,7 +109,7 @@ public class PlansControllerTests
     [Fact]
     public async Task UpdatePlan_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.UpdatePlan(99, new UpdatePlanRequest { Title = "X", DateFrom = DateTime.Today });
 
@@ -136,7 +136,7 @@ public class PlansControllerTests
     [Fact]
     public async Task DeletePlan_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.DeletePlan(99);
 
@@ -146,7 +146,7 @@ public class PlansControllerTests
     [Fact]
     public async Task DeletePlan_Returns202_WhenPlanExists()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
+        _planStore.Plan = new Plan { Id = 1, Title = "X", DateFrom = DateTime.Today };
 
         var result = await _controller.DeletePlan(1);
 
@@ -159,7 +159,7 @@ public class PlansControllerTests
     [Fact]
     public async Task AddPlanTag_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.AddPlanTag(99, new AddPlanTagRequest { TagId = 1, Amount = 500 });
 
@@ -169,7 +169,7 @@ public class PlansControllerTests
     [Fact]
     public async Task AddPlanTag_Returns201_WhenSuccess()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
+        _planStore.Plan = new Plan { Id = 1, Title = "X", DateFrom = DateTime.Today };
 
         var result = await _controller.AddPlanTag(1, new AddPlanTagRequest { TagId = 5, Amount = 1000 });
 
@@ -180,7 +180,7 @@ public class PlansControllerTests
     [Fact]
     public async Task AddPlanTag_Returns409_WhenTagAlreadyAdded()
     {
-        _planStore.PlanDetail = new PlanDetail
+        _planStore.Plan = new Plan
         {
             Id = 1, Title = "X", DateFrom = DateTime.Today,
             TagLines = new List<PlanTag> { new() { TagId = 5, TagName = "Test", Amount = 100 } }
@@ -196,7 +196,7 @@ public class PlansControllerTests
     [Fact]
     public async Task UpdatePlanTag_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.UpdatePlanTag(99, 10, new UpdatePlanTagRequest { Amount = 500 });
 
@@ -206,7 +206,7 @@ public class PlansControllerTests
     [Fact]
     public async Task UpdatePlanTag_Returns202_WhenSuccess()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
+        _planStore.Plan = new Plan { Id = 1, Title = "X", DateFrom = DateTime.Today };
 
         var result = await _controller.UpdatePlanTag(1, 10, new UpdatePlanTagRequest { Amount = 2000 });
 
@@ -218,7 +218,7 @@ public class PlansControllerTests
     [Fact]
     public async Task DeletePlanTag_Returns404_WhenPlanNotFound()
     {
-        _planStore.PlanDetail = null;
+        _planStore.Plan = null;
 
         var result = await _controller.DeletePlanTag(99, 10);
 
@@ -228,7 +228,7 @@ public class PlansControllerTests
     [Fact]
     public async Task DeletePlanTag_Returns202_WhenSuccess()
     {
-        _planStore.PlanDetail = new PlanDetail { Id = 1, Title = "X", DateFrom = DateTime.Today };
+        _planStore.Plan = new Plan { Id = 1, Title = "X", DateFrom = DateTime.Today };
 
         var result = await _controller.DeletePlanTag(1, 10);
 

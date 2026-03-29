@@ -11,7 +11,7 @@ import {ApiBase} from "@/api/ApiBase.ts";
 export interface PlansClient {
     getPlans(): Promise<PlanSummary[]>;
     getPlan(planId: number): Promise<PlanDetail>;
-    createPlan(req: CreatePlanRequest): Promise<PlanSummary>;
+    createPlan(req: CreatePlanRequest): Promise<{ id: number }>;
     updatePlan(planId: number, req: UpdatePlanRequest): Promise<void>;
     deletePlan(planId: number): Promise<void>;
     addPlanTag(planId: number, req: AddPlanTagRequest): Promise<void>;
@@ -33,7 +33,7 @@ export class PlansClientImpl extends ApiBase implements PlansClient {
         return res.json();
     }
 
-    async createPlan(req: CreatePlanRequest): Promise<PlanSummary> {
+    async createPlan(req: CreatePlanRequest): Promise<{ id: number }> {
         const res = await this.request('POST', '/plans', req);
         if (!res.ok) throw new Error('Błąd tworzenia planu');
         return res.json();
