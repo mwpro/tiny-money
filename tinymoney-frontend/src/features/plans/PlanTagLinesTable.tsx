@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/alert-dialog.tsx"
 import {Curr} from "@/components/Curr.tsx"
 import {PlanProgressBar} from "@/features/plans/PlanProgressBar.tsx"
-import {PlanTagEditDialog} from "@/features/plans/PlanTagEditDialog.tsx"
-import {AddPlanTagForm} from "@/features/plans/AddPlanTagForm.tsx"
+import {PlanTagEditorDialog} from "@/features/plans/PlanTagEditorDialog.tsx"
 import {getTransactionsUrl} from "@/lib/utils.ts"
 import {toast} from "sonner"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
@@ -121,12 +120,11 @@ export function PlanTagLinesTable({plan}: PlanTagLinesTableProps) {
                 </Table>
             </div>
 
-            <AddPlanTagForm planId={plan.id} existingTagIds={existingTagIds}/>
-
-            <PlanTagEditDialog
+            <PlanTagEditorDialog
                 planId={plan.id}
+                existingTagIds={existingTagIds}
                 tagLine={tagToEdit}
-                onClose={() => setTagToEdit(undefined)}
+                onEditClose={() => setTagToEdit(undefined)}
             />
 
             <AlertDialog open={!!tagToDelete} onOpenChange={(v) => { if (!v) setTagToDelete(undefined) }}>

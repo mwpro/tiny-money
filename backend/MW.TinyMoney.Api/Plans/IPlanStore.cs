@@ -31,17 +31,14 @@ public class MySqlPlanStore : IPlanStore
         """
         SELECT p.id, p.title, p.description, p.date_from AS dateFrom, p.date_to AS dateTo,
                COALESCE(SUM(pt.amount), 0) AS totalBudget,
-               COALESCE(SUM(
-                   (SELECT COALESCE(SUM(t.amount), 0)
-                    FROM transaction t
-                    INNER JOIN transaction_tag tt ON tt.transaction_id = t.id
-                    WHERE tt.tag_id = pt.tag_id
-                      AND t.transaction_date >= p.date_from
-                      AND (p.date_to IS NULL OR t.transaction_date <= p.date_to)
-                      AND t.is_expense = 1 AND t.is_verified = 1)
-               ), 0) AS totalSpent
+               COALESCE(SUM(CASE WHEN t.id IS NOT NULL THEN t.amount ELSE 0 END), 0) AS totalSpent
         FROM plan p
         LEFT JOIN plan_tag pt ON pt.plan_id = p.id
+        LEFT JOIN transaction_tag tt ON tt.tag_id = pt.tag_id
+        LEFT JOIN transaction t ON t.id = tt.transaction_id
+            AND t.transaction_date >= p.date_from
+            AND (p.date_to IS NULL OR t.transaction_date <= p.date_to)
+            AND t.is_expense = 1 AND t.is_verified = 1
         GROUP BY p.id, p.title, p.description, p.date_from, p.date_to
         ORDER BY p.date_from DESC;
         """;
