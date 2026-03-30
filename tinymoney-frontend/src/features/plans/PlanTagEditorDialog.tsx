@@ -62,19 +62,22 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
     const addMutation = useMutation({
         mutationFn: async (data: FormInputs) => {
             let tagId = selectedTag!.id
+            let newTagCreated = false
             if (!tagId) {
                 const created = await tagsClient.addTag({name: selectedTag!.name})
                 tagId = created.id
+                newTagCreated = true
             }
-            return plansClient.addPlanTag(planId, {
+            await plansClient.addPlanTag(planId, {
                 tagId,
                 amount: Number(data.amount),
                 description: data.description || undefined
             })
+            return newTagCreated
         },
-        onSuccess: () => {
+        onSuccess: (newTagCreated) => {
             queryClient.invalidateQueries({queryKey: ['plans']})
-            queryClient.invalidateQueries({queryKey: ['tags']})
+            if (newTagCreated) queryClient.invalidateQueries({queryKey: ['tags']})
             handleClose()
         },
         onError: (error) => {
