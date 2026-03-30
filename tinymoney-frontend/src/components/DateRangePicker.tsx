@@ -16,8 +16,7 @@ import {
     isSameDay, startOfDay,
     parse
 } from 'date-fns';
-import { pl } from 'date-fns/locale/pl'
-import {dateFormat, monthYearFormat, monthYearNameFormat} from "@/lib/utils.ts";
+import {appLocale, dateFormat, monthYearFormat, monthYearNameFormat} from "@/lib/utils.ts";
 
 interface DateRangePickerProps {
     dateFrom: Date | undefined,
@@ -35,7 +34,7 @@ interface DateRangePreset {
 
 export const transactionsListPresets: DateRangePreset[] = [
     {
-        name: (now) => format(startOfMonth(now), monthYearNameFormat, { locale: pl }),
+        name: (now) => format(startOfMonth(now), monthYearNameFormat, { locale: appLocale }),
         preset: (now) => {
             return ({
                 dateFrom: startOfMonth(now),
@@ -44,7 +43,7 @@ export const transactionsListPresets: DateRangePreset[] = [
         }
     },
     {
-        name: (now) => format(startOfMonth(subMonths(now, 1)), monthYearNameFormat, { locale: pl }), 
+        name: (now) => format(startOfMonth(subMonths(now, 1)), monthYearNameFormat, { locale: appLocale }), 
         preset: (now) => {
             return ({
                 dateFrom: startOfMonth(subMonths(now, 1)),
@@ -53,7 +52,7 @@ export const transactionsListPresets: DateRangePreset[] = [
         }
     },
     {
-        name: (now) => format(startOfMonth(subMonths(now, 2)), monthYearNameFormat, { locale: pl }), 
+        name: (now) => format(startOfMonth(subMonths(now, 2)), monthYearNameFormat, { locale: appLocale }), 
         preset: (now) => {
             return ({
                 dateFrom: startOfMonth(subMonths(now, 2)),

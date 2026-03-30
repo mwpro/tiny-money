@@ -3,8 +3,7 @@ import {useEffect, useMemo} from "react";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useSearchParams} from "react-router-dom";
 import {endOfMonth, format, getDaysInMonth, parse, startOfMonth} from "date-fns";
-import {getTransactionsUrl, monthYearFormat, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
-import {pl} from "date-fns/locale/pl";
+import {appLocale, getTransactionsUrl, monthYearFormat, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {TransactionsEditorDialog} from "@/features/transactions/transactions-editor/TransactionsEditorDialog.tsx";
 import {IncomesWidget} from "@/features/dashboard/widgets/IncomesWidget.tsx";
@@ -55,12 +54,12 @@ export function DashboardPage() {
     const monthEnd = endOfMonth(dashboardPeriodReferenceDate);
     const monthPeriodStr = format(dashboardPeriodReferenceDate, monthYearFormat);
 
-    const unverifiedUrl = getTransactionsUrl({dateFrom: monthStart, dateTo: monthEnd, isVerified: false});
+    const unverifiedUrl = getTransactionsUrl({isVerified: false});
     const budgetUrl = `/budgets?budgetPeriod=${monthPeriodStr}`;
 
     return (
         <div className="max-w-7xl mx-auto">
-            <title>{prepareTitleText(`Dashboard - ${format(dashboardPeriodReferenceDate, monthYearNameFormat, {locale: pl})}`)}</title>
+            <title>{prepareTitleText(`Dashboard - ${format(dashboardPeriodReferenceDate, monthYearNameFormat, {locale: appLocale})}`)}</title>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Dashboard</h1>
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center">

@@ -25,7 +25,7 @@ public class DashboardReport : IDashboardReport
         """
         SELECT COALESCE(SUM(IF(is_expense = 0 AND is_verified = 1, amount, 0)), 0) AS incomesTotal,
                COALESCE(SUM(IF(is_expense = 1 AND is_verified = 1, amount, 0)), 0) AS expensesTotal,
-               COUNT(CASE WHEN is_verified = 0 THEN 1 END) AS unverifiedCount
+               (SELECT COUNT(*) FROM transaction WHERE is_verified = 0) AS unverifiedCount
         FROM transaction WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo;
 
         SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount

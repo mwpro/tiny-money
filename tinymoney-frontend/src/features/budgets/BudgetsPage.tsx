@@ -9,8 +9,7 @@ import {Card, CardDescription, CardHeader, CardTitle} from "@/components/ui/card
 import {Curr} from "@/components/Curr.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {ButtonGroup, ButtonGroupSeparator} from "@/components/ui/button-group.tsx";
-import {getTransactionsUrl, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
-import {pl} from "date-fns/locale/pl";
+import {appLocale, getTransactionsUrl, monthYearNameFormat, prepareTitleText} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 export function BudgetsPage() {
@@ -49,7 +48,7 @@ export function BudgetsPage() {
 
     return (
         <div className="max-w-7xl mx-auto">
-            <title>{prepareTitleText(`Budżet - ${format(budgetPeriodReferenceDate, monthYearNameFormat, { locale: pl })}`)}</title>
+            <title>{prepareTitleText(`Budżet - ${format(budgetPeriodReferenceDate, monthYearNameFormat, { locale: appLocale })}`)}</title>
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Budżet</h1>
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
