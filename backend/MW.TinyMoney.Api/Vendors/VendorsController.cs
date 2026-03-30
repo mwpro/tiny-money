@@ -8,166 +8,165 @@ using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Vendors.ApiModels;
 using MW.TinyMoney.Api.Vendors.Matching;
 
-namespace MW.TinyMoney.Api.Vendors
+namespace MW.TinyMoney.Api.Vendors;
+
+public record VendorAliasDto(int Id, string Alias);
+public record VendorWithAliasesDto(VendorDetails Details, IEnumerable<VendorAliasDto> Aliases);
+public record AddVendorAliasRequest(string Alias);
+public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId, string DefaultSubcategoryName, string DefaultCategoryName);
+
+[ApiController, Route("/api/vendors"), Authorize]
+public class VendorsController : ControllerBase
 {
-    public record VendorAliasDto(int Id, string Alias);
-    public record VendorWithAliasesDto(VendorDetails Details, IEnumerable<VendorAliasDto> Aliases);
-    public record AddVendorAliasRequest(string Alias);
-    public record VendorSuggestionDto(int VendorId, string VendorName, int DefaultSubcategoryId, string DefaultSubcategoryName, string DefaultCategoryName);
+    private readonly IVendorStore _vendorStore;
+    private readonly IVendorMatchingService _vendorMatchingService;
+    private readonly IDescriptionPreprocessor _preprocessor;
 
-    [ApiController, Route("/api/vendors"), Authorize]
-    public class VendorsController : ControllerBase
+    public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService, IDescriptionPreprocessor preprocessor)
     {
-        private readonly IVendorStore _vendorStore;
-        private readonly IVendorMatchingService _vendorMatchingService;
-        private readonly IDescriptionPreprocessor _preprocessor;
+        _vendorStore = vendorStore;
+        _vendorMatchingService = vendorMatchingService;
+        _preprocessor = preprocessor;
+    }
 
-        public VendorsController(IVendorStore vendorStore, IVendorMatchingService vendorMatchingService, IDescriptionPreprocessor preprocessor)
-        {
-            _vendorStore = vendorStore;
-            _vendorMatchingService = vendorMatchingService;
-            _preprocessor = preprocessor;
-        }
-
-        [HttpGet("")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDetails>))]
-        public async Task<IActionResult> GetVendors()
-        {
-            return Ok(await _vendorStore.GetDetailedVendors());
-        }
+    [HttpGet("")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<VendorDetails>))]
+    public async Task<IActionResult> GetVendors()
+    {
+        return Ok(await _vendorStore.GetDetailedVendors());
+    }
         
-        [HttpPost("")]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
-        public async Task<IActionResult> AddVendor([FromBody] VendorDto newVendor)
+    [HttpPost("")]
+    [ProducesResponseType((int)HttpStatusCode.Created)]
+    public async Task<IActionResult> AddVendor([FromBody] VendorDto newVendor)
+    {
+        if (!newVendor.DefaultSubcategoryId.HasValue)
+            ModelState.AddModelError(nameof(newVendor.DefaultSubcategoryId), "Default subcategory id must be specified");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+            
+        await _vendorStore.SaveVendor(new Vendor()
         {
-            if (!newVendor.DefaultSubcategoryId.HasValue)
-                ModelState.AddModelError(nameof(newVendor.DefaultSubcategoryId), "Default subcategory id must be specified");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Name = newVendor.Name,
+            DefaultSubcategoryId = newVendor.DefaultSubcategoryId.Value
+        });
             
-            await _vendorStore.SaveVendor(new Vendor()
-            {
-                Name = newVendor.Name,
-                DefaultSubcategoryId = newVendor.DefaultSubcategoryId.Value
-            });
-            
-            return StatusCode(StatusCodes.Status201Created);
-        }
+        return StatusCode(StatusCodes.Status201Created);
+    }
         
-        [HttpPut("{vendorId}")]
-        [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        public async Task<IActionResult> UpdateVendor([FromRoute] int vendorId, [FromBody] VendorDto vendorData)
+    [HttpPut("{vendorId}")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    public async Task<IActionResult> UpdateVendor([FromRoute] int vendorId, [FromBody] VendorDto vendorData)
+    {
+        if (!vendorData.DefaultSubcategoryId.HasValue)
+            ModelState.AddModelError(nameof(vendorData.DefaultSubcategoryId), "Default subcategory id must be specified");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        await _vendorStore.UpdateVendor(vendorId, new Vendor()
         {
-            if (!vendorData.DefaultSubcategoryId.HasValue)
-                ModelState.AddModelError(nameof(vendorData.DefaultSubcategoryId), "Default subcategory id must be specified");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            await _vendorStore.UpdateVendor(vendorId, new Vendor()
-            {
-                Name = vendorData.Name,
-                DefaultSubcategoryId = vendorData.DefaultSubcategoryId.Value
-            });
-            return StatusCode(StatusCodes.Status202Accepted);
+            Name = vendorData.Name,
+            DefaultSubcategoryId = vendorData.DefaultSubcategoryId.Value
+        });
+        return StatusCode(StatusCodes.Status202Accepted);
+    }
+
+    [HttpDelete("{vendorId}")]
+    [ProducesResponseType((int)HttpStatusCode.Accepted)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> DeleteVendor([FromRoute] int vendorId, [FromBody] DeleteVendorRequest deleteVendorRequest)
+    {
+        var (vendorToDelete, _) = await _vendorStore.GetVendorWithAliases(vendorId);
+        if (vendorToDelete == null)
+        {
+            return NotFound();
+        }
+        await ValidateMergeVendor();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
         }
 
-        [HttpDelete("{vendorId}")]
-        [ProducesResponseType((int)HttpStatusCode.Accepted)]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> DeleteVendor([FromRoute] int vendorId, [FromBody] DeleteVendorRequest deleteVendorRequest)
+        await _vendorStore.DeleteVendor(vendorToDelete, deleteVendorRequest.MergeToVendorId);
+
+        return Accepted();
+
+        async Task ValidateMergeVendor()
         {
-            var (vendorToDelete, _) = await _vendorStore.GetVendorWithAliases(vendorId);
-            if (vendorToDelete == null)
+            if (vendorToDelete.NumberOfTransactions > 0)
             {
-                return NotFound();
-            }
-            await ValidateMergeVendor();
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await _vendorStore.DeleteVendor(vendorToDelete, deleteVendorRequest.MergeToVendorId);
-
-            return Accepted();
-
-            async Task ValidateMergeVendor()
-            {
-                if (vendorToDelete.NumberOfTransactions > 0)
+                if (!deleteVendorRequest.MergeToVendorId.HasValue)
                 {
-                    if (!deleteVendorRequest.MergeToVendorId.HasValue)
-                    {
-                        ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be specified since there are transactions related to deleted vendor");
-                        return;
-                    }
-                    if (vendorId == deleteVendorRequest.MergeToVendorId)
-                    {
-                        ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be different than deleted vendor");
-                        return;
-                    }
-                    var (vendorToMerge, _) = await _vendorStore.GetVendorWithAliases(deleteVendorRequest.MergeToVendorId.Value);
-                    if (vendorToMerge == null)
-                    {
-                        ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Vendor selected for merge does not exist");
-                        return;
-                    }
+                    ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be specified since there are transactions related to deleted vendor");
+                    return;
+                }
+                if (vendorId == deleteVendorRequest.MergeToVendorId)
+                {
+                    ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Merge to vendor must be different than deleted vendor");
+                    return;
+                }
+                var (vendorToMerge, _) = await _vendorStore.GetVendorWithAliases(deleteVendorRequest.MergeToVendorId.Value);
+                if (vendorToMerge == null)
+                {
+                    ModelState.AddModelError(nameof(deleteVendorRequest.MergeToVendorId), "Vendor selected for merge does not exist");
+                    return;
                 }
             }
         }
+    }
 
-        [HttpGet("autocomplete")]
-        [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> AutocompleteVendor([FromQuery] string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-                return Ok(Enumerable.Empty<VendorSuggestionDto>());
-            var vendors = await _vendorMatchingService.AutocompleteVendors(query, 5);
-            return Ok(vendors.Select(v => new VendorSuggestionDto(v.Id, v.Name, v.DefaultSubcategoryId, v.SubcategoryName, v.CategoryName)));
-        }
+    [HttpGet("autocomplete")]
+    [ProducesResponseType(typeof(IEnumerable<VendorSuggestionDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> AutocompleteVendor([FromQuery] string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return Ok(Enumerable.Empty<VendorSuggestionDto>());
+        var vendors = await _vendorMatchingService.AutocompleteVendors(query, 5);
+        return Ok(vendors.Select(v => new VendorSuggestionDto(v.Id, v.Name, v.DefaultSubcategoryId, v.SubcategoryName, v.CategoryName)));
+    }
 
-        [HttpGet("{vendorId}")]
-        [ProducesResponseType(typeof(VendorWithAliasesDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetVendor([FromRoute] int vendorId)
-        {
-            var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
-            if (vendor is null)
-                return NotFound();
-            return Ok(new VendorWithAliasesDto(vendor.Details, vendor.Aliases.Select(a => new VendorAliasDto(a.Id, a.Alias))));
-        }
+    [HttpGet("{vendorId}")]
+    [ProducesResponseType(typeof(VendorWithAliasesDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetVendor([FromRoute] int vendorId)
+    {
+        var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
+        if (vendor is null)
+            return NotFound();
+        return Ok(new VendorWithAliasesDto(vendor.Details, vendor.Aliases.Select(a => new VendorAliasDto(a.Id, a.Alias))));
+    }
 
-        [HttpPost("{vendorId}/aliases")]
-        [ProducesResponseType(typeof(VendorAliasDto), StatusCodes.Status201Created)]
-        public async Task<IActionResult> AddAlias([FromRoute] int vendorId, [FromBody] AddVendorAliasRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Alias))
-                return BadRequest("Alias cannot be empty");
+    [HttpPost("{vendorId}/aliases")]
+    [ProducesResponseType(typeof(VendorAliasDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> AddAlias([FromRoute] int vendorId, [FromBody] AddVendorAliasRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Alias))
+            return BadRequest("Alias cannot be empty");
 
-            var alias = request.Alias.Trim();
-            var aliasTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(alias));
-            if (!aliasTokens.Any())
-                return BadRequest("Alias contains only words that are too short to be used for matching");
+        var alias = request.Alias.Trim();
+        var aliasTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(alias));
+        if (!aliasTokens.Any())
+            return BadRequest("Alias contains only words that are too short to be used for matching");
 
-            var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
-            if (vendor is null)
-                return NotFound();
+        var vendor = await _vendorStore.GetVendorWithAliases(vendorId);
+        if (vendor is null)
+            return NotFound();
 
-            var vendorNameTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(vendor.Details.Name));
-            if (new HashSet<string>(aliasTokens).SetEquals(vendorNameTokens))
-                return BadRequest("Alias cannot have the same keywords as the vendor name");
+        var vendorNameTokens = _preprocessor.Tokenize(_preprocessor.Preprocess(vendor.Details.Name));
+        if (new HashSet<string>(aliasTokens).SetEquals(vendorNameTokens))
+            return BadRequest("Alias cannot have the same keywords as the vendor name");
 
-            var result = await _vendorStore.AddVendorAlias(vendorId, alias);
-            if (!result.IsSuccess)
-                return Conflict(result.Error);
-            return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(result.Value!.Id, result.Value.Alias));
-        }
+        var result = await _vendorStore.AddVendorAlias(vendorId, alias);
+        if (!result.IsSuccess)
+            return Conflict(result.Error);
+        return StatusCode(StatusCodes.Status201Created, new VendorAliasDto(result.Value!.Id, result.Value.Alias));
+    }
 
-        [HttpDelete("{vendorId}/aliases/{aliasId}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> DeleteAlias([FromRoute] int vendorId, [FromRoute] int aliasId)
-        {
-            await _vendorStore.DeleteVendorAlias(vendorId, aliasId);
-            return NoContent();
-        }
+    [HttpDelete("{vendorId}/aliases/{aliasId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteAlias([FromRoute] int vendorId, [FromRoute] int aliasId)
+    {
+        await _vendorStore.DeleteVendorAlias(vendorId, aliasId);
+        return NoContent();
     }
 }

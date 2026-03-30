@@ -12,378 +12,377 @@ using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Vendors.Matching;
 
-namespace MW.TinyMoney.Api.Transaction
+namespace MW.TinyMoney.Api.Transaction;
+
+[ApiController, Route("/api/transactions"), Authorize]
+public class TransactionsController : Controller
 {
-    [ApiController, Route("/api/transactions"), Authorize]
-    public class TransactionsController : Controller
+    private readonly ITransactionStore _transactionStore;
+    private readonly IVendorStore _vendorStore;
+    private readonly ITagStore _tagStore;
+    private readonly IVendorMatchingService _vendorMatchingService;
+
+    public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore, IVendorMatchingService vendorMatchingService)
     {
-        private readonly ITransactionStore _transactionStore;
-        private readonly IVendorStore _vendorStore;
-        private readonly ITagStore _tagStore;
-        private readonly IVendorMatchingService _vendorMatchingService;
+        _transactionStore = transactionStore;
+        _vendorStore = vendorStore;
+        _tagStore = tagStore;
+        _vendorMatchingService = vendorMatchingService;
+    }
 
-        public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore, IVendorMatchingService vendorMatchingService)
+    [HttpGet("")]
+    [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTransactions([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
+        [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId,
+        [FromQuery] int? tagId, [FromQuery] bool? isVerified)
+    {
+        if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
         {
-            _transactionStore = transactionStore;
-            _vendorStore = vendorStore;
-            _tagStore = tagStore;
-            _vendorMatchingService = vendorMatchingService;
+            return BadRequest("Dates must be provided when no other filters were specified");
         }
-
-        [HttpGet("")]
-        [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTransactions([FromQuery]DateTime? dateFrom, [FromQuery]DateTime? dateTo,
-            [FromQuery] bool? isExpense, [FromQuery] decimal? amountFrom, [FromQuery] decimal? amountTo, [FromQuery] int? vendorId, [FromQuery] int? subcategoryId,
-            [FromQuery] int? tagId, [FromQuery] bool? isVerified)
+            
+        var transactions = await _transactionStore.GetTransactions(
+            dateFrom, dateTo, isExpense, amountFrom, amountTo,
+            vendorId, subcategoryId, tagId, isVerified);
+            
+        return Ok(new TransactionsResponse
         {
-            if ((!dateFrom.HasValue || !dateTo.HasValue) && !amountFrom.HasValue && !amountTo.HasValue && !vendorId.HasValue && !subcategoryId.HasValue && !tagId.HasValue && !isVerified.HasValue)
+            Transactions = transactions,
+            Summary = new TransactionsSummary()
             {
-                return BadRequest("Dates must be provided when no other filters were specified");
+                IncomesTotal = transactions.Where(t => !t.IsExpense).Sum(t => t.Amount),
+                IncomesCount = transactions.Count(t => !t.IsExpense),
+                ExpensesTotal = transactions.Where(t => t.IsExpense).Sum(t => t.Amount),
+                ExpensesCount = transactions.Count(t => t.IsExpense)
             }
-            
-            var transactions = await _transactionStore.GetTransactions(
-                dateFrom, dateTo, isExpense, amountFrom, amountTo,
-                vendorId, subcategoryId, tagId, isVerified);
-            
-            return Ok(new TransactionsResponse
-            {
-                Transactions = transactions,
-                Summary = new TransactionsSummary()
-                {
-                    IncomesTotal = transactions.Where(t => !t.IsExpense).Sum(t => t.Amount),
-                    IncomesCount = transactions.Count(t => !t.IsExpense),
-                    ExpensesTotal = transactions.Where(t => t.IsExpense).Sum(t => t.Amount),
-                    ExpensesCount = transactions.Count(t => t.IsExpense)
-                }
-            });
-        }
+        });
+    }
         
-        [HttpGet("{transactionId}")]
-        public async Task<IActionResult> GetTransaction([FromRoute] int transactionId)
+    [HttpGet("{transactionId}")]
+    public async Task<IActionResult> GetTransaction([FromRoute] int transactionId)
+    {
+        var transaction = await _transactionStore.GetTransaction(transactionId);
+
+        if (transaction == null)
         {
-            var transaction = await _transactionStore.GetTransaction(transactionId);
-
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(transaction);
+            return NotFound();
         }
+
+        return Ok(transaction);
+    }
         
-        [HttpPost("{transactionId}")]
-        public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] AddTransactionDto updatedTransaction)
+    [HttpPost("{transactionId}")]
+    public async Task<IActionResult> UpdateTransaction([FromRoute] int transactionId, [FromBody] AddTransactionDto updatedTransaction)
+    {
+        var transaction = await _transactionStore.GetTransaction(transactionId);
+        if (transaction == null)
         {
-            var transaction = await _transactionStore.GetTransaction(transactionId);
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-            
-            var response = new AddTransactionResponse();
-            if (updatedTransaction.Vendor.Id == null) // todo to be moved
-            {
-                var vendor = new Vendor()
-                {
-                    Name = updatedTransaction.Vendor.Name,
-                    DefaultSubcategoryId = updatedTransaction.SubcategoryId
-                };
-                await _vendorStore.SaveVendor(vendor);
-                updatedTransaction.Vendor.Id = vendor.Id;
-                updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
-                response.NewVendor = updatedTransaction.Vendor;
-            }
-
-            foreach (var newTag in updatedTransaction.Tags.Where(x => x.Id is null))
-            {
-                var tag = new Tag()
-                {
-                    Name = newTag.Name,
-                };
-                await _tagStore.SaveTag(tag);
-                newTag.Id = tag.Id;
-
-                response.NewTags.Add(newTag);
-            }
-
-            var vendorChanged = transaction.VendorId != updatedTransaction.Vendor.Id.Value;
-            var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport,
-                StringComparison.OrdinalIgnoreCase);
-            var wasVerified = transaction.IsVerified;
-            var autoVerify = isImportedTransaction && !wasVerified;
-            if (autoVerify)
-            {
-                transaction.IsVerified = true;
-                transaction.IsPossibleDuplicate = false;
-            }
-
-            transaction.Amount = updatedTransaction.Amount;
-            transaction.IsExpense = updatedTransaction.IsExpense;
-            transaction.Description = updatedTransaction.Description;
-            transaction.ModifiedDate = DateTime.UtcNow;
-            transaction.SubcategoryId = updatedTransaction.SubcategoryId;
-            transaction.Tags = updatedTransaction.Tags.ToList();
-            transaction.TransactionDate = updatedTransaction.TransactionDate;
-            transaction.VendorId = updatedTransaction.Vendor.Id.Value;
-
-            await _transactionStore.UpdateTransaction(transaction);
-
-            response.Transaction = transaction;
-
-            if (vendorChanged)
-            {
-                response.SuggestedAlias = await TrySuggestAlias(transaction, wasVerified);
-            }
-
-            return Ok(response);
+            return NotFound();
         }
-
-        [HttpPost("")]
-        public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
+            
+        var response = new AddTransactionResponse();
+        if (updatedTransaction.Vendor.Id == null) // todo to be moved
         {
-            // TODO validation, should be a single transaction scope
-            var response = new AddTransactionResponse();
-            if (addTransactionDto.Vendor.Id == null) // todo to be moved
+            var vendor = new Vendor()
             {
-                var vendor = new Vendor()
-                {
-                    Name = addTransactionDto.Vendor.Name,
-                    DefaultSubcategoryId = addTransactionDto.SubcategoryId
-                };
-                await _vendorStore.SaveVendor(vendor);
-                addTransactionDto.Vendor.Id = vendor.Id;
-                addTransactionDto.Vendor.DefaultSubcategoryId = addTransactionDto.SubcategoryId;
-                response.NewVendor = addTransactionDto.Vendor;
-            }
-
-            foreach (var newTag in addTransactionDto.Tags.Where(x => x.Id is null))
-            {
-                var tag = new Tag()
-                {
-                    Name = newTag.Name,
-                };
-                await _tagStore.SaveTag(tag);
-                newTag.Id = tag.Id;
-
-                response.NewTags.Add(newTag);
-            }
-
-            var createdTransaction = new ApiModels.Transaction()
-            {
-                Amount = addTransactionDto.Amount,
-                CreatedDate = DateTime.UtcNow,
-                CreatedBy = TransactionPlaceholders.CreatedByApi,
-                Description = addTransactionDto.Description,
-                IsExpense = addTransactionDto.IsExpense,
-                ModifiedDate = DateTime.UtcNow,
-                SubcategoryId = addTransactionDto.SubcategoryId,
-                Tags = addTransactionDto.Tags.ToList(),
-                TransactionDate = addTransactionDto.TransactionDate,
-                VendorId = addTransactionDto.Vendor.Id.Value,
-                IsVerified = true,
-                IsPossibleDuplicate = false
+                Name = updatedTransaction.Vendor.Name,
+                DefaultSubcategoryId = updatedTransaction.SubcategoryId
             };
-            _transactionStore.SaveTransaction(createdTransaction);
-
-            response.Transaction = createdTransaction;
-
-            return StatusCode(StatusCodes.Status201Created, response);
-        }
-        
-        [HttpDelete("{transactionId}")]
-        public async Task<IActionResult> DeleteTransaction([FromRoute] int transactionId)
-        {
-            var transaction = await _transactionStore.GetTransaction(transactionId);
-
-            if (transaction == null)
-            {
-                return NotFound();
-            }
-
-            await _transactionStore.DeleteTransaction(transaction);
-
-            return Ok();
+            await _vendorStore.SaveVendor(vendor);
+            updatedTransaction.Vendor.Id = vendor.Id;
+            updatedTransaction.Vendor.DefaultSubcategoryId = updatedTransaction.SubcategoryId;
+            response.NewVendor = updatedTransaction.Vendor;
         }
 
-        [HttpPost("{transactionId}/verify")]
-        public async Task<IActionResult> VerifyTransaction([FromRoute] int transactionId)
+        foreach (var newTag in updatedTransaction.Tags.Where(x => x.Id is null))
         {
-            var transaction = await _transactionStore.GetTransaction(transactionId);
-            if (transaction == null)
+            var tag = new Tag()
             {
-                return NotFound();
-            }
+                Name = newTag.Name,
+            };
+            await _tagStore.SaveTag(tag);
+            newTag.Id = tag.Id;
 
-            if (transaction.IsVerified)
-            {
-                return BadRequest("Transaction is already verified.");
-            }
-            if (transaction.VendorId == null)
-            {
-                return BadRequest("Cannot verify a transaction with an unknown vendor.");
-            }
-            if (transaction.SubcategoryId == null)
-            {
-                return BadRequest("Cannot verify a transaction with an uncategorized subcategory.");
-            }
+            response.NewTags.Add(newTag);
+        }
 
-            var wasVerified = transaction.IsVerified;
+        var vendorChanged = transaction.VendorId != updatedTransaction.Vendor.Id.Value;
+        var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport,
+            StringComparison.OrdinalIgnoreCase);
+        var wasVerified = transaction.IsVerified;
+        var autoVerify = isImportedTransaction && !wasVerified;
+        if (autoVerify)
+        {
             transaction.IsVerified = true;
             transaction.IsPossibleDuplicate = false;
-            transaction.ModifiedDate = DateTime.UtcNow;
-
-            await _transactionStore.UpdateTransaction(transaction);
-
-            return Ok(new AddTransactionResponse
-            {
-                Transaction = transaction,
-                SuggestedAlias = await TrySuggestAlias(transaction, wasVerified)
-            });
         }
 
-        [HttpPost("{transactionId}/split")]
-        public async Task<IActionResult> SplitTransaction([FromRoute] int transactionId, [FromBody] ApiModels.SplitTransactionDto dto)
+        transaction.Amount = updatedTransaction.Amount;
+        transaction.IsExpense = updatedTransaction.IsExpense;
+        transaction.Description = updatedTransaction.Description;
+        transaction.ModifiedDate = DateTime.UtcNow;
+        transaction.SubcategoryId = updatedTransaction.SubcategoryId;
+        transaction.Tags = updatedTransaction.Tags.ToList();
+        transaction.TransactionDate = updatedTransaction.TransactionDate;
+        transaction.VendorId = updatedTransaction.Vendor.Id.Value;
+
+        await _transactionStore.UpdateTransaction(transaction);
+
+        response.Transaction = transaction;
+
+        if (vendorChanged)
         {
-            var transaction = await _transactionStore.GetTransaction(transactionId);
-            if (transaction == null)
-                return NotFound();
-
-            if (dto.Splits == null || dto.Splits.Count() < 2)
-                return BadRequest("Split requires at least 2 parts.");
-
-            var totalSplitAmount = dto.Splits.Sum(s => s.Amount);
-            if (totalSplitAmount != transaction.Amount)
-                return BadRequest($"Sum of split amounts ({totalSplitAmount}) must equal the transaction amount ({transaction.Amount}).");
-
-            var vendorNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var split in dto.Splits.Where(s => s.Vendor?.Id == null && !string.IsNullOrWhiteSpace(s.Vendor?.Name))
-                                             .DistinctBy(s => s.Vendor.Name, StringComparer.OrdinalIgnoreCase))
-            {
-                var vendor = new Vendor { Name = split.Vendor.Name, DefaultSubcategoryId = split.SubcategoryId };
-                await _vendorStore.SaveVendor(vendor);
-                vendorNameToId[split.Vendor.Name] = vendor.Id;
-            }
-
-            var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var name in dto.Splits.SelectMany(s => s.Tags ?? [])
-                                           .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
-                                           .Select(t => t.Name)
-                                           .Distinct(StringComparer.OrdinalIgnoreCase))
-            {
-                var newTag = new Tag { Name = name };
-                await _tagStore.SaveTag(newTag);
-                tagNameToId[name] = newTag.Id;
-            }
-
-            var newTransactions = dto.Splits.Select(split => new ApiModels.Transaction
-            {
-                Amount = split.Amount,
-                IsExpense = split.IsExpense,
-                TransactionDate = transaction.TransactionDate,
-                Description = transaction.Description,
-                SubcategoryId = split.SubcategoryId,
-                VendorId = split.Vendor?.Id ?? (split.Vendor?.Name != null && vendorNameToId.TryGetValue(split.Vendor.Name, out var vid) ? vid : (int?)null),
-                IsVerified = true,
-                IsPossibleDuplicate = false,
-                CreatedDate = transaction.CreatedDate,
-                CreatedBy = transaction.CreatedBy,
-                ModifiedDate = DateTime.UtcNow,
-                Tags = (split.Tags ?? []).Select(t => new TagDto { Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null), Name = t.Name }).ToList()
-            }).ToList();
-
-            await _transactionStore.SplitTransaction(transaction, newTransactions);
-
-            return Ok();
+            response.SuggestedAlias = await TrySuggestAlias(transaction, wasVerified);
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteTransactions([FromBody] IReadOnlyList<int> transactionIds)
+        return Ok(response);
+    }
+
+    [HttpPost("")]
+    public async Task<IActionResult> AddTransaction([FromBody] AddTransactionDto addTransactionDto)
+    {
+        // TODO validation, should be a single transaction scope
+        var response = new AddTransactionResponse();
+        if (addTransactionDto.Vendor.Id == null) // todo to be moved
         {
-            if (transactionIds == null || transactionIds.Count == 0)
-                return BadRequest();
-
-            await _transactionStore.DeleteTransactions(transactionIds);
-            return Ok();
-        }
-
-        [HttpPost("merge")]
-        public async Task<IActionResult> MergeTransactions([FromBody] ApiModels.MergeTransactionsDto dto)
-        {
-            var transactionIds = dto.TransactionIds?.ToList();
-            if (transactionIds == null || transactionIds.Count < 2)
-                return BadRequest("Merge requires at least 2 transactions.");
-
-            if (dto.Vendor == null || string.IsNullOrWhiteSpace(dto.Vendor.Name))
-                return BadRequest("Vendor is required.");
-
-            if (dto.SubcategoryId <= 0)
-                return BadRequest("Category is required.");
-
-            var sources = await _transactionStore.GetTransactionsByIds(transactionIds);
-            if (sources.Count != transactionIds.Count)
-                return NotFound();
-
-            var net = sources.Sum(t => t.IsExpense ? -t.Amount : t.Amount);
-            if (net == 0)
-                return BadRequest("Net amount of merged transactions is zero.");
-
-            if (dto.Vendor.Id == null)
+            var vendor = new Vendor()
             {
-                var vendor = new Vendor { Name = dto.Vendor.Name, DefaultSubcategoryId = dto.SubcategoryId };
-                await _vendorStore.SaveVendor(vendor);
-                dto.Vendor.Id = vendor.Id;
-            }
-
-            var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            foreach (var name in (dto.Tags ?? [])
-                                 .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
-                                 .Select(t => t.Name)
-                                 .Distinct(StringComparer.OrdinalIgnoreCase))
-            {
-                var newTag = new Tag { Name = name };
-                await _tagStore.SaveTag(newTag);
-                tagNameToId[name] = newTag.Id;
-            }
-
-            var merged = new ApiModels.Transaction
-            {
-                Amount = Math.Abs(net),
-                IsExpense = net < 0,
-                TransactionDate = dto.TransactionDate,
-                Description = dto.Description,
-                SubcategoryId = dto.SubcategoryId,
-                VendorId = dto.Vendor.Id.Value,
-                IsVerified = true,
-                IsPossibleDuplicate = false,
-                CreatedDate = DateTime.UtcNow,
-                CreatedBy = TransactionPlaceholders.CreatedByApi,
-                ModifiedDate = DateTime.UtcNow,
-                Tags = (dto.Tags ?? []).Select(t => new TagDto
-                {
-                    Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null),
-                    Name = t.Name
-                }).ToList()
+                Name = addTransactionDto.Vendor.Name,
+                DefaultSubcategoryId = addTransactionDto.SubcategoryId
             };
-
-            await _transactionStore.MergeTransactions(sources, merged);
-
-            return Ok();
+            await _vendorStore.SaveVendor(vendor);
+            addTransactionDto.Vendor.Id = vendor.Id;
+            addTransactionDto.Vendor.DefaultSubcategoryId = addTransactionDto.SubcategoryId;
+            response.NewVendor = addTransactionDto.Vendor;
         }
 
-        private async Task<SuggestedAliasDto> TrySuggestAlias(ApiModels.Transaction transaction, bool wasVerified)
+        foreach (var newTag in addTransactionDto.Tags.Where(x => x.Id is null))
         {
-            var becameVerified = !wasVerified && transaction.IsVerified;
-            var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport, StringComparison.OrdinalIgnoreCase);
-
-            if (becameVerified
-                && isImportedTransaction
-                && transaction.VendorId != null
-                && !string.IsNullOrWhiteSpace(transaction.Description))
+            var tag = new Tag()
             {
-                var alias = await _vendorMatchingService.SuggestAlias(transaction.VendorId.Value, transaction.Description);
-                return alias != null ? new SuggestedAliasDto(alias, transaction.VendorId.Value) : null;
-            }
-            return null;
+                Name = newTag.Name,
+            };
+            await _tagStore.SaveTag(tag);
+            newTag.Id = tag.Id;
+
+            response.NewTags.Add(newTag);
         }
+
+        var createdTransaction = new ApiModels.Transaction()
+        {
+            Amount = addTransactionDto.Amount,
+            CreatedDate = DateTime.UtcNow,
+            CreatedBy = TransactionPlaceholders.CreatedByApi,
+            Description = addTransactionDto.Description,
+            IsExpense = addTransactionDto.IsExpense,
+            ModifiedDate = DateTime.UtcNow,
+            SubcategoryId = addTransactionDto.SubcategoryId,
+            Tags = addTransactionDto.Tags.ToList(),
+            TransactionDate = addTransactionDto.TransactionDate,
+            VendorId = addTransactionDto.Vendor.Id.Value,
+            IsVerified = true,
+            IsPossibleDuplicate = false
+        };
+        _transactionStore.SaveTransaction(createdTransaction);
+
+        response.Transaction = createdTransaction;
+
+        return StatusCode(StatusCodes.Status201Created, response);
+    }
+        
+    [HttpDelete("{transactionId}")]
+    public async Task<IActionResult> DeleteTransaction([FromRoute] int transactionId)
+    {
+        var transaction = await _transactionStore.GetTransaction(transactionId);
+
+        if (transaction == null)
+        {
+            return NotFound();
+        }
+
+        await _transactionStore.DeleteTransaction(transaction);
+
+        return Ok();
+    }
+
+    [HttpPost("{transactionId}/verify")]
+    public async Task<IActionResult> VerifyTransaction([FromRoute] int transactionId)
+    {
+        var transaction = await _transactionStore.GetTransaction(transactionId);
+        if (transaction == null)
+        {
+            return NotFound();
+        }
+
+        if (transaction.IsVerified)
+        {
+            return BadRequest("Transaction is already verified.");
+        }
+        if (transaction.VendorId == null)
+        {
+            return BadRequest("Cannot verify a transaction with an unknown vendor.");
+        }
+        if (transaction.SubcategoryId == null)
+        {
+            return BadRequest("Cannot verify a transaction with an uncategorized subcategory.");
+        }
+
+        var wasVerified = transaction.IsVerified;
+        transaction.IsVerified = true;
+        transaction.IsPossibleDuplicate = false;
+        transaction.ModifiedDate = DateTime.UtcNow;
+
+        await _transactionStore.UpdateTransaction(transaction);
+
+        return Ok(new AddTransactionResponse
+        {
+            Transaction = transaction,
+            SuggestedAlias = await TrySuggestAlias(transaction, wasVerified)
+        });
+    }
+
+    [HttpPost("{transactionId}/split")]
+    public async Task<IActionResult> SplitTransaction([FromRoute] int transactionId, [FromBody] ApiModels.SplitTransactionDto dto)
+    {
+        var transaction = await _transactionStore.GetTransaction(transactionId);
+        if (transaction == null)
+            return NotFound();
+
+        if (dto.Splits == null || dto.Splits.Count() < 2)
+            return BadRequest("Split requires at least 2 parts.");
+
+        var totalSplitAmount = dto.Splits.Sum(s => s.Amount);
+        if (totalSplitAmount != transaction.Amount)
+            return BadRequest($"Sum of split amounts ({totalSplitAmount}) must equal the transaction amount ({transaction.Amount}).");
+
+        var vendorNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var split in dto.Splits.Where(s => s.Vendor?.Id == null && !string.IsNullOrWhiteSpace(s.Vendor?.Name))
+                     .DistinctBy(s => s.Vendor.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var vendor = new Vendor { Name = split.Vendor.Name, DefaultSubcategoryId = split.SubcategoryId };
+            await _vendorStore.SaveVendor(vendor);
+            vendorNameToId[split.Vendor.Name] = vendor.Id;
+        }
+
+        var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in dto.Splits.SelectMany(s => s.Tags ?? [])
+                     .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
+                     .Select(t => t.Name)
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var newTag = new Tag { Name = name };
+            await _tagStore.SaveTag(newTag);
+            tagNameToId[name] = newTag.Id;
+        }
+
+        var newTransactions = dto.Splits.Select(split => new ApiModels.Transaction
+        {
+            Amount = split.Amount,
+            IsExpense = split.IsExpense,
+            TransactionDate = transaction.TransactionDate,
+            Description = transaction.Description,
+            SubcategoryId = split.SubcategoryId,
+            VendorId = split.Vendor?.Id ?? (split.Vendor?.Name != null && vendorNameToId.TryGetValue(split.Vendor.Name, out var vid) ? vid : (int?)null),
+            IsVerified = true,
+            IsPossibleDuplicate = false,
+            CreatedDate = transaction.CreatedDate,
+            CreatedBy = transaction.CreatedBy,
+            ModifiedDate = DateTime.UtcNow,
+            Tags = (split.Tags ?? []).Select(t => new TagDto { Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null), Name = t.Name }).ToList()
+        }).ToList();
+
+        await _transactionStore.SplitTransaction(transaction, newTransactions);
+
+        return Ok();
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteTransactions([FromBody] IReadOnlyList<int> transactionIds)
+    {
+        if (transactionIds == null || transactionIds.Count == 0)
+            return BadRequest();
+
+        await _transactionStore.DeleteTransactions(transactionIds);
+        return Ok();
+    }
+
+    [HttpPost("merge")]
+    public async Task<IActionResult> MergeTransactions([FromBody] ApiModels.MergeTransactionsDto dto)
+    {
+        var transactionIds = dto.TransactionIds?.ToList();
+        if (transactionIds == null || transactionIds.Count < 2)
+            return BadRequest("Merge requires at least 2 transactions.");
+
+        if (dto.Vendor == null || string.IsNullOrWhiteSpace(dto.Vendor.Name))
+            return BadRequest("Vendor is required.");
+
+        if (dto.SubcategoryId <= 0)
+            return BadRequest("Category is required.");
+
+        var sources = await _transactionStore.GetTransactionsByIds(transactionIds);
+        if (sources.Count != transactionIds.Count)
+            return NotFound();
+
+        var net = sources.Sum(t => t.IsExpense ? -t.Amount : t.Amount);
+        if (net == 0)
+            return BadRequest("Net amount of merged transactions is zero.");
+
+        if (dto.Vendor.Id == null)
+        {
+            var vendor = new Vendor { Name = dto.Vendor.Name, DefaultSubcategoryId = dto.SubcategoryId };
+            await _vendorStore.SaveVendor(vendor);
+            dto.Vendor.Id = vendor.Id;
+        }
+
+        var tagNameToId = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in (dto.Tags ?? [])
+                 .Where(t => t.Id == null && !string.IsNullOrWhiteSpace(t.Name))
+                 .Select(t => t.Name)
+                 .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var newTag = new Tag { Name = name };
+            await _tagStore.SaveTag(newTag);
+            tagNameToId[name] = newTag.Id;
+        }
+
+        var merged = new ApiModels.Transaction
+        {
+            Amount = Math.Abs(net),
+            IsExpense = net < 0,
+            TransactionDate = dto.TransactionDate,
+            Description = dto.Description,
+            SubcategoryId = dto.SubcategoryId,
+            VendorId = dto.Vendor.Id.Value,
+            IsVerified = true,
+            IsPossibleDuplicate = false,
+            CreatedDate = DateTime.UtcNow,
+            CreatedBy = TransactionPlaceholders.CreatedByApi,
+            ModifiedDate = DateTime.UtcNow,
+            Tags = (dto.Tags ?? []).Select(t => new TagDto
+            {
+                Id = t.Id ?? (tagNameToId.TryGetValue(t.Name ?? "", out var tid) ? tid : (int?)null),
+                Name = t.Name
+            }).ToList()
+        };
+
+        await _transactionStore.MergeTransactions(sources, merged);
+
+        return Ok();
+    }
+
+    private async Task<SuggestedAliasDto> TrySuggestAlias(ApiModels.Transaction transaction, bool wasVerified)
+    {
+        var becameVerified = !wasVerified && transaction.IsVerified;
+        var isImportedTransaction = string.Equals(transaction.CreatedBy, TransactionPlaceholders.CreatedByImport, StringComparison.OrdinalIgnoreCase);
+
+        if (becameVerified
+            && isImportedTransaction
+            && transaction.VendorId != null
+            && !string.IsNullOrWhiteSpace(transaction.Description))
+        {
+            var alias = await _vendorMatchingService.SuggestAlias(transaction.VendorId.Value, transaction.Description);
+            return alias != null ? new SuggestedAliasDto(alias, transaction.VendorId.Value) : null;
+        }
+        return null;
     }
 }

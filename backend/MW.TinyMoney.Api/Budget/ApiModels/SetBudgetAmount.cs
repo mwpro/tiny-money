@@ -1,8 +1,7 @@
-﻿namespace MW.TinyMoney.Api.Budget.ApiModels
+﻿namespace MW.TinyMoney.Api.Budget.ApiModels;
+
+public class SetBudget
 {
-    public class SetBudget
-    {
-        public decimal BudgetAmount { get; set; }
-        public string Notes { get; set; }
-    }
+    public decimal BudgetAmount { get; set; }
+    public string Notes { get; set; }
 }
