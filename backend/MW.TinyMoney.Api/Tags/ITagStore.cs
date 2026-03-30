@@ -16,13 +16,14 @@ namespace MW.TinyMoney.Api.Tags
         public int Id { get; set; }
         public string Name { get; set; }
         public int NumberOfTransactions { get; set; }
+        public int NumberOfPlans { get; set; }
     }
 
     public interface ITagStore
     {
         Task SaveTag(Tag tag);
         Task<IEnumerable<TagDetails>> GetTags();
-        Task<Tag> GetTag(int id);
+        Task<TagDetails> GetTag(int id);
         Task DeleteTag(int id);
         Task UpdateTag(int tagId, Tag tag);
     }
@@ -37,33 +38,50 @@ namespace MW.TinyMoney.Api.Tags
         }
 
         private const string SaveTagQuery =
-              @"INSERT INTO tag (name)
-                VALUES(@name);
-                SELECT LAST_INSERT_ID();";
+            """
+            INSERT INTO tag (name) VALUES (@name)
+                ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id);
+                SELECT LAST_INSERT_ID();
+            """;
 
         private const string UpdateTagQuery = 
-              @"UPDATE tag
-                set name = @name 
-                where id = @id;";
+            """
+            UPDATE tag
+            set name = @name 
+            where id = @id;
+            """;
 
         private const string GetTagsQuery =
-              @"SELECT id, name, COUNT(tt.transaction_id) AS numberOfTransactions
-                FROM tag
-                LEFT JOIN transaction_tag tt on tag.id = tt.tag_id
-                GROUP BY id, name
-                ORDER BY name";
+            """
+            SELECT tag.id, tag.name,
+                   COUNT(DISTINCT tt.transaction_id) AS numberOfTransactions,
+                   COUNT(DISTINCT pt.plan_id) AS numberOfPlans
+            FROM tag
+            LEFT JOIN transaction_tag tt ON tag.id = tt.tag_id
+            LEFT JOIN plan_tag pt ON tag.id = pt.tag_id
+            GROUP BY tag.id, tag.name
+            ORDER BY tag.name
+            """;
 
         private const string GetTagQuery =
-            @"SELECT id, name
-                FROM tag
-                WHERE id=@id";
+            """
+            SELECT tag.id, tag.name,
+                   COUNT(DISTINCT tt.transaction_id) AS numberOfTransactions,
+                   COUNT(DISTINCT pt.plan_id) AS numberOfPlans
+            FROM tag
+            LEFT JOIN transaction_tag tt ON tag.id = tt.tag_id
+            LEFT JOIN plan_tag pt ON tag.id = pt.tag_id
+            WHERE tag.id = @id
+            GROUP BY tag.id, tag.name
+            """;
 
         private const string DeleteTagQuery =
-            @"DELETE FROM transaction_tag
+            """
+            DELETE FROM transaction_tag
                 WHERE tag_id = @id;
             DELETE FROM tag 
                 WHERE id = @id
-            ";
+            """;
 
 
         public async Task SaveTag(Tag tag)
@@ -94,12 +112,12 @@ namespace MW.TinyMoney.Api.Tags
             return await connection.QueryAsync<TagDetails>(GetTagsQuery);
         }
 
-        public async Task<Tag> GetTag(int id)
+        public async Task<TagDetails> GetTag(int id)
         {
             await using var connection = _mySqlConnectionFactory.CreateConnection();
             await connection.OpenAsync();
 
-            return await connection.QuerySingleOrDefaultAsync<Tag>(GetTagQuery, new {id});
+            return await connection.QuerySingleOrDefaultAsync<TagDetails>(GetTagQuery, new { id });
         }
 
         public async Task DeleteTag(int id)

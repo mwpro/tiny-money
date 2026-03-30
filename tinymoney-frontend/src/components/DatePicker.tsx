@@ -43,7 +43,7 @@ export function DatePicker({value, placeholder, onChange, ref}: DatePickerProps)
     const [date, setDate] = React.useState<Date | undefined>(
         parse(value, dateFormat, new Date())
     )
-    const [month, setMonth] = React.useState<Date | undefined>(date)
+    const [month, setMonth] = React.useState<Date | undefined>(isValidDate(date) ? date : undefined)
 
     return (
         <InputGroup>

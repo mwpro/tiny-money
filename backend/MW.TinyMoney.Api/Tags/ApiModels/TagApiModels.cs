@@ -16,5 +16,6 @@ namespace MW.TinyMoney.Api.Tags.ApiModels
         public int Id { get; set; }
         public string Name { get; set; }
         public int NumberOfTransactions { get; set; }
+        public int NumberOfPlans { get; set; }
     }
 }

@@ -14,6 +14,7 @@ import {
 import {
     ArrowLeftRightIcon,
     BarChart2Icon,
+    CalendarRangeIcon,
     ChevronDownIcon,
     CoinsIcon,
     LogOutIcon,
@@ -62,6 +63,9 @@ export function Layout() {
                             </Button>
                             <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/budgets") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/budgets">Budżet</Link>
+                            </Button>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${location.pathname.startsWith("/plans") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/plans">Plany</Link>
                             </Button>
                             <ButtonGroup>
                                 <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isReportsActive() ? "bg-white/20" : ""}`}>Raporty</Button>
@@ -148,6 +152,12 @@ export function Layout() {
                       className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isActive("/budgets") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                     <WalletIcon className="size-5"/>
                     <span>Budżet</span>
+                </Link>
+
+                <Link to="/plans"
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${location.pathname.startsWith("/plans") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
+                    <CalendarRangeIcon className="size-5"/>
+                    <span>Plany</span>
                 </Link>
 
                 <Sheet open={reportsOpen} onOpenChange={setReportsOpen}>

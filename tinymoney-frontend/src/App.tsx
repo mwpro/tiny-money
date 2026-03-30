@@ -13,6 +13,8 @@ import {SankeyReportPage} from "@/features/reports/SankeyReportPage.tsx";
 import {TagsPage} from "@/features/tags/TagsPage.tsx";
 import {VendorsPage} from "@/features/vendors/VendorsPage.tsx";
 import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
+import {PlansPage} from "@/features/plans/PlansPage.tsx";
+import {PlanDetailPage} from "@/features/plans/PlanDetailPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -84,6 +86,8 @@ function App() {
                             <Route path="reports/top-list" element={<TopListReportPage />} />
                             <Route path="reports/sankey" element={<SankeyReportPage />} />
                             <Route path="budgets" element={<BudgetsPage />} />
+                            <Route path="plans" element={<PlansPage />} />
+                            <Route path="plans/:planId" element={<PlanDetailPage />} />
                             <Route path="tags" element={<TagsPage />} />
                             <Route path="vendors" element={<VendorsPage />} />
                             <Route path="settings" element={<SettingsPage />} />

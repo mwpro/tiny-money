@@ -13,6 +13,7 @@ import {UnverifiedWidget} from "@/features/dashboard/widgets/UnverifiedWidget.ts
 import {BudgetWidget} from "@/features/dashboard/widgets/BudgetWidget.tsx";
 import {BudgetRemainingWidget} from "@/features/dashboard/widgets/BudgetRemainingWidget.tsx";
 import {BudgetOverspentWidget} from "@/features/dashboard/widgets/BudgetOverspentWidget.tsx";
+import {ActivePlansWidget} from "@/features/dashboard/widgets/ActivePlansWidget.tsx";
 
 export function DashboardPage() {
     const {reportsClient} = useApiClient();
@@ -94,6 +95,7 @@ export function DashboardPage() {
                     />
                     <BudgetRemainingWidget topRemaining={dashboardQuery.data.topRemainingBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
                     <BudgetOverspentWidget topOverspent={dashboardQuery.data.topOverspentBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
+                    <ActivePlansWidget activePlans={dashboardQuery.data.activePlans}/>
                 </div>
             )}
         </div>

@@ -48,12 +48,18 @@ export function TagRemovalDialog({tagToRemove, onClose}: TagRemovalDialogProps) 
                 <AlertDialogHeader>
                     <AlertDialogTitle>Czy na pewno chcesz usunąć tag "{tagToRemove.name}"?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        {tagToRemove.numberOfTransactions ? `Spowoduje to usunięcie go z ${tagToRemove.numberOfTransactions} transakcji.` : "Nie jest on używany w żadnej transakcji"}
+                        {tagToRemove.numberOfPlans > 0
+                            ? `Tag jest używany w ${tagToRemove.numberOfPlans} ${tagToRemove.numberOfPlans === 1 ? "planie" : "planach"} i nie może zostać usunięty.`
+                            : tagToRemove.numberOfTransactions
+                                ? `Spowoduje to usunięcie go z ${tagToRemove.numberOfTransactions} transakcji.`
+                                : "Nie jest on używany w żadnej transakcji"}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setIsOpen(false)}>Anuluj</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive" onClick={() => deleteMutation.mutate(tagToRemove.id)}>Usuń</AlertDialogAction>
+                    {tagToRemove.numberOfPlans === 0 && (
+                        <AlertDialogAction className="bg-destructive" onClick={() => deleteMutation.mutate(tagToRemove.id)}>Usuń</AlertDialogAction>
+                    )}
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>)

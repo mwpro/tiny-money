@@ -16,6 +16,7 @@ using MW.TinyMoney.Api.Transaction;
 using MW.TinyMoney.Api.Vendors;
 using Microsoft.AspNetCore.Hosting;
 using MW.TinyMoney.Api.Migrations;
+using MW.TinyMoney.Api.Plans;
 using MW.TinyMoney.Api.Vendors.Matching;
 
 System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -96,4 +97,5 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();
     services.AddTransient<IApiKeyStore, MySqlApiKeyStore>();
     services.AddTransient<IImportService, ImportService>();
+    services.AddTransient<IPlanStore, MySqlPlanStore>();
 }

@@ -269,10 +269,11 @@ export type Category = { id: number, name: string, isIncome: boolean, subcategor
 export type Subcategory = { id: number; name: string };
 export type DetailedCategory = { id: number, name: string, isIncome: boolean, subcategories: DetailedSubcategory[] };
 export type DetailedSubcategory = { id: number; name: string; hasUsages: boolean };
-export type Tag = { id: number; name: string, numberOfTransactions: number };
+export type Tag = { id: number; name: string; numberOfTransactions: number; numberOfPlans: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };
+export type ActivePlanSummary = { id: number; title: string; totalBudget: number; totalSpent: number; spentPercent: number };
 export type DashboardResponse = {
     incomesTotal: number;
     expensesTotal: number;
@@ -283,7 +284,46 @@ export type DashboardResponse = {
     dailyExpenses: DailyExpense[];
     topRemainingBudgetCategories: CategoryBudgetSummary[];
     topOverspentBudgetCategories: CategoryBudgetSummary[];
+    activePlans: ActivePlanSummary[];
 };
+
+export type PlanSummary = {
+    id: number;
+    title: string;
+    description: string | null;
+    dateFrom: string;
+    dateTo: string | null;
+    totalBudget: number;
+    totalSpent: number;
+    spentPercent: number;
+    isActive: boolean;
+};
+
+export type PlanTagLine = {
+    tagId: number;
+    tagName: string;
+    amount: number;
+    description: string | null;
+    spent: number;
+    spentPercent: number;
+};
+
+export type PlanDetail = {
+    id: number;
+    title: string;
+    description: string | null;
+    dateFrom: string;
+    dateTo: string | null;
+    totalBudget: number;
+    totalSpent: number;
+    spentPercent: number;
+    tagLines: PlanTagLine[];
+};
+
+export type CreatePlanRequest = { title: string; description?: string; dateFrom: string; dateTo?: string };
+export type UpdatePlanRequest = { title: string; description?: string; dateFrom: string; dateTo?: string };
+export type AddPlanTagRequest = { tagId: number; amount: number; description?: string };
+export type UpdatePlanTagRequest = { amount: number; description?: string };
 
 export type ApiKeySummary = {
     id: number;

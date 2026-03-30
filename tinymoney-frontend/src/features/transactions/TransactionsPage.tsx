@@ -73,7 +73,8 @@ export function TransactionsPage() {
     const [tagFilter, setTagFilter] = useState<Tag | undefined>(() => searchParams.get("tagId") ? {
         id: Number(searchParams.get("tagId")),
         name: "",
-        numberOfTransactions: 0
+        numberOfTransactions: 0,
+        numberOfPlans: 0
     } : undefined);
     const [dateRangeDescription, setDateRangeDescription] = useState<string>("")
     

@@ -27,11 +27,11 @@ public class DashboardReport : IDashboardReport
                COALESCE(SUM(IF(is_expense = 1 AND is_verified = 1, amount, 0)), 0) AS expensesTotal,
                COUNT(CASE WHEN is_verified = 0 THEN 1 END) AS unverifiedCount
         FROM transaction WHERE transaction_date >= @dateFrom AND transaction_date <= @dateTo;
-        
-        SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount 
-            FROM transaction 
-            WHERE is_expense = 1 AND is_verified = 1 AND transaction_date >= @dateFrom AND transaction_date <= @dateTo 
-            GROUP BY DAY(transaction_date) 
+
+        SELECT DAY(transaction_date) AS Day, SUM(amount) AS Amount
+            FROM transaction
+            WHERE is_expense = 1 AND is_verified = 1 AND transaction_date >= @dateFrom AND transaction_date <= @dateTo
+            GROUP BY DAY(transaction_date)
             ORDER BY Day;
 
         WITH monthlyBudgets AS (
@@ -40,7 +40,7 @@ public class DashboardReport : IDashboardReport
             COALESCE(SUM(t.amount), 0) AS `UsedAmount`,
             COALESCE(b.amount, 0) - COALESCE(SUM(t.amount), 0) AS 'AmountLeft'
             FROM category c
-            LEFT JOIN subcategory s ON s.parent_category_id = c.id 
+            LEFT JOIN subcategory s ON s.parent_category_id = c.id
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date <= @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
@@ -81,23 +81,39 @@ public class DashboardReport : IDashboardReport
                      LEFT JOIN transaction t ON transaction_date >= @dateFrom AND transaction_date < @dateTo AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
             GROUP BY c.id, c.name, s.id, s.name, b.amount) b;
+
+        SELECT p.id, p.title,
+               COALESCE(SUM(pt.amount), 0) AS totalBudget,
+               COALESCE(SUM(CASE WHEN t.id IS NOT NULL THEN t.amount ELSE 0 END), 0) AS totalSpent
+        FROM plan p
+        LEFT JOIN plan_tag pt ON pt.plan_id = p.id
+        LEFT JOIN transaction_tag tt ON tt.tag_id = pt.tag_id
+        LEFT JOIN transaction t ON t.id = tt.transaction_id
+            AND t.transaction_date >= p.date_from
+            AND (p.date_to IS NULL OR t.transaction_date <= p.date_to)
+            AND t.is_expense = 1 AND t.is_verified = 1
+        WHERE p.date_from <= @today AND (p.date_to IS NULL OR p.date_to >= @today)
+        GROUP BY p.id, p.title
+        ORDER BY p.date_from;
         """;
-        
+
     public async Task<DashboardResponse> GetDashboardData(int year, int month)
     {
         await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var dateFrom = new DateTime(year, month, 1);
         var dateTo = new DateTime(year, month, DateTime.DaysInMonth(year, month));
+        var today = DateTime.Today;
 
-        var reader = await connection.QueryMultipleAsync(DashboardQuery, new {dateFrom, dateTo, year, month});
+        var reader = await connection.QueryMultipleAsync(DashboardQuery, new { dateFrom, dateTo, year, month, today });
 
         var gauges = await reader.ReadFirstAsync<(decimal IncomesTotal, decimal ExpensesTotal, int UnverifiedCount)>();
         var dailyExpenses = (await reader.ReadAsync<(int Day, decimal Amount)>()).ToList();
         var topOverspentBudgetCategories = (await reader.ReadAsync<CategoryBudgetSummary>()).ToList();
         var topRemainingBudgetCategories = (await reader.ReadAsync<CategoryBudgetSummary>()).ToList();
         var budgetSummary = await reader.ReadFirstAsync<(decimal Amount, decimal UsedAmount, decimal AmountLeft)>();
-            
+        var activePlans = (await reader.ReadAsync<(int Id, string Title, decimal TotalBudget, decimal TotalSpent)>()).ToList();
+
         return new DashboardResponse
         {
             IncomesTotal = gauges.IncomesTotal,
@@ -108,7 +124,11 @@ public class DashboardReport : IDashboardReport
             TopRemainingBudgetCategories = topRemainingBudgetCategories,
             BudgetAmount = budgetSummary.Amount,
             BudgetUsed = budgetSummary.UsedAmount,
-            BudgetLeft =  budgetSummary.AmountLeft
+            BudgetLeft = budgetSummary.AmountLeft,
+            ActivePlans = activePlans.Select(p => new ActivePlanSummary(
+                p.Id, p.Title, p.TotalBudget, p.TotalSpent,
+                p.TotalBudget > 0 ? p.TotalSpent / p.TotalBudget * 100m : 0m
+            )).ToList()
         };
     }
 
@@ -120,9 +140,9 @@ public class DashboardReport : IDashboardReport
         foreach (var dailyExpense in dailyExpenses)
         {
             budgetLeft -= dailyExpense.Amount;
-            result.Add(new DailyExpense(dailyExpense.Day, dailyExpense.Amount, budgetLeft ));
+            result.Add(new DailyExpense(dailyExpense.Day, dailyExpense.Amount, budgetLeft));
         }
-        
+
         return result;
     }
 }
