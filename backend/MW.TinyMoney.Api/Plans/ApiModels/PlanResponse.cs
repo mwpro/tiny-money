@@ -10,5 +10,8 @@ public class PlanResponse
     public string Description { get; set; }
     public DateTime DateFrom { get; set; }
     public DateTime? DateTo { get; set; }
+    public decimal TotalBudget { get; set; }
+    public decimal TotalSpent { get; set; }
+    public decimal SpentPercent { get; set; }
     public IEnumerable<PlanTagResponse> TagLines { get; set; }
 }

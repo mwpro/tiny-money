@@ -15,6 +15,9 @@ public class Plan
     public DateTime? DateTo { get; set; }
     public IList<PlanTag> TagLines { get; set; } = new List<PlanTag>();
 
+    public decimal TotalBudget => TagLines.Sum(t => t.Amount);
+    public decimal TotalSpent => TagLines.Sum(t => t.Spent);
+
     public PlanResponse ToResponseModel() => new PlanResponse
     {
         Id = Id,
@@ -22,6 +25,9 @@ public class Plan
         Description = Description,
         DateFrom = DateFrom,
         DateTo = DateTo,
+        TotalBudget = TotalBudget,
+        TotalSpent = TotalSpent,
+        SpentPercent = TotalBudget > 0 ? TotalSpent / TotalBudget * 100m : 0m,
         TagLines = TagLines.Select(t => t.ToResponseModel())
     };
 }

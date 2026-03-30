@@ -314,6 +314,9 @@ export type PlanDetail = {
     description: string | null;
     dateFrom: string;
     dateTo: string | null;
+    totalBudget: number;
+    totalSpent: number;
+    spentPercent: number;
     tagLines: PlanTagLine[];
 };
 

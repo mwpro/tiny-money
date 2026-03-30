@@ -30,8 +30,6 @@ export function PlanDetailPage() {
     })
 
     const plan = planQuery.data
-    const totalBudget = plan?.tagLines.reduce((s, l) => s + l.amount, 0) ?? 0
-    const totalSpent = plan?.tagLines.reduce((s, l) => s + l.spent, 0) ?? 0
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -75,12 +73,12 @@ export function PlanDetailPage() {
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Łącznie</span>
                                 <span>
-                                    <Curr input={totalSpent}/>{" "}
+                                    <Curr input={plan.totalSpent}/>{" "}
                                     <span className="text-muted-foreground">z</span>{" "}
-                                    <Curr input={totalBudget}/>
+                                    <Curr input={plan.totalBudget}/>
                                 </span>
                             </div>
-                            <PlanProgressBar percent={totalBudget > 0 ? totalSpent / totalBudget * 100 : 0}/>
+                            <PlanProgressBar percent={plan.spentPercent}/>
                         </div>
                     </>
                 )}
