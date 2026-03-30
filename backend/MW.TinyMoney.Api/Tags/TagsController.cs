@@ -27,7 +27,8 @@ namespace MW.TinyMoney.Api.Tags
             {
                 Id = x.Id,
                 Name = x.Name,
-                NumberOfTransactions = x.NumberOfTransactions
+                NumberOfTransactions = x.NumberOfTransactions,
+                NumberOfPlans = x.NumberOfPlans
             }));
         }
 
@@ -54,12 +55,15 @@ namespace MW.TinyMoney.Api.Tags
         [HttpDelete("{id}")]
         [ProducesResponseType((int)HttpStatusCode.Accepted)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> DeleteTag(int id)
         {
             var tag = await _tagStore.GetTag(id);
             if (tag == null)
                 return NotFound();
-            
+
+            if (tag.NumberOfPlans > 0)
+                return BadRequest("Tag is used in a plan and cannot be deleted.");
 
             await _tagStore.DeleteTag(id);
             return Accepted();

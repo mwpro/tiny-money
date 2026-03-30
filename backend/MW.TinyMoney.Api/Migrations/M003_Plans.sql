@@ -17,3 +17,5 @@ CREATE TABLE plan_tag (
     CONSTRAINT fk_plan_tag_plan FOREIGN KEY (plan_id) REFERENCES plan (id),
     CONSTRAINT fk_plan_tag_tag  FOREIGN KEY (tag_id)  REFERENCES tag  (id)
 ) CHARSET = latin2;
+
+ALTER TABLE tag ADD UNIQUE INDEX uq_tag_name (name);

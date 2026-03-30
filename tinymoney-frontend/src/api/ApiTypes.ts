@@ -269,7 +269,7 @@ export type Category = { id: number, name: string, isIncome: boolean, subcategor
 export type Subcategory = { id: number; name: string };
 export type DetailedCategory = { id: number, name: string, isIncome: boolean, subcategories: DetailedSubcategory[] };
 export type DetailedSubcategory = { id: number; name: string; hasUsages: boolean };
-export type Tag = { id: number; name: string, numberOfTransactions: number };
+export type Tag = { id: number; name: string; numberOfTransactions: number; numberOfPlans: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };
 export type CategoryBudgetSummary = { subcategoryId: number, categoryName: string, subcategoryName: string; amount: number; amountLeft: number; notes: string | null };

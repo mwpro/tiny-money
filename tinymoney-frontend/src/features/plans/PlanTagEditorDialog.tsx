@@ -29,7 +29,7 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
     const queryClient = useQueryClient()
     const [addOpen, setAddOpen] = useState(false)
     const [selectedTag, setSelectedTag] = useState<{ id?: number; name: string } | undefined>(undefined)
-    const [tagError, setTagError] = useState(false)
+    const [tagError, setTagError] = useState<string | null>(null)
 
     const isEditMode = !!tagLine
     const open = isEditMode || addOpen
@@ -55,7 +55,7 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
             setAddOpen(false)
             reset()
             setSelectedTag(undefined)
-            setTagError(false)
+            setTagError(null)
         }
     }
 
@@ -64,9 +64,16 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
             let tagId = selectedTag!.id
             let newTagCreated = false
             if (!tagId) {
-                const created = await tagsClient.addTag({name: selectedTag!.name})
-                tagId = created.id
-                newTagCreated = true
+                const match = (tagsQuery.data ?? []).find(
+                    t => t.name.toLowerCase() === selectedTag!.name.trim().toLowerCase()
+                )
+                if (match) {
+                    tagId = match.id
+                } else {
+                    const created = await tagsClient.addTag({name: selectedTag!.name.trim()})
+                    tagId = created.id
+                    newTagCreated = true
+                }
             }
             await plansClient.addPlanTag(planId, {
                 tagId,
@@ -102,10 +109,10 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
 
     const onSubmit = (data: FormInputs) => {
         if (!isEditMode && !selectedTag) {
-            setTagError(true)
+            setTagError("Wybierz tag")
             return
         }
-        setTagError(false)
+        if (tagError) return
         if (isEditMode) {
             editMutation.mutate(data)
         } else {
@@ -153,12 +160,17 @@ export function PlanTagEditorDialog({planId, existingTagIds, tagLine, onEditClos
                                     placeholder="Wybierz lub utwórz tag..."
                                     onChange={(v) => {
                                         setSelectedTag(v)
-                                        setTagError(false)
+                                        const resolvedId = v?.id ?? (tagsQuery.data ?? []).find(
+                                            t => t.name.toLowerCase() === v?.name.trim().toLowerCase()
+                                        )?.id
+                                        setTagError(resolvedId && existingTagIds.includes(resolvedId)
+                                            ? "Ten tag jest już dodany do planu."
+                                            : null)
                                     }}
                                     value={selectedTag?.name ?? ""}
                                 />
                                 <div className="min-h-[1.25rem]">
-                                    {tagError && <span className="text-destructive text-xs">Wybierz tag</span>}
+                                    {tagError && <span className="text-destructive text-xs">{tagError}</span>}
                                 </div>
                             </div>
                         )}
