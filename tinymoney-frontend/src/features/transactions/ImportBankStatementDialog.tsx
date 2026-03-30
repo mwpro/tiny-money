@@ -11,7 +11,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 
 const importSchema = z.object({
-    fileType: z.string().refine(v => ["ing", "pekao", "velobank"].includes(v), { error: "Wybierz typ pliku"}),
+    fileType: z.string().refine(v => ["ing", "pekao", "velobank", "revolut"].includes(v), { error: "Wybierz typ pliku"}),
     file: z.instanceof(FileList).refine(f => f.length > 0, "Wybierz plik"),
 });
 
@@ -84,6 +84,7 @@ export function ImportBankStatementDialog() {
                                         <SelectItem value="ing">ING (CSV)</SelectItem>
                                         <SelectItem value="pekao">Pekao (CSV)</SelectItem>
                                         <SelectItem value="velobank">Velo Bank (PDF)</SelectItem>
+                                        <SelectItem value="revolut">Revolut (CSV)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             )}

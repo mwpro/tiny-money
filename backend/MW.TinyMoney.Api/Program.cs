@@ -95,6 +95,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IFileImportParser, IngCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, PekaoCsvBankStatementParser>();
     services.AddTransient<IFileImportParser, VeloBankPdfParser>();
+    services.AddTransient<IFileImportParser, RevolutCsvBankStatementParser>();
     services.AddTransient<IApiKeyStore, MySqlApiKeyStore>();
     services.AddTransient<IImportService, ImportService>();
     services.AddTransient<IPlanStore, MySqlPlanStore>();
