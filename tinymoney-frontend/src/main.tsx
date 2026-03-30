@@ -20,7 +20,11 @@ export interface Configuration{
 
 let config: Configuration | undefined;
 try {
-    config = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
+    const response = await fetch(import.meta.env.VITE_CONFIGURATION_URL);
+    if (!response.ok) {
+        throw new Error("Could not get configuration");
+    }
+    config = await response.json();
 } catch {
     document.getElementById('splash')!.style.display = 'none';
     document.getElementById('config-error')!.style.display = 'block';
