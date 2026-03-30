@@ -6,116 +6,115 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Categories.ApiModels;
 
-namespace MW.TinyMoney.Api.Categories
+namespace MW.TinyMoney.Api.Categories;
+
+[ApiController, Route("/api/categories"), Authorize]
+public class CategoriesController : ControllerBase
 {
-    [ApiController, Route("/api/categories"), Authorize]
-    public class CategoriesController : ControllerBase
+    private readonly ICategoriesStore _categoriesStore;
+
+    public CategoriesController(ICategoriesStore categoriesStore)
     {
-        private readonly ICategoriesStore _categoriesStore;
+        _categoriesStore = categoriesStore;
+    }
 
-        public CategoriesController(ICategoriesStore categoriesStore)
-        {
-            _categoriesStore = categoriesStore;
-        }
+    [HttpGet("")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<DetailedCategoryDto>))]
+    public async Task<IActionResult> GetCategories([FromQuery] bool? detailed = false)
+    {
+        if (detailed == true)
+            return Ok((await _categoriesStore.GetDetailedCategories()).Select(x => x.ToDetailedDto()));
+        return Ok((await _categoriesStore.GetCategories()).Select(x => x.ToDto()));
+    }
 
-        [HttpGet("")]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<CategoryDto>))]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<DetailedCategoryDto>))]
-        public async Task<IActionResult> GetCategories([FromQuery] bool? detailed = false)
-        {
-            if (detailed == true)
-                return Ok((await _categoriesStore.GetDetailedCategories()).Select(x => x.ToDetailedDto()));
-            return Ok((await _categoriesStore.GetCategories()).Select(x => x.ToDto()));
-        }
+    [HttpPost("")]
+    public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        await _categoriesStore.CreateCategory(request.Name, request.IsIncome);
+        return StatusCode((int)HttpStatusCode.Created);
+    }
 
-        [HttpPost("")]
-        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            await _categoriesStore.CreateCategory(request.Name, request.IsIncome);
-            return StatusCode((int)HttpStatusCode.Created);
-        }
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryRequest request)
+    {
+        var category = await _categoriesStore.GetCategoryById(id);
+        if (category == null) return NotFound();
+        category.Name = request.Name;
+        await _categoriesStore.UpdateCategory(category);
+        return Ok();
+    }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryRequest request)
-        {
-            var category = await _categoriesStore.GetCategoryById(id);
-            if (category == null) return NotFound();
-            category.Name = request.Name;
-            await _categoriesStore.UpdateCategory(category);
-            return Ok();
-        }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        var category = await _categoriesStore.GetCategoryById(id);
+        if (category == null) return NotFound();
+        if (await _categoriesStore.CategoryHasSubcategories(id))
+            return Conflict("Category has subcategories. Delete or move them first.");
+        await _categoriesStore.DeleteCategory(id);
+        return Ok();
+    }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
-        {
-            var category = await _categoriesStore.GetCategoryById(id);
-            if (category == null) return NotFound();
-            if (await _categoriesStore.CategoryHasSubcategories(id))
-                return Conflict("Category has subcategories. Delete or move them first.");
-            await _categoriesStore.DeleteCategory(id);
-            return Ok();
-        }
+    [HttpPost("{id}/move-up")]
+    public async Task<IActionResult> MoveCategoryUp(int id)
+    {
+        await _categoriesStore.MoveCategory(id, up: true);
+        return Ok();
+    }
 
-        [HttpPost("{id}/move-up")]
-        public async Task<IActionResult> MoveCategoryUp(int id)
-        {
-            await _categoriesStore.MoveCategory(id, up: true);
-            return Ok();
-        }
+    [HttpPost("{id}/move-down")]
+    public async Task<IActionResult> MoveCategoryDown(int id)
+    {
+        await _categoriesStore.MoveCategory(id, up: false);
+        return Ok();
+    }
 
-        [HttpPost("{id}/move-down")]
-        public async Task<IActionResult> MoveCategoryDown(int id)
-        {
-            await _categoriesStore.MoveCategory(id, up: false);
-            return Ok();
-        }
+    [HttpPost("{categoryId}/subcategories")]
+    public async Task<IActionResult> CreateSubcategory(int categoryId, [FromBody] CreateSubcategoryRequest request)
+    {
+        var parent = await _categoriesStore.GetCategoryById(categoryId);
+        if (parent == null) return BadRequest("Parent category does not exist.");
+        await _categoriesStore.CreateSubcategory(categoryId, request.Name);
+        return StatusCode((int)HttpStatusCode.Created);
+    }
 
-        [HttpPost("{categoryId}/subcategories")]
-        public async Task<IActionResult> CreateSubcategory(int categoryId, [FromBody] CreateSubcategoryRequest request)
-        {
-            var parent = await _categoriesStore.GetCategoryById(categoryId);
-            if (parent == null) return BadRequest("Parent category does not exist.");
-            await _categoriesStore.CreateSubcategory(categoryId, request.Name);
-            return StatusCode((int)HttpStatusCode.Created);
-        }
+    [HttpPut("{categoryId}/subcategories/{id}")]
+    public async Task<IActionResult> UpdateSubcategory(int categoryId, int id, [FromBody] UpdateSubcategoryRequest request)
+    {
+        var subcategory = await _categoriesStore.GetSubcategoryById(id);
+        if (subcategory == null) return NotFound();
+        var parent = await _categoriesStore.GetCategoryById(request.ParentCategoryId);
+        if (parent == null) return BadRequest("Parent category does not exist.");
+        subcategory.Name = request.Name;
+        subcategory.ParentCategoryId = request.ParentCategoryId;
+        await _categoriesStore.UpdateSubcategory(subcategory);
+        return Ok();
+    }
 
-        [HttpPut("{categoryId}/subcategories/{id}")]
-        public async Task<IActionResult> UpdateSubcategory(int categoryId, int id, [FromBody] UpdateSubcategoryRequest request)
-        {
-            var subcategory = await _categoriesStore.GetSubcategoryById(id);
-            if (subcategory == null) return NotFound();
-            var parent = await _categoriesStore.GetCategoryById(request.ParentCategoryId);
-            if (parent == null) return BadRequest("Parent category does not exist.");
-            subcategory.Name = request.Name;
-            subcategory.ParentCategoryId = request.ParentCategoryId;
-            await _categoriesStore.UpdateSubcategory(subcategory);
-            return Ok();
-        }
+    [HttpDelete("{categoryId}/subcategories/{id}")]
+    public async Task<IActionResult> DeleteSubcategory(int categoryId, int id)
+    {
+        var subcategory = await _categoriesStore.GetSubcategoryById(id);
+        if (subcategory == null) return NotFound();
+        if (await _categoriesStore.SubcategoryHasUsages(id))
+            return Conflict("Subcategory has usages. Move transactions and vendor defaults first.");
+        await _categoriesStore.DeleteSubcategory(id);
+        return Ok();
+    }
 
-        [HttpDelete("{categoryId}/subcategories/{id}")]
-        public async Task<IActionResult> DeleteSubcategory(int categoryId, int id)
-        {
-            var subcategory = await _categoriesStore.GetSubcategoryById(id);
-            if (subcategory == null) return NotFound();
-            if (await _categoriesStore.SubcategoryHasUsages(id))
-                return Conflict("Subcategory has usages. Move transactions and vendor defaults first.");
-            await _categoriesStore.DeleteSubcategory(id);
-            return Ok();
-        }
+    [HttpPost("{categoryId}/subcategories/{id}/move-up")]
+    public async Task<IActionResult> MoveSubcategoryUp(int categoryId, int id)
+    {
+        await _categoriesStore.MoveSubcategory(categoryId, id, up: true);
+        return Ok();
+    }
 
-        [HttpPost("{categoryId}/subcategories/{id}/move-up")]
-        public async Task<IActionResult> MoveSubcategoryUp(int categoryId, int id)
-        {
-            await _categoriesStore.MoveSubcategory(categoryId, id, up: true);
-            return Ok();
-        }
-
-        [HttpPost("{categoryId}/subcategories/{id}/move-down")]
-        public async Task<IActionResult> MoveSubcategoryDown(int categoryId, int id)
-        {
-            await _categoriesStore.MoveSubcategory(categoryId, id, up: false);
-            return Ok();
-        }
+    [HttpPost("{categoryId}/subcategories/{id}/move-down")]
+    public async Task<IActionResult> MoveSubcategoryDown(int categoryId, int id)
+    {
+        await _categoriesStore.MoveSubcategory(categoryId, id, up: false);
+        return Ok();
     }
 }
