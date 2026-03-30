@@ -18,39 +18,46 @@ export interface Configuration{
     sentryDsn?: string,
 }
 
-const config: Configuration = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
-
-if (config.sentryDsn) {
-    Sentry.init({
-        dsn: config.sentryDsn,
-        integrations: [Sentry.browserTracingIntegration()],
-        tracesSampleRate: 1.0,
-    });
+let config: Configuration | undefined;
+try {
+    config = await (await fetch(import.meta.env.VITE_CONFIGURATION_URL)).json();
+} catch {
+    document.getElementById('splash')!.style.display = 'none';
+    document.getElementById('config-error')!.style.display = 'block';
 }
 
-const queryClient = new QueryClient()
+if (config) {
+    if (config.sentryDsn) {
+        Sentry.init({
+            dsn: config.sentryDsn,
+            integrations: [Sentry.browserTracingIntegration()],
+            tracesSampleRate: 1.0,
+        });
+    }
 
-function onRedirectCallback(appState?: AppState) {
-    window.history.replaceState({}, document.title, appState?.returnTo ?? window.location.pathname);
+    const queryClient = new QueryClient()
+
+    function onRedirectCallback(appState?: AppState) {
+        window.history.replaceState({}, document.title, appState?.returnTo ?? window.location.pathname);
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')!).render(
+        <React.StrictMode>
+            <Auth0Provider domain={config.auth0Domain} clientId={config.auth0ClientId} authorizationParams={{
+                redirect_uri: window.location.origin,
+                audience: config.auth0Audience
+            }} onRedirectCallback={onRedirectCallback}>
+                <ConfigurationProvider configuration={config}>
+                    <ApiClientProvider configuration={config}>
+                        <Toaster />
+                        <QueryClientProvider client={queryClient}>
+                            <Sentry.ErrorBoundary fallback={<p>An unexpected error has occurred.</p>}>
+                                <App />
+                            </Sentry.ErrorBoundary>
+                        </QueryClientProvider>
+                    </ApiClientProvider>
+                </ConfigurationProvider>
+            </Auth0Provider>
+        </React.StrictMode>,
+    )
 }
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-        <Auth0Provider domain={config.auth0Domain} clientId={config.auth0ClientId} authorizationParams={{
-            redirect_uri: window.location.origin,
-            audience: config.auth0Audience
-        }} onRedirectCallback={onRedirectCallback}>
-            <ConfigurationProvider configuration={config}>
-                <ApiClientProvider configuration={config}>
-                    <Toaster />
-                    <QueryClientProvider client={queryClient}>
-                        <Sentry.ErrorBoundary fallback={<p>An unexpected error has occurred.</p>}>
-                            <App />
-                        </Sentry.ErrorBoundary>
-                    </QueryClientProvider>
-                </ApiClientProvider>
-            </ConfigurationProvider>
-        </Auth0Provider>
-    </React.StrictMode>,
-)
-

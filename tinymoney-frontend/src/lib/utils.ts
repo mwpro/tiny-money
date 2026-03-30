@@ -46,3 +46,5 @@ export const prepareTitleText = (text: string): string => {
 export const dateFormat = "yyyy-MM-dd";
 export const monthYearFormat = "yyyy-MM";
 export const monthYearNameFormat = "LLLL yyyy";
+
+export { pl as appLocale } from 'date-fns/locale/pl';

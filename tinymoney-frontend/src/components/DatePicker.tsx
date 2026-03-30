@@ -14,7 +14,7 @@ import {
 import {CalendarIcon} from "lucide-react"
 import {format, parse} from "date-fns";
 import type {RefCallBack} from "react-hook-form";
-import {dateFormat} from "@/lib/utils.ts";
+import {appLocale, dateFormat} from "@/lib/utils.ts";
 
 function formatDate(date: Date | undefined) {
     if (!date) {
@@ -89,6 +89,7 @@ export function DatePicker({value, placeholder, onChange, ref}: DatePickerProps)
                     >
                         <Calendar
                             mode="single"
+                            locale={appLocale}
                             selected={date}
                             month={month}
                             onMonthChange={setMonth}
