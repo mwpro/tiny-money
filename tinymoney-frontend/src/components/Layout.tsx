@@ -90,6 +90,9 @@ export function Layout() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </ButtonGroup>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${location.pathname.startsWith("/savings") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/savings/accounts">Oszczędności</Link>
+                            </Button>
                             <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/tags") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/tags">Tagi</Link>
                             </Button>
@@ -192,6 +195,9 @@ export function Layout() {
                     </SheetTrigger>
                     <SheetContent>
                         <div className="p-4 pb-8 flex flex-col gap-1">
+                            <Button variant="ghost" asChild className="justify-start w-full">
+                                <Link to="/savings/accounts" onClick={() => setMoreOpen(false)}>Oszczędności</Link>
+                            </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
                                 <Link to="/tags" onClick={() => setMoreOpen(false)}>Tagi</Link>
                             </Button>

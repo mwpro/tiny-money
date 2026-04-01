@@ -343,3 +343,16 @@ export type CreateApiKeyResponse = {
     keyPrefix: string;
     rawKey: string;
 };
+
+export type SavingsCategory = {
+    id: number;
+    name: string;
+};
+
+export type SavingsAccount = {
+    id: number;
+    name: string;
+    categoryId: number;
+    categoryName: string;
+    isActive: boolean;
+};
