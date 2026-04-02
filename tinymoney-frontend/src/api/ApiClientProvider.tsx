@@ -10,6 +10,7 @@ import {BudgetClientImpl} from "@/api/clients/BudgetClient.ts";
 import {ReportsClientImpl} from "@/api/clients/ReportsClient.ts";
 import {ApiKeysClientImpl} from "@/api/clients/ApiKeysClient.ts";
 import {PlansClientImpl} from "@/api/clients/PlansClient.ts";
+import {SavingsClientImpl} from "@/api/clients/SavingsClient.ts";
 
 export interface ApiClientProviderProps{
     configuration: Configuration,
@@ -28,7 +29,8 @@ export function ApiClientProvider(props: ApiClientProviderProps) {
         budgetClient: new BudgetClientImpl(auth, props.configuration.apiUrl),
         reportsClient: new ReportsClientImpl(auth, props.configuration.apiUrl),
         apiKeysClient: new ApiKeysClientImpl(auth, props.configuration.apiUrl),
-        plansClient: new PlansClientImpl(auth, props.configuration.apiUrl)
+        plansClient: new PlansClientImpl(auth, props.configuration.apiUrl),
+        savingsClient: new SavingsClientImpl(auth, props.configuration.apiUrl)
     };
 
     return (<ApiClientContext.Provider value={apiClient}>
