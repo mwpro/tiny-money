@@ -356,3 +356,20 @@ export type SavingsAccount = {
     categoryName: string;
     isActive: boolean;
 };
+
+export type SavingsSnapshotEntry = {
+    accountId: number;
+    accountName: string;
+    categoryId: number;
+    categoryName: string;
+    balance: number;
+    deposited: number;
+    withdrawn: number;
+};
+
+export type SaveSnapshotItem = {
+    accountId: number;
+    balance: number;
+    deposited: number;
+    withdrawn: number;
+};

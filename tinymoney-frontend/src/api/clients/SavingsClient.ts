@@ -1,4 +1,4 @@
-import type {SavingsCategory, SavingsAccount} from "@/api/ApiTypes.ts";
+import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface SavingsClient {
@@ -10,6 +10,9 @@ export interface SavingsClient {
     getAccounts(includeArchived?: boolean): Promise<SavingsAccount[]>;
     createAccount(name: string, categoryId: number): Promise<void>;
     updateAccount(id: number, name: string, categoryId: number, isActive: boolean): Promise<void>;
+
+    getSnapshot(year: number, month: number): Promise<SavingsSnapshotEntry[]>;
+    saveSnapshot(year: number, month: number, entries: SaveSnapshotItem[]): Promise<void>;
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {
@@ -52,5 +55,16 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
     async updateAccount(id: number, name: string, categoryId: number, isActive: boolean): Promise<void> {
         const res = await this.request('PUT', `/savings/accounts/${id}`, {name, categoryId, isActive});
         if (!res.ok) throw new Error('Błąd podczas zapisywania konta');
+    }
+
+    async getSnapshot(year: number, month: number): Promise<SavingsSnapshotEntry[]> {
+        const res = await this.request('GET', `/savings/snapshots/${year}/${month}`);
+        if (!res.ok) throw new Error('Błąd pobierania danych okresu');
+        return res.json();
+    }
+
+    async saveSnapshot(year: number, month: number, entries: SaveSnapshotItem[]): Promise<void> {
+        const res = await this.request('POST', `/savings/snapshots/${year}/${month}`, entries);
+        if (!res.ok) throw new Error('Błąd podczas zapisywania danych');
     }
 }
