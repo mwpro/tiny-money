@@ -4,14 +4,15 @@ import {appLocale} from "@/lib/utils.ts";
 
 interface MonthPickerProps {
     month: MonthSelection,
-    onChange: (month: MonthSelection) => void
+    onChange: (month: MonthSelection) => void,
+    endMonth?: Date,
 }
 
 export interface MonthSelection { 
     year: number;
     month: number;
 }
-export function MonthPicker({month, onChange}: MonthPickerProps) {
+export function MonthPicker({month, onChange, endMonth}: MonthPickerProps) {
     
     const toMonthSelection = (date: Date): MonthSelection => {
         return ({
@@ -34,6 +35,7 @@ export function MonthPicker({month, onChange}: MonthPickerProps) {
                 locale={appLocale}
                 defaultMonth={monthInternal}
                 month={monthInternal}
+                endMonth={endMonth}
                 className={"p-0 bg-transparent"}
                 classNames={{
                     month: "gap-0",

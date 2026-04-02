@@ -91,4 +91,28 @@ public class SavingsController : ControllerBase
         await _store.UpdateAccount(id, request.Name, request.CategoryId, request.IsActive);
         return Ok();
     }
+
+    [HttpGet("snapshots/{year}/{month}")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<SavingsSnapshotEntryResponseModel>))]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetSnapshot(int year, int month)
+    {
+        if (year is < 1900 or > 2100) return BadRequest("Year must be between 1900 and 2100.");
+        if (month is < 1 or > 12) return BadRequest("Month must be between 1 and 12.");
+        var period = $"{year:D4}-{month:D2}";
+        var entries = await _store.GetSnapshotPeriod(period);
+        return Ok(entries.Select(x => x.ToResponseModel()));
+    }
+
+    [HttpPost("snapshots/{year}/{month}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> SaveSnapshot(int year, int month, [FromBody] IEnumerable<SnapshotEntryRequest> entries)
+    {
+        if (month is < 1 or > 12) return BadRequest("Month must be between 1 and 12.");
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+        var period = $"{year:D4}-{month:D2}";
+        await _store.UpsertSnapshots(period, entries);
+        return Ok();
+    }
 }
