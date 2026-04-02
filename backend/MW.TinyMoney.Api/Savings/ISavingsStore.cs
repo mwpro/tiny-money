@@ -197,16 +197,16 @@ public class MySqlSavingsStore : ISavingsStore
     {
         using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
-        foreach (var entry in entries)
+        using var transaction = await connection.BeginTransactionAsync();
+        var parameters = entries.Select(e => new
         {
-            await connection.ExecuteAsync(UpsertSnapshotQuery, new
-            {
-                entry.AccountId,
-                period,
-                entry.Balance,
-                entry.Deposited,
-                entry.Withdrawn
-            });
-        }
+            e.AccountId,
+            period,
+            e.Balance,
+            e.Deposited,
+            e.Withdrawn
+        });
+        await connection.ExecuteAsync(UpsertSnapshotQuery, parameters, transaction);
+        await transaction.CommitAsync();
     }
 }

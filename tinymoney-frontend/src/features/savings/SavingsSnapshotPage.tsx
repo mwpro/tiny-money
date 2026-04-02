@@ -109,9 +109,11 @@ export function SavingsSnapshotPage() {
                                         </TableRow>
                                         {group.indices.map(index => (
                                             <TableRow key={entries[index].accountId}>
-                                                <input type="hidden"
-                                                       {...register(`entries.${index}.accountId`, {valueAsNumber: true})} />
-                                                <TableCell>{entries[index].accountName}</TableCell>
+                                                <TableCell>
+                                                    <input type="hidden"
+                                                           {...register(`entries.${index}.accountId`, {valueAsNumber: true})} />
+                                                    {entries[index].accountName}
+                                                </TableCell>
                                                 <TableCell>
                                                     <InputGroup className="w-36">
                                                         <InputGroupInput placeholder="0.00" type="number" step="0.01"
