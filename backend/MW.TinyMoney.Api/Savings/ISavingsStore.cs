@@ -1,4 +1,5 @@
 using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ public interface ISavingsStore
 
     Task<SavingsSettings> GetSettings();
     Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds);
-    Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses();
+    Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today);
 }
 
 public class MySqlSavingsStore : ISavingsStore
@@ -133,13 +134,13 @@ public class MySqlSavingsStore : ISavingsStore
     private const string GetAvgMonthlyExpensesQuery =
         """
         SELECT
-          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 3 MONTH), '%Y-%m-01') THEN amount END), 0) / 3 AS threeMonths,
-          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 6 MONTH), '%Y-%m-01') THEN amount END), 0) / 6 AS sixMonths,
+          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 3 MONTH), '%Y-%m-01') THEN amount END), 0) / 3 AS threeMonths,
+          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 6 MONTH), '%Y-%m-01') THEN amount END), 0) / 6 AS sixMonths,
           COALESCE(SUM(amount), 0) / 12 AS twelveMonths
         FROM transaction
         WHERE is_expense = 1 AND is_verified = 1
-          AND transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 12 MONTH), '%Y-%m-01')
-          AND transaction_date <= LAST_DAY(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+          AND transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 12 MONTH), '%Y-%m-01')
+          AND transaction_date <= LAST_DAY(DATE_SUB(@today, INTERVAL 1 MONTH))
         """;
 
     private const string UpsertSnapshotQuery =
@@ -277,11 +278,11 @@ public class MySqlSavingsStore : ISavingsStore
         await transaction.CommitAsync();
     }
 
-    public async Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses()
+    public async Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today)
     {
         await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
-        var result = await connection.QuerySingleAsync<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)>(GetAvgMonthlyExpensesQuery);
+        var result = await connection.QuerySingleAsync<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)>(GetAvgMonthlyExpensesQuery, new { today });
         return result;
     }
 }

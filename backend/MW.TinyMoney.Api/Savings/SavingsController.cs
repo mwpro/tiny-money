@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -121,7 +122,7 @@ public class SavingsController : ControllerBase
     public async Task<IActionResult> GetSettings()
     {
         var settings = await _store.GetSettings();
-        var avgs = await _store.GetAvgMonthlyExpenses();
+        var avgs = await _store.GetAvgMonthlyExpenses(DateTime.Today);
         return Ok(new SavingsSettingsResponse
         {
             CushionAmount = settings.CushionAmount,

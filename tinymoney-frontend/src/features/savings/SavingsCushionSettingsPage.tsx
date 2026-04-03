@@ -102,7 +102,7 @@ export function SavingsCushionSettingsPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {recommendations.map(rec => {
-                                const recommended = Math.round(rec.avg * months * 100) / 100;
+                                const recommended = parseFloat((rec.avg * months).toFixed(2));
                                 return (
                                     <button
                                         key={rec.label}
