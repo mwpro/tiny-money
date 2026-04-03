@@ -89,6 +89,9 @@ export function SavingsSnapshotPage() {
                     <Button variant="outline" asChild>
                         <Link to="/savings/settings">Ustawienia poduszki</Link>
                     </Button>
+                    <Button variant="outline" asChild>
+                        <Link to="/savings/goals">Cele</Link>
+                    </Button>
                 </div>
             </div>
 

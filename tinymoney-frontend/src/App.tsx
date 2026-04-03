@@ -18,6 +18,7 @@ import {PlanDetailPage} from "@/features/plans/PlanDetailPage.tsx";
 import {SavingsAccountsPage} from "@/features/savings/SavingsAccountsPage.tsx";
 import {SavingsCushionSettingsPage} from "@/features/savings/SavingsCushionSettingsPage.tsx";
 import {SavingsSnapshotPage} from "@/features/savings/SavingsSnapshotPage.tsx";
+import {SavingsGoalsPage} from "@/features/savings/SavingsGoalsPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -94,6 +95,7 @@ function App() {
                             <Route path="savings" element={<SavingsSnapshotPage />} />
                             <Route path="savings/accounts" element={<SavingsAccountsPage />} />
                             <Route path="savings/settings" element={<SavingsCushionSettingsPage />} />
+                            <Route path="savings/goals" element={<SavingsGoalsPage />} />
                             <Route path="tags" element={<TagsPage />} />
                             <Route path="vendors" element={<VendorsPage />} />
                             <Route path="settings" element={<SettingsPage />} />
