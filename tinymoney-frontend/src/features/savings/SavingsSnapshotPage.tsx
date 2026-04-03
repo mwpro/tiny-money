@@ -4,7 +4,7 @@ import {useForm} from "react-hook-form";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {prepareTitleText} from "@/lib/utils.ts";
 import {Button} from "@/components/ui/button.tsx";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
+import {Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {InputGroup, InputGroupAddon, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
 import {toast} from "sonner";
 import type {SaveSnapshotItem, SavingsSnapshotEntry} from "@/api/ApiTypes.ts";
@@ -14,6 +14,10 @@ import {Link} from "react-router-dom";
 type SnapshotForm = {
     entries: SaveSnapshotItem[];
 };
+
+function sumField(entries: SaveSnapshotItem[], indices: number[], field: keyof Omit<SaveSnapshotItem, 'accountId'>): number {
+    return indices.reduce((sum, i) => sum + (Number(entries[i]?.[field]) || 0), 0);
+}
 
 function groupByCategory(entries: SavingsSnapshotEntry[]): {categoryName: string; indices: number[]}[] {
     const groups: {categoryName: string; indices: number[]}[] = [];
@@ -42,7 +46,7 @@ export function SavingsSnapshotPage() {
         queryFn: () => savingsClient.getSnapshot(year, month)
     });
 
-    const {register, handleSubmit, reset} = useForm<SnapshotForm>({
+    const {register, handleSubmit, reset, watch} = useForm<SnapshotForm>({
         defaultValues: {entries: []}
     });
 
@@ -70,6 +74,7 @@ export function SavingsSnapshotPage() {
 
     const entries = snapshotQuery.data ?? [];
     const groups = groupByCategory(entries);
+    const watchedEntries = watch('entries');
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -103,9 +108,10 @@ export function SavingsSnapshotPage() {
                                 {groups.map(group => (
                                     <Fragment key={`cat-${group.categoryName}`}>
                                         <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                            <TableCell colSpan={4} className="font-semibold text-sm py-2">
-                                                {group.categoryName}
-                                            </TableCell>
+                                            <TableCell className="font-semibold text-sm py-2">{group.categoryName}</TableCell>
+                                            <TableCell className="text-sm py-2 text-muted-foreground">{sumField(watchedEntries, group.indices, 'balance').toFixed(2)} zł</TableCell>
+                                            <TableCell className="text-sm py-2 text-muted-foreground">{sumField(watchedEntries, group.indices, 'deposited').toFixed(2)} zł</TableCell>
+                                            <TableCell className="text-sm py-2 text-muted-foreground">{sumField(watchedEntries, group.indices, 'withdrawn').toFixed(2)} zł</TableCell>
                                         </TableRow>
                                         {group.indices.map(index => (
                                             <TableRow key={entries[index].accountId}>
@@ -151,6 +157,16 @@ export function SavingsSnapshotPage() {
                                     </TableRow>
                                 )}
                             </TableBody>
+                            {entries.length > 0 && (
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell className="font-semibold">Suma</TableCell>
+                                        <TableCell className="font-semibold">{sumField(watchedEntries, entries.map((_, i) => i), 'balance').toFixed(2)} zł</TableCell>
+                                        <TableCell className="font-semibold">{sumField(watchedEntries, entries.map((_, i) => i), 'deposited').toFixed(2)} zł</TableCell>
+                                        <TableCell className="font-semibold">{sumField(watchedEntries, entries.map((_, i) => i), 'withdrawn').toFixed(2)} zł</TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            )}
                         </Table>
                     </div>
 
