@@ -1,4 +1,4 @@
-import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem} from "@/api/ApiTypes.ts";
+import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem, SavingsSettings, UpdateSavingsSettingsRequest} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface SavingsClient {
@@ -13,6 +13,9 @@ export interface SavingsClient {
 
     getSnapshot(year: number, month: number): Promise<SavingsSnapshotEntry[]>;
     saveSnapshot(year: number, month: number, entries: SaveSnapshotItem[]): Promise<void>;
+
+    getSettings(): Promise<SavingsSettings>;
+    updateSettings(request: UpdateSavingsSettingsRequest): Promise<void>;
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {
@@ -66,5 +69,16 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
     async saveSnapshot(year: number, month: number, entries: SaveSnapshotItem[]): Promise<void> {
         const res = await this.request('POST', `/savings/snapshots/${year}/${month}`, entries);
         if (!res.ok) throw new Error('Błąd podczas zapisywania danych');
+    }
+
+    async getSettings(): Promise<SavingsSettings> {
+        const res = await this.request('GET', '/savings/settings');
+        if (!res.ok) throw new Error('Błąd pobierania ustawień poduszki');
+        return res.json();
+    }
+
+    async updateSettings(request: UpdateSavingsSettingsRequest): Promise<void> {
+        const res = await this.request('PUT', '/savings/settings', request);
+        if (!res.ok) throw new Error('Błąd podczas zapisywania ustawień');
     }
 }

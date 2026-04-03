@@ -21,4 +21,6 @@ public class DashboardResponse
     public IReadOnlyCollection<CategoryBudgetSummary> TopOverspentBudgetCategories { get; set; } = [];
     public IReadOnlyCollection<ActivePlanSummary> ActivePlans { get; set; } = [];
     public decimal TotalSavings { get; set; }
+    public decimal CushionTarget { get; set; }
+    public decimal CushionActual { get; set; }
 }

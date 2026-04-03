@@ -102,6 +102,16 @@ public class DashboardReport : IDashboardReport
         LEFT JOIN savings_snapshot s_newer
             ON s_newer.account_id = a.id AND s_newer.period > s.period
         WHERE a.is_active = 1 AND s_newer.id IS NULL;
+
+        SELECT COALESCE((SELECT cushion_amount FROM savings_setting LIMIT 1), 0);
+
+        SELECT COALESCE(SUM(s.balance), 0)
+        FROM savings_account a
+        JOIN savings_cushion_category scc ON scc.category_id = a.category_id
+        JOIN savings_snapshot s ON s.account_id = a.id
+        LEFT JOIN savings_snapshot s_newer
+            ON s_newer.account_id = a.id AND s_newer.period > s.period
+        WHERE a.is_active = 1 AND s_newer.id IS NULL;
         """;
 
     public async Task<DashboardResponse> GetDashboardData(int year, int month)
@@ -121,6 +131,8 @@ public class DashboardReport : IDashboardReport
         var budgetSummary = await reader.ReadFirstAsync<(decimal Amount, decimal UsedAmount, decimal AmountLeft)>();
         var activePlans = (await reader.ReadAsync<(int Id, string Title, decimal TotalBudget, decimal TotalSpent)>()).ToList();
         var totalSavings = await reader.ReadFirstAsync<decimal>();
+        var cushionTarget = await reader.ReadFirstAsync<decimal>();
+        var cushionActual = await reader.ReadFirstAsync<decimal>();
 
         return new DashboardResponse
         {
@@ -137,7 +149,9 @@ public class DashboardReport : IDashboardReport
                 p.Id, p.Title, p.TotalBudget, p.TotalSpent,
                 p.TotalBudget > 0 ? p.TotalSpent / p.TotalBudget * 100m : 0m
             )).ToList(),
-            TotalSavings = totalSavings
+            TotalSavings = totalSavings,
+            CushionTarget = cushionTarget,
+            CushionActual = cushionActual
         };
     }
 
