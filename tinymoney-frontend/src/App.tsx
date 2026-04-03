@@ -16,6 +16,7 @@ import {SettingsPage} from "@/features/settings/SettingsPage.tsx";
 import {PlansPage} from "@/features/plans/PlansPage.tsx";
 import {PlanDetailPage} from "@/features/plans/PlanDetailPage.tsx";
 import {SavingsAccountsPage} from "@/features/savings/SavingsAccountsPage.tsx";
+import {SavingsCushionSettingsPage} from "@/features/savings/SavingsCushionSettingsPage.tsx";
 import {SavingsSnapshotPage} from "@/features/savings/SavingsSnapshotPage.tsx";
 
 function App() {
@@ -92,6 +93,7 @@ function App() {
                             <Route path="plans/:planId" element={<PlanDetailPage />} />
                             <Route path="savings" element={<SavingsSnapshotPage />} />
                             <Route path="savings/accounts" element={<SavingsAccountsPage />} />
+                            <Route path="savings/settings" element={<SavingsCushionSettingsPage />} />
                             <Route path="tags" element={<TagsPage />} />
                             <Route path="vendors" element={<VendorsPage />} />
                             <Route path="settings" element={<SettingsPage />} />

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -113,6 +114,30 @@ public class SavingsController : ControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
         var period = $"{year:D4}-{month:D2}";
         await _store.UpsertSnapshots(period, entries);
+        return Ok();
+    }
+
+    [HttpGet("settings")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsSettingsResponse))]
+    public async Task<IActionResult> GetSettings()
+    {
+        var settings = await _store.GetSettings();
+        var avgs = await _store.GetAvgMonthlyExpenses(DateTime.Today);
+        return Ok(new SavingsSettingsResponse
+        {
+            CushionAmount = settings.CushionAmount,
+            CushionCategoryIds = settings.CushionCategoryIds,
+            AvgMonthlyExpenseThreeMonths = avgs.ThreeMonths,
+            AvgMonthlyExpenseSixMonths = avgs.SixMonths,
+            AvgMonthlyExpenseTwelveMonths = avgs.TwelveMonths
+        });
+    }
+
+    [HttpPut("settings")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    public async Task<IActionResult> UpdateSettings([FromBody] UpdateSavingsSettingsRequest request)
+    {
+        await _store.UpsertSettings(request.CushionAmount, request.CushionCategoryIds);
         return Ok();
     }
 }

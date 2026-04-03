@@ -286,6 +286,8 @@ export type DashboardResponse = {
     topOverspentBudgetCategories: CategoryBudgetSummary[];
     activePlans: ActivePlanSummary[];
     totalSavings: number;
+    cushionTarget: number;
+    cushionActual: number;
 };
 
 export type PlanSummary = {
@@ -373,4 +375,17 @@ export type SaveSnapshotItem = {
     balance: number;
     deposited: number;
     withdrawn: number;
+};
+
+export type SavingsSettings = {
+    cushionAmount: number;
+    cushionCategoryIds: number[];
+    avgMonthlyExpenseThreeMonths: number;
+    avgMonthlyExpenseSixMonths: number;
+    avgMonthlyExpenseTwelveMonths: number;
+};
+
+export type UpdateSavingsSettingsRequest = {
+    cushionAmount: number;
+    cushionCategoryIds: number[];
 };

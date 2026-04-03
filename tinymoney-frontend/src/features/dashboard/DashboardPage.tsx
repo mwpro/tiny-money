@@ -96,7 +96,11 @@ export function DashboardPage() {
                     <BudgetRemainingWidget topRemaining={dashboardQuery.data.topRemainingBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
                     <BudgetOverspentWidget topOverspent={dashboardQuery.data.topOverspentBudgetCategories} monthStart={monthStart} monthEnd={monthEnd}/>
                     <ActivePlansWidget activePlans={dashboardQuery.data.activePlans}/>
-                    <TotalSavingsWidget totalSavings={dashboardQuery.data.totalSavings}/>
+                    <TotalSavingsWidget
+                        totalSavings={dashboardQuery.data.totalSavings}
+                        cushionTarget={dashboardQuery.data.cushionTarget}
+                        cushionActual={dashboardQuery.data.cushionActual}
+                    />
                 </div>
             )}
         </div>

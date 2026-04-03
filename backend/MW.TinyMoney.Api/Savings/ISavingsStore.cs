@@ -1,4 +1,5 @@
 using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,6 +7,12 @@ using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Savings.ApiModels;
 
 namespace MW.TinyMoney.Api.Savings;
+
+public class SavingsSettings
+{
+    public decimal CushionAmount { get; set; }
+    public IReadOnlyCollection<int> CushionCategoryIds { get; set; } = [];
+}
 
 public interface ISavingsStore
 {
@@ -23,6 +30,10 @@ public interface ISavingsStore
 
     Task<IReadOnlyCollection<SavingsSnapshotEntry>> GetSnapshotPeriod(string period);
     Task UpsertSnapshots(string period, IEnumerable<SnapshotEntryRequest> entries);
+
+    Task<SavingsSettings> GetSettings();
+    Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds);
+    Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today);
 }
 
 public class MySqlSavingsStore : ISavingsStore
@@ -102,6 +113,36 @@ public class MySqlSavingsStore : ISavingsStore
         ORDER BY sc.name, a.name
         """;
 
+    private const string GetSettingsQuery =
+        """
+        SELECT COALESCE(cushion_amount, 0) FROM savings_setting LIMIT 1;
+        SELECT category_id FROM savings_cushion_category;
+        """;
+
+    private const string UpsertSettingsDeleteQuery =
+        """
+        DELETE FROM savings_cushion_category;
+        DELETE FROM savings_setting;
+        """;
+
+    private const string InsertSettingAmountQuery =
+        "INSERT INTO savings_setting (cushion_amount) VALUES (@cushionAmount)";
+
+    private const string InsertCushionCategoryQuery =
+        "INSERT INTO savings_cushion_category (category_id) VALUES (@categoryId)";
+
+    private const string GetAvgMonthlyExpensesQuery =
+        """
+        SELECT
+          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 3 MONTH), '%Y-%m-01') THEN amount END), 0) / 3 AS threeMonths,
+          COALESCE(SUM(CASE WHEN transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 6 MONTH), '%Y-%m-01') THEN amount END), 0) / 6 AS sixMonths,
+          COALESCE(SUM(amount), 0) / 12 AS twelveMonths
+        FROM transaction
+        WHERE is_expense = 1 AND is_verified = 1
+          AND transaction_date >= DATE_FORMAT(DATE_SUB(@today, INTERVAL 12 MONTH), '%Y-%m-01')
+          AND transaction_date <= LAST_DAY(DATE_SUB(@today, INTERVAL 1 MONTH))
+        """;
+
     private const string UpsertSnapshotQuery =
         """
         INSERT INTO savings_snapshot (account_id, period, balance, deposited, withdrawn)
@@ -114,7 +155,7 @@ public class MySqlSavingsStore : ISavingsStore
 
     public async Task<IReadOnlyCollection<SavingsCategory>> GetCategories()
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var results = await connection.QueryAsync<SavingsCategory>(GetCategoriesQuery);
         return results.ToList().AsReadOnly();
@@ -122,35 +163,35 @@ public class MySqlSavingsStore : ISavingsStore
 
     public async Task<SavingsCategory> GetCategoryById(int id)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         return await connection.QuerySingleOrDefaultAsync<SavingsCategory>(GetCategoryByIdQuery, new { id });
     }
 
     public async Task CreateCategory(string name)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(CreateCategoryQuery, new { name });
     }
 
     public async Task UpdateCategory(int id, string name)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(UpdateCategoryQuery, new { id, name });
     }
 
     public async Task DeleteCategory(int id)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(DeleteCategoryQuery, new { id });
     }
 
     public async Task<bool> CategoryHasAccounts(int id)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var count = await connection.ExecuteScalarAsync<int>(CountAccountsForCategoryQuery, new { id });
         return count > 0;
@@ -158,7 +199,7 @@ public class MySqlSavingsStore : ISavingsStore
 
     public async Task<IReadOnlyCollection<SavingsAccount>> GetAccounts(bool includeArchived = false)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var results = await connection.QueryAsync<SavingsAccount>(GetAccountsQuery, new { includeArchived = includeArchived ? 1 : 0 });
         return results.ToList().AsReadOnly();
@@ -166,28 +207,28 @@ public class MySqlSavingsStore : ISavingsStore
 
     public async Task<SavingsAccount> GetAccountById(int id)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         return await connection.QuerySingleOrDefaultAsync<SavingsAccount>(GetAccountByIdQuery, new { id });
     }
 
     public async Task CreateAccount(string name, int categoryId)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(CreateAccountQuery, new { name, categoryId });
     }
 
     public async Task UpdateAccount(int id, string name, int categoryId, bool isActive)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(UpdateAccountQuery, new { id, name, categoryId, isActive });
     }
 
     public async Task<IReadOnlyCollection<SavingsSnapshotEntry>> GetSnapshotPeriod(string period)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var results = await connection.QueryAsync<SavingsSnapshotEntry>(GetSnapshotPeriodQuery, new { period });
         return results.ToList().AsReadOnly();
@@ -195,9 +236,9 @@ public class MySqlSavingsStore : ISavingsStore
 
     public async Task UpsertSnapshots(string period, IEnumerable<SnapshotEntryRequest> entries)
     {
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
-        using var transaction = await connection.BeginTransactionAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
         var parameters = entries.Select(e => new
         {
             e.AccountId,
@@ -208,5 +249,40 @@ public class MySqlSavingsStore : ISavingsStore
         });
         await connection.ExecuteAsync(UpsertSnapshotQuery, parameters, transaction);
         await transaction.CommitAsync();
+    }
+
+    public async Task<SavingsSettings> GetSettings()
+    {
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        var reader = await connection.QueryMultipleAsync(GetSettingsQuery);
+        var cushionAmount = await reader.ReadFirstOrDefaultAsync<decimal?>();
+        var categoryIds = (await reader.ReadAsync<int>()).ToList();
+        return new SavingsSettings
+        {
+            CushionAmount = cushionAmount ?? 0m,
+            CushionCategoryIds = categoryIds.AsReadOnly()
+        };
+    }
+
+    public async Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds)
+    {
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+        await connection.ExecuteAsync(UpsertSettingsDeleteQuery, transaction: transaction);
+        await connection.ExecuteAsync(InsertSettingAmountQuery, new { cushionAmount }, transaction);
+        var ids = categoryIds.ToList();
+        if (ids.Count > 0)
+            await connection.ExecuteAsync(InsertCushionCategoryQuery, ids.Select(id => new { categoryId = id }), transaction);
+        await transaction.CommitAsync();
+    }
+
+    public async Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today)
+    {
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        var result = await connection.QuerySingleAsync<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)>(GetAvgMonthlyExpensesQuery, new { today });
+        return result;
     }
 }
