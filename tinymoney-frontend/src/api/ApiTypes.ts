@@ -285,6 +285,7 @@ export type DashboardResponse = {
     topRemainingBudgetCategories: CategoryBudgetSummary[];
     topOverspentBudgetCategories: CategoryBudgetSummary[];
     activePlans: ActivePlanSummary[];
+    totalSavings: number;
 };
 
 export type PlanSummary = {
