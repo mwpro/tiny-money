@@ -390,25 +390,3 @@ export type UpdateSavingsSettingsRequest = {
     cushionCategoryIds: number[];
 };
 
-export type SavingsGoal = {
-    id: number;
-    name: string;
-    targetAmount: number;
-    targetDate: string | null;
-    isArchived: boolean;
-    categoryIds: number[];
-};
-
-export type CreateSavingsGoalRequest = {
-    name: string;
-    targetAmount: number;
-    targetDate: string | null;
-    categoryIds: number[];
-};
-
-export type UpdateSavingsGoalRequest = {
-    name: string;
-    targetAmount: number;
-    targetDate: string | null;
-    categoryIds: number[];
-};

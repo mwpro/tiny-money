@@ -1,4 +1,4 @@
-import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem, SavingsSettings, UpdateSavingsSettingsRequest, SavingsGoal, CreateSavingsGoalRequest, UpdateSavingsGoalRequest} from "@/api/ApiTypes.ts";
+import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem, SavingsSettings, UpdateSavingsSettingsRequest} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface SavingsClient {
@@ -17,10 +17,6 @@ export interface SavingsClient {
     getSettings(): Promise<SavingsSettings>;
     updateSettings(request: UpdateSavingsSettingsRequest): Promise<void>;
 
-    getGoals(): Promise<SavingsGoal[]>;
-    createGoal(request: CreateSavingsGoalRequest): Promise<void>;
-    updateGoal(id: number, request: UpdateSavingsGoalRequest): Promise<void>;
-    deleteGoal(id: number): Promise<void>;
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {
@@ -87,24 +83,4 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
         if (!res.ok) throw new Error('Błąd podczas zapisywania ustawień');
     }
 
-    async getGoals(): Promise<SavingsGoal[]> {
-        const res = await this.request('GET', '/savings/goals');
-        if (!res.ok) throw new Error('Błąd pobierania celów oszczędnościowych');
-        return res.json();
-    }
-
-    async createGoal(request: CreateSavingsGoalRequest): Promise<void> {
-        const res = await this.request('POST', '/savings/goals', request);
-        if (!res.ok) throw new Error('Błąd podczas dodawania celu');
-    }
-
-    async updateGoal(id: number, request: UpdateSavingsGoalRequest): Promise<void> {
-        const res = await this.request('PUT', `/savings/goals/${id}`, request);
-        if (!res.ok) throw new Error('Błąd podczas zapisywania celu');
-    }
-
-    async deleteGoal(id: number): Promise<void> {
-        const res = await this.request('DELETE', `/savings/goals/${id}`);
-        if (!res.ok) throw new Error('Błąd podczas usuwania celu');
-    }
 }

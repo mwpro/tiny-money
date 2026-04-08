@@ -24,22 +24,6 @@ CREATE TABLE savings_snapshot (
         FOREIGN KEY (account_id) REFERENCES savings_account (id)
 ) CHARSET = utf8mb4;
 
-CREATE TABLE savings_goal (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    name          VARCHAR(100) NOT NULL,
-    target_amount DECIMAL(19,2) NOT NULL,
-    target_date   DATE NULL,
-    is_archived   BOOLEAN NOT NULL DEFAULT FALSE
-) CHARSET = utf8mb4;
-
-CREATE TABLE savings_goal_category (
-    goal_id     INT NOT NULL,
-    category_id INT NOT NULL,
-    PRIMARY KEY (goal_id, category_id),
-    CONSTRAINT fk_sgc_goal     FOREIGN KEY (goal_id)     REFERENCES savings_goal     (id),
-    CONSTRAINT fk_sgc_category FOREIGN KEY (category_id) REFERENCES savings_category (id)
-) CHARSET = utf8mb4;
-
 CREATE TABLE savings_setting (
     cushion_amount DECIMAL(19,2) NOT NULL
 ) CHARSET = utf8mb4;

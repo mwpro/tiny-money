@@ -141,44 +141,4 @@ public class SavingsController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("goals")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<SavingsGoalResponseModel>))]
-    public async Task<IActionResult> GetGoals()
-    {
-        return Ok((await _store.GetGoals()).Select(x => x.ToResponseModel()));
-    }
-
-    [HttpPost("goals")]
-    [ProducesResponseType((int)HttpStatusCode.Created)]
-    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> CreateGoal([FromBody] CreateSavingsGoalRequest request)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        await _store.CreateGoal(request.Name, request.TargetAmount, request.TargetDate, request.CategoryIds);
-        return StatusCode((int)HttpStatusCode.Created);
-    }
-
-    [HttpPut("goals/{id}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> UpdateGoal(int id, [FromBody] UpdateSavingsGoalRequest request)
-    {
-        var goal = await _store.GetGoalById(id);
-        if (goal == null) return NotFound();
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        await _store.UpdateGoal(id, request.Name, request.TargetAmount, request.TargetDate, request.CategoryIds);
-        return Ok();
-    }
-
-    [HttpDelete("goals/{id}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<IActionResult> DeleteGoal(int id)
-    {
-        var goal = await _store.GetGoalById(id);
-        if (goal == null) return NotFound();
-        await _store.DeleteGoal(id);
-        return Ok();
-    }
 }

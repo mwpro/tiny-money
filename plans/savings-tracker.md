@@ -12,16 +12,12 @@
   - `GET /api/savings/snapshots/{year}/{month}` — returns pre-filled period data (last known values for all active accounts, or 0 if no prior snapshot); `deposited`/`withdrawn` always 0 in pre-fill
   - `POST /api/savings/snapshots/{year}/{month}` — batch upsert: body is `[{ accountId, balance, deposited, withdrawn }]`
   - `GET/PUT /api/savings/settings` — cushion settings; GET always returns an object (defaults if unconfigured, never 404)
-  - `GET/POST /api/savings/goals` — list, create
-  - `PUT/DELETE /api/savings/goals/{id}` — update, hard delete
-  - `PUT /api/savings/goals/{id}/archive` — toggle archive
   - `GET /api/savings/dashboard` — total savings (latest per account), cushion actual vs. target
   - `GET /api/savings/reports` — charts data (time-series, by-category, cash flows, ROI)
 
 - **Frontend routes**:
   - `/savings` — monthly entry page (main nav target from Phase 2)
   - `/savings/accounts` — accounts & categories management (secondary; linked from within Savings, not main nav)
-  - `/savings/goals` — goals list and progress
   - `/savings/charts` — all four chart panels
   - `/savings/settings` — cushion settings
   - Phase 1 only: `/savings` routes to accounts page temporarily
@@ -33,8 +29,6 @@
   - `savings_accounts` — id, name, category_id, is_active
   - `savings_snapshots` — id, account_id, period (YYYY-MM), balance, deposited, withdrawn
     - `deposited` on the first snapshot for an account = historical invested seed
-  - `savings_goals` — id, name, target_amount, target_date (nullable), is_archived
-  - `savings_goal_categories` — goal_id, category_id
   - `savings_settings` — cushion_amount (single row; created on first PUT, defaults returned if missing)
   - `savings_cushion_categories` — category_id
 
@@ -43,8 +37,6 @@
   - Dashboard widget: always shows latest known totals, independent of the dashboard's period selector
   - Monthly entry form: shows ALL active accounts (regardless of account creation date), supporting historical backfill
   - Category re-attribution: changing an account's category retroactively applies everywhere in charts
-  - Goal progress = sum of last-known balances in linked categories − cushion_amount, floored at 0; deducted independently per goal
-  - Goal projection = (target − progress) / avg monthly net balance growth over last 6 months (or all available months if fewer than 6); no projection shown when rate ≤ 0
   - Charts X-axis: only months where at least one snapshot exists (no calendar gaps filled)
   - By-category chart: each plotted month uses the last-known balance per account up to that month
 
@@ -147,54 +139,7 @@ Settings GET always returns an object with defaults (`cushion_amount: 0`) if unc
 
 ---
 
-## Phase 5: Goal Setup
-
-**User stories**: 9, 10, 11
-
-### What to build
-
-A goals page at `/savings/goals` for creating and managing financial goals. Each goal has a name, target amount, and optional target date. Goals are linked to one or more account categories. Multiple active goals can coexist. This phase delivers the data model and management UI only — no progress calculation yet.
-
-### Acceptance criteria
-
-- [ ] User can create a goal with a name, target amount, and optional target date
-- [ ] User can link one or more account categories to a goal
-- [ ] User can unlink a category from a goal
-- [ ] User can edit a goal's name, target amount, and target date
-- [ ] User can hard-delete a goal (with confirmation); this removes the goal record but not account snapshots
-- [ ] Goals list page shows all active (non-archived) goals with their targets and linked categories
-
----
-
-## Phase 6: Goal Progress, Projections & Archive
-
-**User stories**: 12, 13, 24, 25
-
-### What to build
-
-Goals become actionable. Each goal card shows:
-- **Available**: sum of last-known balances for accounts in linked categories − cushion amount (floored at 0). Cushion is deducted independently per goal (each goal subtracts the full cushion amount).
-- **Progress bar**: available / target
-- **Projection**: projected completion date based on average net balance growth over the last 6 months of data (or all available months if fewer). No projection shown when rate ≤ 0.
-
-The user can archive a goal when it's achieved. Archived goals disappear from the active view and are excluded from all progress/projection/cushion calculations. Archiving is reversible.
-
-### Acceptance criteria
-
-- [ ] Each goal card shows available amount (last-known category balances − cushion, ≥ 0)
-- [ ] Cushion is deducted from each goal independently
-- [ ] Progress bar shows available / target
-- [ ] Goal projection shown when average monthly growth over last 6 months is positive
-- [ ] No projection shown when growth rate ≤ 0 or fewer than 2 months of data
-- [ ] Projection falls back to all available months when fewer than 6 are recorded
-- [ ] User can archive a goal; it disappears from active goals list
-- [ ] User can unarchive a goal
-- [ ] Archived goals are excluded from all progress and projection calculations
-- [ ] Unit tests: progress = 0 when cushion ≥ eligible balance; two goals sharing a category each independently deduct full cushion; projection with positive growth; projection not shown with negative growth; goal exactly at target shows 100%
-
----
-
-## Phase 7: Charts
+## Phase 5: Charts
 
 **User stories**: 18, 19, 20, 21, 23
 

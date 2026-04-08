@@ -35,11 +35,6 @@ public interface ISavingsStore
     Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds);
     Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today);
 
-    Task<IReadOnlyCollection<SavingsGoal>> GetGoals();
-    Task<SavingsGoal> GetGoalById(int id);
-    Task CreateGoal(string name, decimal targetAmount, DateOnly? targetDate, IEnumerable<int> categoryIds);
-    Task UpdateGoal(int id, string name, decimal targetAmount, DateOnly? targetDate, IEnumerable<int> categoryIds);
-    Task DeleteGoal(int id);
 }
 
 public class MySqlSavingsStore : ISavingsStore
@@ -292,94 +287,4 @@ public class MySqlSavingsStore : ISavingsStore
         return result;
     }
 
-    private const string GetGoalsQuery =
-        """
-        SELECT id, name, target_amount AS 'targetAmount', target_date AS 'targetDate', is_archived AS 'isArchived'
-        FROM savings_goal WHERE is_archived = 0 ORDER BY name;
-        SELECT goal_id AS 'goalId', category_id AS 'categoryId' FROM savings_goal_category;
-        """;
-
-    private const string GetGoalByIdQuery =
-        """
-        SELECT id, name, target_amount AS 'targetAmount', target_date AS 'targetDate', is_archived AS 'isArchived'
-        FROM savings_goal WHERE id = @id;
-        SELECT category_id AS 'categoryId' FROM savings_goal_category WHERE goal_id = @id;
-        """;
-
-    private const string InsertGoalQuery =
-        "INSERT INTO savings_goal (name, target_amount, target_date) VALUES (@name, @targetAmount, @targetDate); SELECT LAST_INSERT_ID();";
-
-    private const string InsertGoalCategoryQuery =
-        "INSERT INTO savings_goal_category (goal_id, category_id) VALUES (@goalId, @categoryId)";
-
-    private const string UpdateGoalQuery =
-        "UPDATE savings_goal SET name = @name, target_amount = @targetAmount, target_date = @targetDate WHERE id = @id";
-
-    private const string DeleteGoalCategoriesQuery =
-        "DELETE FROM savings_goal_category WHERE goal_id = @id";
-
-    private const string DeleteGoalQuery =
-        "DELETE FROM savings_goal WHERE id = @id";
-
-    public async Task<IReadOnlyCollection<SavingsGoal>> GetGoals()
-    {
-        await using var connection = _mySqlConnectionFactory.CreateConnection();
-        await connection.OpenAsync();
-        var reader = await connection.QueryMultipleAsync(GetGoalsQuery);
-        var goals = (await reader.ReadAsync<SavingsGoal>()).ToList();
-        var goalCategories = (await reader.ReadAsync<(int GoalId, int CategoryId)>()).ToList();
-        var lookup = goalCategories.GroupBy(x => x.GoalId).ToDictionary(g => g.Key, g => g.Select(x => x.CategoryId).ToList());
-        foreach (var goal in goals)
-            goal.CategoryIds = (lookup.TryGetValue(goal.Id, out var ids) ? ids : new List<int>()).AsReadOnly();
-        return goals.AsReadOnly();
-    }
-
-    public async Task<SavingsGoal> GetGoalById(int id)
-    {
-        await using var connection = _mySqlConnectionFactory.CreateConnection();
-        await connection.OpenAsync();
-        var reader = await connection.QueryMultipleAsync(GetGoalByIdQuery, new { id });
-        var goal = await reader.ReadSingleOrDefaultAsync<SavingsGoal>();
-        if (goal == null) return null;
-        var categoryIds = (await reader.ReadAsync<int>()).ToList();
-        goal.CategoryIds = categoryIds.AsReadOnly();
-        return goal;
-    }
-
-    public async Task CreateGoal(string name, decimal targetAmount, DateOnly? targetDate, IEnumerable<int> categoryIds)
-    {
-        await using var connection = _mySqlConnectionFactory.CreateConnection();
-        await connection.OpenAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
-        var targetDateParam = targetDate?.ToDateTime(TimeOnly.MinValue);
-        var goalId = await connection.QuerySingleAsync<int>(InsertGoalQuery, new { name, targetAmount, targetDate = targetDateParam }, transaction);
-        var ids = categoryIds.ToList();
-        if (ids.Count > 0)
-            await connection.ExecuteAsync(InsertGoalCategoryQuery, ids.Select(cid => new { goalId, categoryId = cid }), transaction);
-        await transaction.CommitAsync();
-    }
-
-    public async Task UpdateGoal(int id, string name, decimal targetAmount, DateOnly? targetDate, IEnumerable<int> categoryIds)
-    {
-        await using var connection = _mySqlConnectionFactory.CreateConnection();
-        await connection.OpenAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
-        var targetDateParam = targetDate?.ToDateTime(TimeOnly.MinValue);
-        await connection.ExecuteAsync(UpdateGoalQuery, new { id, name, targetAmount, targetDate = targetDateParam }, transaction);
-        await connection.ExecuteAsync(DeleteGoalCategoriesQuery, new { id }, transaction);
-        var ids = categoryIds.ToList();
-        if (ids.Count > 0)
-            await connection.ExecuteAsync(InsertGoalCategoryQuery, ids.Select(cid => new { goalId = id, categoryId = cid }), transaction);
-        await transaction.CommitAsync();
-    }
-
-    public async Task DeleteGoal(int id)
-    {
-        await using var connection = _mySqlConnectionFactory.CreateConnection();
-        await connection.OpenAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
-        await connection.ExecuteAsync(DeleteGoalCategoriesQuery, new { id }, transaction);
-        await connection.ExecuteAsync(DeleteGoalQuery, new { id }, transaction);
-        await transaction.CommitAsync();
-    }
 }
