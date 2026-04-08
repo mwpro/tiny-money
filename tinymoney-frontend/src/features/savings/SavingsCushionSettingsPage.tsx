@@ -10,7 +10,7 @@ import {Label} from "@/components/ui/label.tsx";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
 import {Card, CardHeader, CardDescription, CardTitle} from "@/components/ui/card.tsx";
 import {toast} from "sonner";
-import type {UpdateSavingsSettingsRequest} from "@/api/ApiTypes.ts";
+import type {UpdateSavingsCushionRequest} from "@/api/ApiTypes.ts";
 import {Curr} from "@/components/Curr.tsx";
 
 type SettingsForm = {
@@ -24,8 +24,8 @@ export function SavingsCushionSettingsPage() {
     const [months, setMonths] = useState(6);
 
     const settingsQuery = useQuery({
-        queryKey: ['savings-settings'],
-        queryFn: () => savingsClient.getSettings()
+        queryKey: ['savings-cushion'],
+        queryFn: () => savingsClient.getCushion()
     });
 
     const categoriesQuery = useQuery({
@@ -48,14 +48,14 @@ export function SavingsCushionSettingsPage() {
 
     const saveMutation = useMutation({
         mutationFn: (data: SettingsForm) => {
-            const request: UpdateSavingsSettingsRequest = {
+            const request: UpdateSavingsCushionRequest = {
                 cushionAmount: data.cushionAmount,
                 cushionCategoryIds: data.cushionCategoryIds
             };
-            return savingsClient.updateSettings(request);
+            return savingsClient.updateCushion(request);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['savings-settings']});
+            queryClient.invalidateQueries({queryKey: ['savings-cushion']});
             queryClient.invalidateQueries({queryKey: ['dashboard']});
             toast.success('Ustawienia zostały zapisane');
         },

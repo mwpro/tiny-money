@@ -1,4 +1,4 @@
-import type {SavingsCategory, SavingsAccount, SavingsSnapshotEntry, SaveSnapshotItem, SavingsSettings, UpdateSavingsSettingsRequest, SavingsGoal, CreateSavingsGoalRequest, UpdateSavingsGoalRequest} from "@/api/ApiTypes.ts";
+import type {SavingsCategory, SavingsAccount, SavingsSnapshotResponse, SaveSnapshotItem, SavingsCushion, UpdateSavingsCushionRequest} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface SavingsClient {
@@ -11,16 +11,12 @@ export interface SavingsClient {
     createAccount(name: string, categoryId: number): Promise<void>;
     updateAccount(id: number, name: string, categoryId: number, isActive: boolean): Promise<void>;
 
-    getSnapshot(year: number, month: number): Promise<SavingsSnapshotEntry[]>;
+    getSnapshot(year: number, month: number): Promise<SavingsSnapshotResponse>;
     saveSnapshot(year: number, month: number, entries: SaveSnapshotItem[]): Promise<void>;
 
-    getSettings(): Promise<SavingsSettings>;
-    updateSettings(request: UpdateSavingsSettingsRequest): Promise<void>;
+    getCushion(): Promise<SavingsCushion>;
+    updateCushion(request: UpdateSavingsCushionRequest): Promise<void>;
 
-    getGoals(): Promise<SavingsGoal[]>;
-    createGoal(request: CreateSavingsGoalRequest): Promise<void>;
-    updateGoal(id: number, request: UpdateSavingsGoalRequest): Promise<void>;
-    deleteGoal(id: number): Promise<void>;
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {
@@ -65,7 +61,7 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
         if (!res.ok) throw new Error('Błąd podczas zapisywania konta');
     }
 
-    async getSnapshot(year: number, month: number): Promise<SavingsSnapshotEntry[]> {
+    async getSnapshot(year: number, month: number): Promise<SavingsSnapshotResponse> {
         const res = await this.request('GET', `/savings/snapshots/${year}/${month}`);
         if (!res.ok) throw new Error('Błąd pobierania danych okresu');
         return res.json();
@@ -76,35 +72,15 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
         if (!res.ok) throw new Error('Błąd podczas zapisywania danych');
     }
 
-    async getSettings(): Promise<SavingsSettings> {
-        const res = await this.request('GET', '/savings/settings');
+    async getCushion(): Promise<SavingsCushion> {
+        const res = await this.request('GET', '/savings/cushion');
         if (!res.ok) throw new Error('Błąd pobierania ustawień poduszki');
         return res.json();
     }
 
-    async updateSettings(request: UpdateSavingsSettingsRequest): Promise<void> {
-        const res = await this.request('PUT', '/savings/settings', request);
+    async updateCushion(request: UpdateSavingsCushionRequest): Promise<void> {
+        const res = await this.request('PUT', '/savings/cushion', request);
         if (!res.ok) throw new Error('Błąd podczas zapisywania ustawień');
     }
 
-    async getGoals(): Promise<SavingsGoal[]> {
-        const res = await this.request('GET', '/savings/goals');
-        if (!res.ok) throw new Error('Błąd pobierania celów oszczędnościowych');
-        return res.json();
-    }
-
-    async createGoal(request: CreateSavingsGoalRequest): Promise<void> {
-        const res = await this.request('POST', '/savings/goals', request);
-        if (!res.ok) throw new Error('Błąd podczas dodawania celu');
-    }
-
-    async updateGoal(id: number, request: UpdateSavingsGoalRequest): Promise<void> {
-        const res = await this.request('PUT', `/savings/goals/${id}`, request);
-        if (!res.ok) throw new Error('Błąd podczas zapisywania celu');
-    }
-
-    async deleteGoal(id: number): Promise<void> {
-        const res = await this.request('DELETE', `/savings/goals/${id}`);
-        if (!res.ok) throw new Error('Błąd podczas usuwania celu');
-    }
 }
