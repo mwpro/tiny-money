@@ -71,7 +71,7 @@ Category deletion is blocked if accounts are assigned to it; the API returns a 4
 
 ## Phase 2: Monthly Snapshot Entry
 
-**User stories**: 5, 6, 7 (no button — pre-fill is the copy), 8, 22
+**User stories**: 5, 6, 7 (no button — pre-fill is the copy), 8, 17
 
 ### What to build
 
@@ -98,7 +98,7 @@ From this phase, `/savings` routes to the monthly entry page. The accounts page 
 
 ## Phase 3: Dashboard Widget — Total Savings
 
-**User story**: 17 (partial — total only, no cushion status yet)
+**User story**: 12 (partial — total only, no cushion status yet)
 
 ### What to build
 
@@ -116,7 +116,7 @@ A new widget on the existing dashboard showing total savings: the sum of each ac
 
 ## Phase 4: Cushion Settings
 
-**User stories**: 14, 15, 16, 17 (complete)
+**User stories**: 9, 10, 11, 12 (complete)
 
 ### What to build
 
@@ -141,7 +141,7 @@ Settings GET always returns an object with defaults (`cushion_amount: 0`) if unc
 
 ## Phase 5: Charts
 
-**User stories**: 18, 19, 20, 21, 23
+**User stories**: 13, 14, 15, 16, 18
 
 ### What to build
 
