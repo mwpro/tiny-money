@@ -8,7 +8,7 @@ using MW.TinyMoney.Api.Savings.ApiModels;
 
 namespace MW.TinyMoney.Api.Savings;
 
-public class SavingsSettings
+public class SavingsCushionSettings
 {
     public decimal CushionAmount { get; set; }
     public IReadOnlyCollection<int> CushionCategoryIds { get; set; } = [];
@@ -31,8 +31,8 @@ public interface ISavingsStore
     Task<IReadOnlyCollection<SavingsSnapshotEntry>> GetSnapshotPeriod(string period);
     Task UpsertSnapshots(string period, IEnumerable<SnapshotEntryRequest> entries);
 
-    Task<SavingsSettings> GetSettings();
-    Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds);
+    Task<SavingsCushionSettings> GetCushion();
+    Task UpsertCushion(decimal cushionAmount, IEnumerable<int> categoryIds);
     Task<(decimal ThreeMonths, decimal SixMonths, decimal TwelveMonths)> GetAvgMonthlyExpenses(DateTime today);
 
 }
@@ -252,21 +252,21 @@ public class MySqlSavingsStore : ISavingsStore
         await transaction.CommitAsync();
     }
 
-    public async Task<SavingsSettings> GetSettings()
+    public async Task<SavingsCushionSettings> GetCushion()
     {
         await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         var reader = await connection.QueryMultipleAsync(GetSettingsQuery);
         var cushionAmount = await reader.ReadFirstOrDefaultAsync<decimal?>();
         var categoryIds = (await reader.ReadAsync<int>()).ToList();
-        return new SavingsSettings
+        return new SavingsCushionSettings
         {
             CushionAmount = cushionAmount ?? 0m,
             CushionCategoryIds = categoryIds.AsReadOnly()
         };
     }
 
-    public async Task UpsertSettings(decimal cushionAmount, IEnumerable<int> categoryIds)
+    public async Task UpsertCushion(decimal cushionAmount, IEnumerable<int> categoryIds)
     {
         await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();

@@ -370,6 +370,12 @@ export type SavingsSnapshotEntry = {
     withdrawn: number;
 };
 
+export type SavingsSnapshotResponse = {
+    entries: SavingsSnapshotEntry[];
+    cushionActual: number;
+    cushionTarget: number;
+};
+
 export type SaveSnapshotItem = {
     accountId: number;
     balance: number;
@@ -377,7 +383,7 @@ export type SaveSnapshotItem = {
     withdrawn: number;
 };
 
-export type SavingsSettings = {
+export type SavingsCushion = {
     cushionAmount: number;
     cushionCategoryIds: number[];
     avgMonthlyExpenseThreeMonths: number;
@@ -385,7 +391,7 @@ export type SavingsSettings = {
     avgMonthlyExpenseTwelveMonths: number;
 };
 
-export type UpdateSavingsSettingsRequest = {
+export type UpdateSavingsCushionRequest = {
     cushionAmount: number;
     cushionCategoryIds: number[];
 };

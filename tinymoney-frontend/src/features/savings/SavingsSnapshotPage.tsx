@@ -10,6 +10,8 @@ import {toast} from "sonner";
 import type {SaveSnapshotItem, SavingsSnapshotEntry} from "@/api/ApiTypes.ts";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
 import {Link} from "react-router-dom";
+import {Settings2} from "lucide-react";
+import {Curr} from "@/components/Curr.tsx";
 
 type SnapshotForm = {
     entries: SaveSnapshotItem[];
@@ -53,7 +55,7 @@ export function SavingsSnapshotPage() {
     useEffect(() => {
         if (snapshotQuery.data) {
             reset({
-                entries: snapshotQuery.data.map(e => ({
+                entries: snapshotQuery.data.entries.map(e => ({
                     accountId: e.accountId,
                     balance: e.balance,
                     deposited: e.deposited,
@@ -72,9 +74,14 @@ export function SavingsSnapshotPage() {
         onError: (err: Error) => toast.error(err.message)
     });
 
-    const entries = snapshotQuery.data ?? [];
+    const entries = snapshotQuery.data?.entries ?? [];
     const groups = groupByCategory(entries);
     const watchedEntries = watch('entries');
+
+    const cushionTarget = snapshotQuery.data?.cushionTarget ?? 0;
+    const cushionActual = snapshotQuery.data?.cushionActual ?? 0;
+    const cushionPct = cushionTarget > 0 ? Math.min(cushionActual / cushionTarget, 1) : 0;
+    const cushionMet = cushionActual >= cushionTarget;
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -86,11 +93,30 @@ export function SavingsSnapshotPage() {
                     <Button variant="outline" asChild>
                         <Link to="/savings/accounts">Zarządzaj kontami</Link>
                     </Button>
-                    <Button variant="outline" asChild>
-                        <Link to="/savings/settings">Ustawienia poduszki</Link>
-                    </Button>
                 </div>
             </div>
+
+            {cushionTarget > 0 && (
+                <div className="flex items-center gap-3 mb-6 p-3 border rounded-md bg-muted/30">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium">Poduszka finansowa</span>
+                            <span className={`text-sm font-semibold ${cushionMet ? 'text-green-600' : 'text-destructive'}`}>
+                                <Curr input={cushionActual}/> / <Curr input={cushionTarget}/>
+                            </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                                className={`h-full rounded-full transition-all ${cushionMet ? 'bg-green-500' : 'bg-destructive'}`}
+                                style={{width: `${cushionPct * 100}%`}}
+                            />
+                        </div>
+                    </div>
+                    <Link to="/savings/settings" className="text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                        <Settings2 size={16}/>
+                    </Link>
+                </div>
+            )}
 
             {snapshotQuery.isLoading && <div className="p-10">Ładowanie danych...</div>}
             {snapshotQuery.isError && <div className="p-10 text-destructive">Błąd ładowania danych</div>}

@@ -94,7 +94,7 @@ public class SavingsController : ControllerBase
     }
 
     [HttpGet("snapshots/{year}/{month}")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<SavingsSnapshotEntryResponseModel>))]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsSnapshotResponse))]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> GetSnapshot(int year, int month)
     {
@@ -102,7 +102,16 @@ public class SavingsController : ControllerBase
         if (month is < 1 or > 12) return BadRequest("Month must be between 1 and 12.");
         var period = $"{year:D4}-{month:D2}";
         var entries = await _store.GetSnapshotPeriod(period);
-        return Ok(entries.Select(x => x.ToResponseModel()));
+        var cushion = await _store.GetCushion();
+        var cushionActual = entries
+            .Where(e => cushion.CushionCategoryIds.Contains(e.CategoryId))
+            .Sum(e => e.Balance);
+        return Ok(new SavingsSnapshotResponse
+        {
+            Entries = entries.Select(x => x.ToResponseModel()),
+            CushionActual = cushionActual,
+            CushionTarget = cushion.CushionAmount
+        });
     }
 
     [HttpPost("snapshots/{year}/{month}")]
@@ -117,27 +126,27 @@ public class SavingsController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("settings")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsSettingsResponse))]
-    public async Task<IActionResult> GetSettings()
+    [HttpGet("cushion")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsCushionResponse))]
+    public async Task<IActionResult> GetCushion()
     {
-        var settings = await _store.GetSettings();
+        var cushion = await _store.GetCushion();
         var avgs = await _store.GetAvgMonthlyExpenses(DateTime.Today);
-        return Ok(new SavingsSettingsResponse
+        return Ok(new SavingsCushionResponse
         {
-            CushionAmount = settings.CushionAmount,
-            CushionCategoryIds = settings.CushionCategoryIds,
+            CushionAmount = cushion.CushionAmount,
+            CushionCategoryIds = cushion.CushionCategoryIds,
             AvgMonthlyExpenseThreeMonths = avgs.ThreeMonths,
             AvgMonthlyExpenseSixMonths = avgs.SixMonths,
             AvgMonthlyExpenseTwelveMonths = avgs.TwelveMonths
         });
     }
 
-    [HttpPut("settings")]
+    [HttpPut("cushion")]
     [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<IActionResult> UpdateSettings([FromBody] UpdateSavingsSettingsRequest request)
+    public async Task<IActionResult> UpdateCushion([FromBody] UpdateSavingsCushionRequest request)
     {
-        await _store.UpsertSettings(request.CushionAmount, request.CushionCategoryIds);
+        await _store.UpsertCushion(request.CushionAmount, request.CushionCategoryIds);
         return Ok();
     }
 
