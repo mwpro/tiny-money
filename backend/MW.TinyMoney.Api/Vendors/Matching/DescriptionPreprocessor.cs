@@ -17,7 +17,8 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
 {
     private const int MinTokenLength = 3;
     private const int MaxShatterPieces = 3;
-    
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
+
     private readonly Regex _stopWordsPattern;
     private readonly IReadOnlyCollection<Regex> _stopPatterns;
     private readonly IReadOnlyCollection<Regex> _joinPatterns;
@@ -26,10 +27,10 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
     {
         var tokens = stopTokens.Select(Regex.Escape).ToList();
         _stopWordsPattern = tokens.Count > 0
-            ? new Regex($@"\b({string.Join("|", tokens)})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))
+            ? new Regex($@"\b({string.Join("|", tokens)})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled, RegexTimeout)
             : null;
-        _stopPatterns = stopPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
-        _joinPatterns = joinPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, TimeSpan.FromMilliseconds(100))).ToList();
+        _stopPatterns = stopPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, RegexTimeout)).ToList();
+        _joinPatterns = joinPatterns.Select(p => new Regex(p.Split("#").First(), RegexOptions.Compiled, RegexTimeout)).ToList();
     }
 
     public static DescriptionPreprocessor CreateFromFiles()
