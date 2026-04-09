@@ -101,4 +101,5 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IImportService, ImportService>();
     services.AddTransient<IPlanStore, MySqlPlanStore>();
     services.AddTransient<ISavingsStore, MySqlSavingsStore>();
+    services.AddTransient<ISavingsReport, SavingsReport>();
 }
