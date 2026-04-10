@@ -396,3 +396,53 @@ export type UpdateSavingsCushionRequest = {
     cushionCategoryIds: number[];
 };
 
+export type SavingsReport = {
+    balanceHistory: { period: string; totalBalance: number }[];
+    byCategory: { period: string; categoryId: number; categoryName: string; balance: number }[];
+    cashFlows: { period: string; deposited: number; withdrawn: number; netGain: number }[];
+    tableData: SavingsTableData;
+};
+
+export type SavingsTableData = {
+    periods: string[];
+    categories: SavingsTableCategory[];
+    totals: SavingsTableRow;
+};
+export type SavingsTableCategory = {
+    categoryId: number;
+    categoryName: string;
+    periodData: (SavingsTablePeriodData | null)[];
+    totalDeposited: number;
+    totalWithdrawn: number;
+    currentBalance: number;
+    totalNetGain: number;
+    totalRoi: number | null;
+    accounts: SavingsTableAccount[];
+};
+export type SavingsTableAccount = {
+    accountId: number;
+    accountName: string;
+    periodData: (SavingsTablePeriodData | null)[];
+    totalDeposited: number;
+    totalWithdrawn: number;
+    currentBalance: number;
+    totalNetGain: number;
+    totalRoi: number | null;
+};
+export type SavingsTablePeriodData = {
+    period: string;
+    deposited: number;
+    withdrawn: number;
+    balance: number;
+    netGain: number;
+    roi: number | null;
+};
+export type SavingsTableRow = {
+    periodData: SavingsTablePeriodData[];
+    totalDeposited: number;
+    totalWithdrawn: number;
+    currentBalance: number;
+    totalNetGain: number;
+    totalRoi: number | null;
+};
+
