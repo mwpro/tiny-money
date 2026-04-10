@@ -21,8 +21,9 @@ import {SavingsReportTable} from "@/features/savings/SavingsReportTable.tsx";
 
 const emptyChartConfig = {} satisfies ChartConfig;
 
-function CurrencyTooltip({active, payload, label}: any) {
+ function CurrencyTooltip({active, payload, label, showTotal}: any) {
     if (!active || !payload?.length) return null;
+    const total = showTotal ? payload.reduce((sum: number, item: any) => sum + (item.value ?? 0), 0) : null;
     return (
         <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
             <div className="font-medium">{label}</div>
@@ -35,29 +36,12 @@ function CurrencyTooltip({active, payload, label}: any) {
                     </div>
                 </div>
             ))}
-        </div>
-    );
-}
-
-function ByCategoryTooltip({active, payload, label}: any) {
-    if (!active || !payload?.length) return null;
-    const total = payload.reduce((sum: number, item: any) => sum + (item.value ?? 0), 0);
-    return (
-        <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
-            <div className="font-medium">{label}</div>
-            {payload.map((item: any) => (
-                <div key={item.dataKey} className="flex w-full items-center gap-2">
-                    <div className="h-2.5 w-2.5 shrink-0 rounded-[2px]" style={{backgroundColor: item.color ?? item.fill}}/>
-                    <div className="flex flex-1 justify-between leading-none items-center gap-4">
-                        <span className="text-muted-foreground">{item.name}</span>
-                        <span className="text-foreground font-mono font-medium tabular-nums">{formatCurrencyAsString(item.value)}</span>
-                    </div>
+            {total !== null && (
+                <div className="border-t border-border/50 mt-0.5 pt-1.5 flex w-full justify-between leading-none items-center gap-4">
+                    <span className="font-medium">Łącznie</span>
+                    <span className="font-mono font-semibold tabular-nums">{formatCurrencyAsString(total)}</span>
                 </div>
-            ))}
-            <div className="border-t border-border/50 mt-0.5 pt-1.5 flex w-full justify-between leading-none items-center gap-4">
-                <span className="font-medium">Łącznie</span>
-                <span className="font-mono font-semibold tabular-nums">{formatCurrencyAsString(total)}</span>
-            </div>
+            )}
         </div>
     );
 }
@@ -70,11 +54,11 @@ function ByCategoryChart({data}: {data: SavingsReport["byCategory"]}) {
     const allKeys = categories.map(cat => `cat_${cat.id}`);
     const [activeCategories, setActiveCategories] = useState(allKeys);
 
+    const balanceByPeriodAndCategory = new Map(data.map(d => [`${d.period}:${d.categoryId}`, d.balance]));
     const chartData = periods.map(period => {
         const row: Record<string, any> = {period};
         for (const cat of categories) {
-            const point = data.find(d => d.period === period && d.categoryId === cat.id);
-            row[`cat_${cat.id}`] = point?.balance ?? 0;
+            row[`cat_${cat.id}`] = balanceByPeriodAndCategory.get(`${period}:${cat.id}`) ?? 0;
         }
         return row;
     });
@@ -90,7 +74,7 @@ function ByCategoryChart({data}: {data: SavingsReport["byCategory"]}) {
                         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
                         <XAxis dataKey="period" tick={{fontSize: 12}}/>
                         <YAxis tickFormatter={(v) => formatCurrencyAsString(v)} width={100} tick={{fontSize: 11}}/>
-                        <Tooltip content={<ByCategoryTooltip/>}/>
+                        <Tooltip content={<CurrencyTooltip showTotal/>}/>
                         <ChartLegend onClick={(d, _, e) => {
                             const key = d.dataKey;
                             if (!key || typeof key !== "string") return;
