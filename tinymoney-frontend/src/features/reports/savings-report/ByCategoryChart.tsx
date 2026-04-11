@@ -27,12 +27,12 @@ export function ByCategoryChart({data}: {data: SavingsReport["byCategory"]}) {
     });
 
     return (
-        <Card>
+        <Card className="flex flex-col flex-1">
             <CardHeader>
                 <CardTitle>Struktura oszczędności</CardTitle>
             </CardHeader>
             <CardContent>
-                <ChartContainer config={emptyChartConfig} className="h-72 w-full">
+                <ChartContainer config={emptyChartConfig}>
                     <AreaChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
                         <XAxis dataKey="period" tick={{fontSize: 12}}/>

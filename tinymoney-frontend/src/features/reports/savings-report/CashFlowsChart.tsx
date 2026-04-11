@@ -9,12 +9,12 @@ const emptyChartConfig = {} satisfies ChartConfig;
 
 export function CashFlowsChart({data}: {data: SavingsReport["cashFlows"]}) {
     return (
-        <Card>
+        <Card className="flex flex-col flex-1">
             <CardHeader>
                 <CardTitle>Przepływy miesięczne</CardTitle>
             </CardHeader>
             <CardContent>
-                <ChartContainer config={emptyChartConfig} className="h-72 w-full">
+                <ChartContainer config={emptyChartConfig}>
                     <ComposedChart data={data}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
                         <XAxis dataKey="period" tick={{fontSize: 12}}/>
