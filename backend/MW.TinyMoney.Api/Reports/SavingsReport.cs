@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using MW.TinyMoney.Api.Infrastructure;
-using MW.TinyMoney.Api.Savings.ApiModels;
 
-namespace MW.TinyMoney.Api.Savings;
+namespace MW.TinyMoney.Api.Reports;
 
 public interface ISavingsReport
 {
@@ -39,9 +38,7 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
             return SavingsReportResponse.Empty;
 
         var allPeriods = rows.Select(r => r.Period).Distinct().OrderBy(p => p).ToList();
-        var allAccountIds = rows.Select(r => r.AccountId).Distinct().ToList();
-        var periodIndex = allPeriods.Select((p, i) => (p, i)).ToDictionary(x => x.p, x => x.i);
-
+       
         var snapshotsByAccount = rows
             .GroupBy(r => r.AccountId)
             .ToDictionary(g => g.Key, g => g.OrderBy(r => r.Period).ToList());
@@ -50,83 +47,11 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
             .GroupBy(r => r.AccountId)
             .ToDictionary(g => g.Key, g => (CategoryId: g.First().CategoryId, CategoryName: g.First().CategoryName));
 
-        var balanceByPeriod = BuildBalanceByPeriod(allPeriods, allAccountIds, snapshotsByAccount);
-        var byCategory = BuildByCategory(allPeriods, allAccountIds, snapshotsByAccount, categoryByAccount);
-        var cashFlows = BuildCashFlows(rows, allPeriods, periodIndex, balanceByPeriod);
+        var byCategory = BuildByCategory(rows).ToList();
+        var cashFlows = BuildCashFlows(rows).ToList();
         var tableData = BuildTableData(snapshotsByAccount, categoryByAccount, allPeriods);
 
         return new SavingsReportResponse(byCategory, cashFlows, tableData);
-    }
-
-    private static Dictionary<string, decimal> BuildBalanceByPeriod(
-        List<string> allPeriods,
-        List<int> allAccountIds,
-        Dictionary<int, List<SnapshotRow>> snapshotsByAccount)
-    {
-        var balanceByPeriod = new Dictionary<string, decimal>();
-        foreach (var period in allPeriods)
-        {
-            var total = 0m;
-            foreach (var accountId in allAccountIds)
-            {
-                if (!snapshotsByAccount.TryGetValue(accountId, out var snapshots)) continue;
-                var lastKnown = snapshots.LastOrDefault(s => string.CompareOrdinal(s.Period, period) <= 0);
-                if (lastKnown != null)
-                    total += lastKnown.Balance;
-            }
-            balanceByPeriod[period] = total;
-        }
-        return balanceByPeriod;
-    }
-
-    private static List<ByCategoryPoint> BuildByCategory(
-        List<string> allPeriods,
-        List<int> allAccountIds,
-        Dictionary<int, List<SnapshotRow>> snapshotsByAccount,
-        Dictionary<int, (int CategoryId, string CategoryName)> categoryByAccount)
-    {
-        var byCategoryPoints = new List<ByCategoryPoint>();
-        foreach (var period in allPeriods)
-        {
-            var categoryBalances = new Dictionary<int, (string Name, decimal Balance)>();
-            foreach (var accountId in allAccountIds)
-            {
-                if (!snapshotsByAccount.TryGetValue(accountId, out var snapshots)) continue;
-                var lastKnown = snapshots.LastOrDefault(s => string.Compare(s.Period, period) <= 0);
-                if (lastKnown == null) continue;
-
-                var (catId, catName) = categoryByAccount[accountId];
-                if (categoryBalances.TryGetValue(catId, out var existing))
-                    categoryBalances[catId] = (catName, existing.Balance + lastKnown.Balance);
-                else
-                    categoryBalances[catId] = (catName, lastKnown.Balance);
-            }
-            foreach (var kvp in categoryBalances)
-                byCategoryPoints.Add(new ByCategoryPoint(period, kvp.Key, kvp.Value.Name, kvp.Value.Balance));
-        }
-        return byCategoryPoints;
-    }
-
-    private static List<CashFlowPoint> BuildCashFlows(
-        List<SnapshotRow> rows,
-        List<string> allPeriods,
-        Dictionary<string, int> periodIndex,
-        Dictionary<string, decimal> balanceByPeriod)
-    {
-        return rows
-            .GroupBy(r => r.Period)
-            .OrderBy(g => g.Key)
-            .Select(g =>
-            {
-                var deposited = g.Sum(r => r.Deposited);
-                var withdrawn = g.Sum(r => r.Withdrawn);
-                var currentBalance = balanceByPeriod[g.Key];
-                var prevIdx = periodIndex[g.Key] - 1;
-                var prevBalance = prevIdx >= 0 ? balanceByPeriod[allPeriods[prevIdx]] : 0m;
-                var netGain = currentBalance - prevBalance - deposited + withdrawn;
-                return new CashFlowPoint(g.Key, deposited, withdrawn, netGain);
-            })
-            .ToList();
     }
 
     private async Task<List<SnapshotRow>> GetSnapshots()
@@ -136,8 +61,34 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
         return rows;
     }
 
-    private static decimal? RoiPercent(decimal netGain, decimal startingBalance)
-        => startingBalance > 0 ? netGain / startingBalance * 100m : (decimal?)null;
+    private static IEnumerable<ByCategoryPoint> BuildByCategory(IReadOnlyCollection<SnapshotRow> rows)
+    {
+        return rows.GroupBy(r => (r.Period, r.CategoryId, r.CategoryName), row => row, (group, rows) =>
+            {
+                return new ByCategoryPoint(group.Period, group.CategoryId, group.CategoryName,
+                    rows.Sum(r => r.Balance));
+            }).ToList();
+    }
+
+    private static IEnumerable<CashFlowPoint> BuildCashFlows(
+        IReadOnlyCollection<SnapshotRow> rows)
+    {
+        var snapshotsByPeriod = rows
+            .GroupBy(r => r.Period)
+            .OrderBy(g => g.Key);
+
+        CashFlowPoint? previous = null;
+        foreach (var g in snapshotsByPeriod)
+        {
+            var deposited = g.Sum(r => r.Deposited);
+            var withdrawn = g.Sum(r => r.Withdrawn);
+            var currentBalance = g.Sum(r => r.Balance);
+            var prevBalance = previous?.CurrentBalance ?? 0m;
+            var netGain = currentBalance - prevBalance - deposited + withdrawn;
+            previous = new CashFlowPoint(g.Key, currentBalance, deposited, withdrawn, netGain);
+            yield return previous;
+        }
+    }
 
     private static SavingsTableData BuildTableData(
         Dictionary<int, List<SnapshotRow>> snapshotsByAccount,
@@ -274,6 +225,9 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
             new SavingsTableRow(totalsPeriodData, grandTotalDeposited, grandTotalWithdrawn, grandCurrentBalance, grandTotalNetGain, RoiPercent(grandTotalNetGain, grandNetInvested))
         );
     }
+
+    private static decimal? RoiPercent(decimal netGain, decimal startingBalance)
+        => startingBalance > 0 ? netGain / startingBalance * 100m : (decimal?)null;
 
     private class SnapshotRow
     {

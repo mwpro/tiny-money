@@ -1,4 +1,4 @@
-import type {DashboardResponse, SankeyReport, SummaryReport, TopListReport} from "@/api/ApiTypes.ts";
+import type {DashboardResponse, SankeyReport, SavingsReport, SummaryReport, TopListReport} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 import {format} from "date-fns";
 import {dateFormat} from "@/lib/utils.ts";
@@ -9,6 +9,7 @@ export interface ReportsClient {
     getTopListReport(dateFrom: Date | undefined, dateTo: Date | undefined): Promise<TopListReport>;
     getSankeyReport(dateFrom: Date | undefined, dateTo: Date | undefined): Promise<SankeyReport>;
     getDashboardReport(month: MonthSelection): Promise<DashboardResponse>;
+    getSavingsReport(): Promise<SavingsReport>;
 }
 
 export class ReportsClientImpl extends ApiBase implements ReportsClient {
@@ -44,6 +45,12 @@ export class ReportsClientImpl extends ApiBase implements ReportsClient {
     async getDashboardReport(month: MonthSelection): Promise<DashboardResponse> {
         const res = await this.request('GET', `/reports/dashboard/${month.year}/${month.month}`);
         if (!res.ok) throw new Error('Błąd pobierania danych dashboardu');
+        return res.json();
+    }
+
+    async getSavingsReport(): Promise<SavingsReport> {
+        const res = await this.request('GET', '/reports/savings-report');
+        if (!res.ok) throw new Error('Błąd pobierania raportów oszczędności');
         return res.json();
     }
 }

@@ -149,12 +149,4 @@ public class SavingsController : ControllerBase
         await _store.UpsertCushion(request.CushionAmount, request.CushionCategoryIds);
         return Ok();
     }
-
-    [HttpGet("reports")]
-    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsReportResponse))]
-    public async Task<IActionResult> GetReports([FromServices] ISavingsReport savingsReport)
-    {
-        return Ok(await savingsReport.Prepare());
-    }
-
 }

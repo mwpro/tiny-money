@@ -1,4 +1,4 @@
-import type {SavingsCategory, SavingsAccount, SavingsSnapshotResponse, SaveSnapshotItem, SavingsCushion, UpdateSavingsCushionRequest, SavingsReport} from "@/api/ApiTypes.ts";
+import type {SavingsCategory, SavingsAccount, SavingsSnapshotResponse, SaveSnapshotItem, SavingsCushion, UpdateSavingsCushionRequest} from "@/api/ApiTypes.ts";
 import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface SavingsClient {
@@ -16,8 +16,6 @@ export interface SavingsClient {
 
     getCushion(): Promise<SavingsCushion>;
     updateCushion(request: UpdateSavingsCushionRequest): Promise<void>;
-
-    getReport(): Promise<SavingsReport>;
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {
@@ -82,12 +80,6 @@ export class SavingsClientImpl extends ApiBase implements SavingsClient {
     async updateCushion(request: UpdateSavingsCushionRequest): Promise<void> {
         const res = await this.request('PUT', '/savings/cushion', request);
         if (!res.ok) throw new Error('Błąd podczas zapisywania ustawień');
-    }
-
-    async getReport(): Promise<SavingsReport> {
-        const res = await this.request('GET', '/savings/reports');
-        if (!res.ok) throw new Error('Błąd pobierania raportów oszczędności');
-        return res.json();
     }
 
 }

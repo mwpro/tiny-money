@@ -1,7 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 
-namespace MW.TinyMoney.Api.Savings.ApiModels;
+namespace MW.TinyMoney.Api.Reports;
 
 public record SavingsReportResponse(
     IReadOnlyList<ByCategoryPoint> ByCategory,
@@ -13,7 +13,12 @@ public record SavingsReportResponse(
         new SavingsTableData([], [], new SavingsTableRow([], 0, 0, 0, 0, null)));
 };
 public record ByCategoryPoint(string Period, int CategoryId, string CategoryName, decimal Balance);
-public record CashFlowPoint(string Period, decimal Deposited, decimal Withdrawn, decimal NetGain);
+public record CashFlowPoint(
+    string Period,
+    decimal CurrentBalance,
+    decimal Deposited,
+    decimal Withdrawn,
+    decimal NetGain);
 
 public record SavingsTableData(
     IReadOnlyList<string> Periods,

@@ -53,4 +53,11 @@ public class ReportsController : ControllerBase
         var dashboardData = await dashboardReport.GetDashboardData(now.Year, now.Month);
         return Ok(dashboardData);
     }
+
+    [HttpGet("savings-report")]
+    [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(SavingsReportResponse))]
+    public async Task<IActionResult> GetSavingsReport([FromServices] ISavingsReport savingsReport)
+    {
+        return Ok(await savingsReport.Prepare());
+    }
 }

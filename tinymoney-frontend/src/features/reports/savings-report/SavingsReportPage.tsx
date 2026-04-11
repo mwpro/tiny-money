@@ -5,10 +5,10 @@ import {CashFlowsChart} from "@/features/reports/savings-report/CashFlowsChart.t
 import {SavingsReportTable} from "@/features/reports/savings-report/SavingsReportTable.tsx";
 
 export function SavingsReportPage() {
-    const {savingsClient} = useApiClient();
+    const {reportsClient} = useApiClient();
     const {data, isLoading} = useQuery({
         queryKey: ["savings-report"],
-        queryFn: () => savingsClient.getReport(),
+        queryFn: () => reportsClient.getSavingsReport(),
     });
 
     if (isLoading || !data) return null;
