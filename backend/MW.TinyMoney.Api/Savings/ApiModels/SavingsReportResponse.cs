@@ -4,17 +4,14 @@ using System.Collections.Generic;
 namespace MW.TinyMoney.Api.Savings.ApiModels;
 
 public record SavingsReportResponse(
-    IReadOnlyList<BalanceHistoryPoint> BalanceHistory,
     IReadOnlyList<ByCategoryPoint> ByCategory,
     IReadOnlyList<CashFlowPoint> CashFlows,
     SavingsTableData TableData
 )
 {
-    public static SavingsReportResponse Empty => new SavingsReportResponse([], [], [],
+    public static SavingsReportResponse Empty => new SavingsReportResponse([], [],
         new SavingsTableData([], [], new SavingsTableRow([], 0, 0, 0, 0, null)));
 };
-
-public record BalanceHistoryPoint(string Period, decimal TotalBalance);
 public record ByCategoryPoint(string Period, int CategoryId, string CategoryName, decimal Balance);
 public record CashFlowPoint(string Period, decimal Deposited, decimal Withdrawn, decimal NetGain);
 

@@ -397,7 +397,6 @@ export type UpdateSavingsCushionRequest = {
 };
 
 export type SavingsReport = {
-    balanceHistory: { period: string; totalBalance: number }[];
     byCategory: { period: string; categoryId: number; categoryName: string; balance: number }[];
     cashFlows: { period: string; deposited: number; withdrawn: number; netGain: number }[];
     tableData: SavingsTableData;
