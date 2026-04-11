@@ -33,12 +33,10 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
 
     public async Task<SavingsReportResponse> Prepare()
     {
-        await using var connection = connectionFactory.CreateConnection();
-        var rows = (await connection.QueryAsync<SnapshotRow>(GetAllSnapshotsQuery)).ToList();
+        var rows = await GetSnapshots();
 
         if (rows.Count == 0)
-            return new SavingsReportResponse([], [], [],
-                new SavingsTableData([], [], new SavingsTableRow([], 0, 0, 0, 0, null)));
+            return SavingsReportResponse.Empty;
 
         var allPeriods = rows.Select(r => r.Period).Distinct().OrderBy(p => p).ToList();
         var allAccountIds = rows.Select(r => r.AccountId).Distinct().ToList();
@@ -108,6 +106,13 @@ public class SavingsReport(MySqlConnectionFactory connectionFactory) : ISavingsR
         var tableData = BuildTableData(snapshotsByAccount, categoryByAccount, allPeriods);
 
         return new SavingsReportResponse(balanceHistory, byCategoryPoints, cashFlows, tableData);
+    }
+
+    private async Task<List<SnapshotRow>> GetSnapshots()
+    {
+        await using var connection = connectionFactory.CreateConnection();
+        var rows = (await connection.QueryAsync<SnapshotRow>(GetAllSnapshotsQuery)).ToList();
+        return rows;
     }
 
     private static decimal? RoiPercent(decimal netGain, decimal startingBalance)

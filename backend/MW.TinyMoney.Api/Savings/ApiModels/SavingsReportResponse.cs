@@ -8,7 +8,11 @@ public record SavingsReportResponse(
     IReadOnlyList<ByCategoryPoint> ByCategory,
     IReadOnlyList<CashFlowPoint> CashFlows,
     SavingsTableData TableData
-);
+)
+{
+    public static SavingsReportResponse Empty => new SavingsReportResponse([], [], [],
+        new SavingsTableData([], [], new SavingsTableRow([], 0, 0, 0, 0, null)));
+};
 
 public record BalanceHistoryPoint(string Period, decimal TotalBalance);
 public record ByCategoryPoint(string Period, int CategoryId, string CategoryName, decimal Balance);
