@@ -2,12 +2,12 @@ import {Bar, CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis} from "re
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {ChartContainer, type ChartConfig} from "@/components/ui/chart.tsx";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
-import type {SavingsReport} from "@/api/ApiTypes.ts";
+import type {CashFlowPoint} from "@/api/ApiTypes.ts";
 import {CurrencyTooltip} from "@/features/reports/savings-report/CurrencyTooltip.tsx";
 
 const emptyChartConfig = {} satisfies ChartConfig;
 
-export function CashFlowsChart({data}: {data: SavingsReport["cashFlows"]}) {
+export function CashFlowsChart({data}: {data: CashFlowPoint[]}) {
     return (
         <Card className="flex flex-col flex-1">
             <CardHeader>

@@ -4,12 +4,12 @@ import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card.tsx
 import {ChartContainer, ChartLegend, type ChartConfig} from "@/components/ui/chart.tsx";
 import {SeriesColorPalette} from "@/features/reports/summary-report/CategoryBreakdownBarChart.tsx";
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
-import type {SavingsReport} from "@/api/ApiTypes.ts";
+import type {ByCategoryPoint} from "@/api/ApiTypes.ts";
 import {CurrencyTooltip} from "@/features/reports/savings-report/CurrencyTooltip.tsx";
 
 const emptyChartConfig = {} satisfies ChartConfig;
 
-export function ByCategoryChart({data}: {data: SavingsReport["byCategory"]}) {
+export function ByCategoryChart({data}: {data: ByCategoryPoint[]}) {
     const periods = [...new Set(data.map(d => d.period))].sort();
     const categories = [...new Map(data.map(d => [d.categoryId, {id: d.categoryId, name: d.categoryName}])).values()]
         .sort((a, b) => a.id - b.id);

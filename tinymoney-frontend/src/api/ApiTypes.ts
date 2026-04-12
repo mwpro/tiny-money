@@ -396,8 +396,11 @@ export type UpdateSavingsCushionRequest = {
     cushionCategoryIds: number[];
 };
 
+export type ByCategoryPoint = { period: string; categoryId: number; categoryName: string; balance: number };
+export type CashFlowPoint = { period: string; currentBalance: number; deposited: number; withdrawn: number; netGain: number };
+
 export type SavingsReport = {
-    byCategory: { period: string; categoryId: number; categoryName: string; balance: number }[];
-    cashFlows: { period: string; deposited: number; withdrawn: number; netGain: number }[];
+    byCategory: ByCategoryPoint[];
+    cashFlows: CashFlowPoint[];
 };
 
