@@ -2,7 +2,6 @@ import {useQuery} from "@tanstack/react-query";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {ByCategoryChart} from "@/features/reports/savings-report/ByCategoryChart.tsx";
 import {CashFlowsChart} from "@/features/reports/savings-report/CashFlowsChart.tsx";
-import {SavingsReportTable} from "@/features/reports/savings-report/SavingsReportTable.tsx";
 import {prepareTitleText} from "@/lib/utils.ts";
 
 export function SavingsReportPage() {
@@ -30,9 +29,6 @@ export function SavingsReportPage() {
                         <CashFlowsChart data={reportQuery.data.cashFlows}/>
                     </div>
     
-                    <div className="mb-6">
-                        <SavingsReportTable tableData={reportQuery.data.tableData}/>
-                    </div>
                 </>
             }
         </div>
