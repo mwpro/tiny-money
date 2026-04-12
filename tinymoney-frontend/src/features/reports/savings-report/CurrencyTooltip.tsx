@@ -1,6 +1,13 @@
 import {formatCurrencyAsString} from "@/components/Curr.tsx";
 
-export function CurrencyTooltip({active, payload, label, showTotal}: any) {
+interface CurrencyTooltipProps {
+    active?: boolean;
+    payload?: any[];
+    label?: string;
+    showTotal?: boolean;
+}
+
+export function CurrencyTooltip({active, payload, label, showTotal}: CurrencyTooltipProps) {
     if (!active || !payload?.length) return null;
     const total = showTotal ? payload.reduce((sum: number, item: any) => sum + (item.value ?? 0), 0) : null;
     return (
