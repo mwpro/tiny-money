@@ -54,7 +54,7 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
                     </Link>
                 </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7" title="Sprzedawcy" asChild>
-                    <Link to={`/vendors?subcategoryId=${subcategory.id}`} target="_blank">
+                    <Link to={`/settings?tab=vendors&subcategoryId=${subcategory.id}`} target="_blank">
                         <Store className="h-3.5 w-3.5" />
                     </Link>
                 </Button>

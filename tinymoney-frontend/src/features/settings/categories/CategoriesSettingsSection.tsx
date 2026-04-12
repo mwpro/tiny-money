@@ -26,7 +26,7 @@ export function CategoriesSettingsSection() {
                     <h2 className="text-lg font-medium">Kategorie</h2>
                     <p className="text-sm text-muted-foreground">Zarządzaj kategoriami i podkategoriami transakcji.</p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setAddOpen(true)}>+ Dodaj kategorię</Button>
+                <Button onClick={() => setAddOpen(true)}>Dodaj kategorię</Button>
                 <CategoryEditorDialog isOpen={addOpen} onClose={() => setAddOpen(false)} onSaved={invalidate} />
             </div>
 
