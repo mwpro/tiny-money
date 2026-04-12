@@ -149,5 +149,4 @@ public class SavingsController : ControllerBase
         await _store.UpsertCushion(request.CushionAmount, request.CushionCategoryIds);
         return Ok();
     }
-
 }

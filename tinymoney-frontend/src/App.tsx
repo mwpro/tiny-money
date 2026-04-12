@@ -18,6 +18,7 @@ import {PlanDetailPage} from "@/features/plans/PlanDetailPage.tsx";
 import {SavingsAccountsPage} from "@/features/savings/SavingsAccountsPage.tsx";
 import {SavingsCushionSettingsPage} from "@/features/savings/SavingsCushionSettingsPage.tsx";
 import {SavingsSnapshotPage} from "@/features/savings/SavingsSnapshotPage.tsx";
+import {SavingsReportPage} from "@/features/reports/savings-report/SavingsReportPage.tsx";
 
 function App() {
     const { isAuthenticated, isLoading, error, loginWithRedirect } = useAuth0();
@@ -88,6 +89,7 @@ function App() {
                             <Route path="reports/summary" element={<SummaryReportPage />} />
                             <Route path="reports/top-list" element={<TopListReportPage />} />
                             <Route path="reports/sankey" element={<SankeyReportPage />} />
+                            <Route path="reports/savings" element={<SavingsReportPage />} />
                             <Route path="budgets" element={<BudgetsPage />} />
                             <Route path="plans" element={<PlansPage />} />
                             <Route path="plans/:planId" element={<PlanDetailPage />} />

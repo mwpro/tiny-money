@@ -16,7 +16,6 @@ export interface SavingsClient {
 
     getCushion(): Promise<SavingsCushion>;
     updateCushion(request: UpdateSavingsCushionRequest): Promise<void>;
-
 }
 
 export class SavingsClientImpl extends ApiBase implements SavingsClient {

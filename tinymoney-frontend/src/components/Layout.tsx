@@ -86,6 +86,9 @@ export function Layout() {
                                             <DropdownMenuItem asChild>
                                                 <Link to="/reports/sankey">Sankey</Link>
                                             </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/reports/savings">Oszczędności</Link>
+                                            </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -181,6 +184,9 @@ export function Layout() {
                             </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
                                 <Link to="/reports/sankey" onClick={() => setReportsOpen(false)}>Sankey</Link>
+                            </Button>
+                            <Button variant="ghost" asChild className="justify-start w-full">
+                                <Link to="/reports/savings" onClick={() => setReportsOpen(false)}>Oszczędności</Link>
                             </Button>
                         </div>
                     </SheetContent>
