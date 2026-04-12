@@ -50,7 +50,7 @@ function SplitFooter({control, total, isPending}: SplitFooterProps) {
         <>
             <div className="flex justify-between items-center mt-4 py-2 border-t text-sm">
                 <span>Przypisano <br/><Curr input={totalAssigned}/> z <Curr input={total}/></span>
-                <span className={!isBalanced ? "text-red-500 font-medium" : "text-green-600 font-medium"}>
+                <span className={!isBalanced ? "text-expense font-medium" : "text-income font-medium"}>
                     Pozostało: <br/><Curr input={remaining}/>
                 </span>
             </div>

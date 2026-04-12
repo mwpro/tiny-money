@@ -101,13 +101,13 @@ export function SavingsSnapshotPage() {
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-medium">Poduszka finansowa</span>
-                            <span className={`text-sm font-semibold ${cushionMet ? 'text-green-600' : 'text-destructive'}`}>
+                            <span className={`text-sm ${cushionMet ? 'text-income' : 'text-expense'}`}>
                                 <Curr input={cushionActual}/> / <Curr input={cushionTarget}/>
                             </span>
                         </div>
                         <div className="h-2 rounded-full bg-muted overflow-hidden">
                             <div
-                                className={`h-full rounded-full transition-all ${cushionMet ? 'bg-green-500' : 'bg-destructive'}`}
+                                className={`h-full rounded-full transition-all ${cushionMet ? 'bg-income' : 'bg-expense'}`}
                                 style={{width: `${cushionPct * 100}%`}}
                             />
                         </div>

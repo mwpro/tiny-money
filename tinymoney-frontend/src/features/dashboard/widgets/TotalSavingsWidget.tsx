@@ -19,7 +19,7 @@ export function TotalSavingsWidget({totalSavings, cushionTarget, cushionActual}:
                 </CardHeader>
                 {hasCushionTarget && (
                     <CardContent className="pt-0">
-                        <p className={`text-sm ${cushionMet ? 'text-green-600' : 'text-destructive'}`}>
+                        <p className={`text-sm ${cushionMet ? 'text-income' : 'text-expense'}`}>
                             Poduszka: <Curr input={cushionActual}/> / <Curr input={cushionTarget}/>
                         </p>
                     </CardContent>
