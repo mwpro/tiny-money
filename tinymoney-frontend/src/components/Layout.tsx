@@ -38,6 +38,7 @@ export function Layout() {
 
     const isActive = (path: string) => location.pathname === path;
     const isReportsActive = () => location.pathname.startsWith("/reports");
+    const isSettingsActive = () => location.pathname.startsWith("/settings");
 
     return (
         <div className="min-h-dvh bg-background flex flex-col">
@@ -167,7 +168,7 @@ export function Layout() {
 
                 <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
                     <SheetTrigger asChild>
-                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() || moreOpen ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
+                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() || isSettingsActive() || moreOpen ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                             <MenuIcon className="size-5"/>
                             <span>Więcej</span>
                         </button>
