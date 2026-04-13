@@ -163,7 +163,9 @@ public class VeloBankPdfParser : IFileImportParser
             var description = transactionDescriptionFields.ElementAtOrDefault(i)?.Text.Trim() ?? "";
             var dateRaw = transactionDateFields[i].Text.Trim();
             var amountRaw = amountFields[i].Text.Replace("PLN", "", StringComparison.OrdinalIgnoreCase).Trim();
-
+            if (amountRaw.Equals("-", StringComparison.OrdinalIgnoreCase))
+                continue;
+            
             var parsedAmount = decimal.Parse(amountRaw, PolishCulture);
             yield return new RawTransaction(
                 Amount: Math.Abs(parsedAmount),

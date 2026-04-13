@@ -13,13 +13,13 @@ import {
 } from "./ui/dropdown-menu";
 import {
     ArrowLeftRightIcon,
-    BarChart2Icon,
     CalendarRangeIcon,
     ChevronDownIcon,
     CoinsIcon,
     LogOutIcon,
     MenuIcon,
     MoonIcon,
+    PiggyBankIcon,
     SettingsIcon,
     SunIcon,
     WalletIcon
@@ -34,11 +34,11 @@ export function Layout() {
     const location = useLocation()
     const {logout, user} = useAuth0();
     const [moreOpen, setMoreOpen] = useState(false);
-    const [reportsOpen, setReportsOpen] = useState(false);
     const [dark, toggleDark] = useDarkMode();
 
     const isActive = (path: string) => location.pathname === path;
     const isReportsActive = () => location.pathname.startsWith("/reports");
+    const isSettingsActive = () => location.pathname.startsWith("/settings");
 
     return (
         <div className="min-h-dvh bg-background flex flex-col">
@@ -67,6 +67,9 @@ export function Layout() {
                             <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${location.pathname.startsWith("/plans") ? "bg-white/20" : ""}`} asChild>
                                 <Link to="/plans">Plany</Link>
                             </Button>
+                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${location.pathname.startsWith("/savings") ? "bg-white/20" : ""}`} asChild>
+                                <Link to="/savings">Oszczędności</Link>
+                            </Button>
                             <ButtonGroup>
                                 <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isReportsActive() ? "bg-white/20" : ""}`}>Raporty</Button>
                                 <DropdownMenu>
@@ -93,15 +96,6 @@ export function Layout() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </ButtonGroup>
-                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${location.pathname.startsWith("/savings") ? "bg-white/20" : ""}`} asChild>
-                                <Link to="/savings">Oszczędności</Link>
-                            </Button>
-                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/tags") ? "bg-white/20" : ""}`} asChild>
-                                <Link to="/tags">Tagi</Link>
-                            </Button>
-                            <Button variant="ghost" className={`hover:bg-white/15 hover:text-header-fg ${isActive("/vendors") ? "bg-white/20" : ""}`} asChild>
-                                <Link to="/vendors">Sprzedawcy</Link>
-                            </Button>
                         </nav>
                     </div>
 
@@ -166,50 +160,37 @@ export function Layout() {
                     <span>Plany</span>
                 </Link>
 
-                <Sheet open={reportsOpen} onOpenChange={setReportsOpen}>
-                    <SheetTrigger asChild>
-                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
-                            <BarChart2Icon className="size-5"/>
-                            <span>Raporty</span>
-                        </button>
-                    </SheetTrigger>
-                    <SheetContent>
-                        <div className="p-4 pb-8 flex flex-col gap-1">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 py-1">Raporty</p>
-                            <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/reports/summary" onClick={() => setReportsOpen(false)}>Podsumowanie</Link>
-                            </Button>
-                            <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/reports/top-list" onClick={() => setReportsOpen(false)}>Top lista</Link>
-                            </Button>
-                            <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/reports/sankey" onClick={() => setReportsOpen(false)}>Sankey</Link>
-                            </Button>
-                            <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/reports/savings" onClick={() => setReportsOpen(false)}>Oszczędności</Link>
-                            </Button>
-                        </div>
-                    </SheetContent>
-                </Sheet>
+                <Link to="/savings"
+                      className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${location.pathname.startsWith("/savings") ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
+                    <PiggyBankIcon className="size-5"/>
+                    <span>Oszczędności</span>
+                </Link>
 
                 <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
                     <SheetTrigger asChild>
-                        <button className="flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 text-header-fg/60">
+                        <button className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-xs py-2 ${isReportsActive() || isSettingsActive() || moreOpen ? "text-header-fg font-medium" : "text-header-fg/60"}`}>
                             <MenuIcon className="size-5"/>
                             <span>Więcej</span>
                         </button>
                     </SheetTrigger>
                     <SheetContent>
                         <div className="p-4 pb-8 flex flex-col gap-1">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-3 py-1">Raporty</p>
                             <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/savings" onClick={() => setMoreOpen(false)}>Oszczędności</Link>
+                                <Link to="/reports/summary" onClick={() => setMoreOpen(false)}>Podsumowanie</Link>
                             </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/tags" onClick={() => setMoreOpen(false)}>Tagi</Link>
+                                <Link to="/reports/top-list" onClick={() => setMoreOpen(false)}>Top lista</Link>
                             </Button>
                             <Button variant="ghost" asChild className="justify-start w-full">
-                                <Link to="/vendors" onClick={() => setMoreOpen(false)}>Sprzedawcy</Link>
+                                <Link to="/reports/sankey" onClick={() => setMoreOpen(false)}>Sankey</Link>
                             </Button>
+                            <Button variant="ghost" asChild className="justify-start w-full">
+                                <Link to="/reports/savings" onClick={() => setMoreOpen(false)}>Oszczędności</Link>
+                            </Button>
+
+                            <div className="border-t my-1"/>
+
                             <Button variant="ghost" asChild className="justify-start w-full">
                                 <Link to="/settings" onClick={() => setMoreOpen(false)}>Ustawienia</Link>
                             </Button>

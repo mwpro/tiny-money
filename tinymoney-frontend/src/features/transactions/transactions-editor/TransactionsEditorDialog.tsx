@@ -293,7 +293,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                                 onClick={() => field.onChange(!field.value)}
                                                 tabIndex={-1}
                                             >
-                                                {field.value ? <Minus className={"text-red-600"} /> : <Plus className={"text-green-600"} />}
+                                                {field.value ? <Minus className={"text-expense"} /> : <Plus className={"text-income"} />}
                                             </InputGroupButton>
                                         )}
                                     />

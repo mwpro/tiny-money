@@ -4,7 +4,7 @@ import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
+import {getTransactionsUrl} from "@/lib/utils.ts";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {TagRemovalDialog} from "@/features/tags/TagRemovalDialog.tsx";
@@ -38,13 +38,12 @@ export function TagsPage() {
         queryFn: () => tagsClient.getTags()
     })
     return (
-        <div className="max-w-7xl mx-auto">
-            <title>{prepareTitleText("Tagi")}</title>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-                <h1 className="text-2xl font-bold font-serif">Tagi</h1>
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium">Tagi</h2>
                 <TagEditorDialog tagToEdit={tagToEdit} onClose={() => setTagToEdit(undefined)} />
-                <TagRemovalDialog tagToRemove={tagToRemove} onClose={() => setTagToRemove(undefined)} />
             </div>
+            <TagRemovalDialog tagToRemove={tagToRemove} onClose={() => setTagToRemove(undefined)} />
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">
                     <Switch id="airplane-mode" size="sm" checked={listSettings.withoutTransactionsFilter} onCheckedChange={v => setSearchParams(prev => {

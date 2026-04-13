@@ -3,7 +3,7 @@ import {useMemo, useState} from "react";
 import {Link, useSearchParams} from "react-router-dom";
 import {Alert, AlertTitle} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
-import {dateFormat, getTransactionsUrl, prepareTitleText} from "@/lib/utils.ts";
+import {dateFormat, getTransactionsUrl} from "@/lib/utils.ts";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table.tsx";
 import {ButtonGroup} from "@/components/ui/button-group.tsx";
 import {Label} from "@/components/ui/label.tsx";
@@ -41,13 +41,12 @@ export function VendorsPage() {
         queryFn: () => vendorsClient.getVendorsDetails()
     })
     return (
-        <div className="max-w-7xl mx-auto">
-            <title>{prepareTitleText("Sprzedawcy")}</title>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-                <h1 className="text-2xl font-bold font-serif">Sprzedawcy</h1>
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium">Sprzedawcy</h2>
                 <VendorEditorDialog vendorToEdit={vendorToEdit} onClose={() => setVendorToEdit(undefined)} />
-                {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data} onClose={() => setVendorToRemove(undefined)} /> }
             </div>
+            {vendorsQuery.data && <VendorRemovalDialog vendorToRemove={vendorToRemove} vendors={vendorsQuery.data} onClose={() => setVendorToRemove(undefined)} />}
             <div className="flex flex-row gap-3 mb-6">
                 <div className="flex items-center space-x-2">
                     <Switch id="airplane-mode" size="sm" checked={listSettings.withoutTransactionsFilter} onCheckedChange={v => setSearchParams(prev => {
@@ -68,12 +67,12 @@ export function VendorsPage() {
                 <div className="p-10 text-destructive">Błąd ładowania danych</div>}
             {vendorsQuery.data &&
                 <div className="border rounded-md">
-                    <Table className={"table-auto"}>
+                    <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Sprzedawca</TableHead>
                                 <TableHead>Domyślna kategoria</TableHead>
-                                <TableHead>Data ostatniej transakcji</TableHead>
+                                <TableHead>Ostatnia transakcja</TableHead>
                                 <TableHead></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -90,12 +89,12 @@ export function VendorsPage() {
                                 && (!listSettings.nameFilter || t.name.toLowerCase().includes(listSettings.nameFilter.toLowerCase()))
                                 && (!listSettings.subcategoryIdFilter || t.defaultSubcategoryId === listSettings.subcategoryIdFilter)).map((t) => (
                                 <TableRow key={t.id}>
-                                    <TableCell>
+                                    <TableCell className="whitespace-break-spaces">
                                         {t.name}
                                     </TableCell>
                                     <TableCell>{t.categoryName} / {t.subcategoryName}</TableCell>
                                     <TableCell>{t.lastTransactionDate ? format(new Date(t.lastTransactionDate), dateFormat) : "brak"}</TableCell>
-                                    <TableCell className={"flex justify-end"}>
+                                    <TableCell className={"text-right"}>
                                         <ButtonGroup>
                                             <Button variant="outline" size="sm" asChild>
                                                 <Link to={getTransactionsUrl({vendorId: t.id})} target={"_blank"}>
