@@ -1,4 +1,4 @@
-import {Fragment, useEffect, useState} from "react";
+import {Fragment, useEffect, useMemo} from "react";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {useForm} from "react-hook-form";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
@@ -9,8 +9,9 @@ import {InputGroup, InputGroupAddon, InputGroupInput, InputGroupText} from "@/co
 import {toast} from "sonner";
 import type {SaveSnapshotItem, SavingsSnapshotEntry} from "@/api/ApiTypes.ts";
 import {MonthPicker, type MonthSelection} from "@/components/MonthPicker.tsx";
-import {Link} from "react-router-dom";
+import {Link, useSearchParams} from "react-router-dom";
 import {Settings2} from "lucide-react";
+import {parse} from "date-fns";
 import {Curr} from "@/components/Curr.tsx";
 
 type SnapshotForm = {
@@ -40,7 +41,27 @@ export function SavingsSnapshotPage() {
     const queryClient = useQueryClient();
 
     const now = new Date();
-    const [period, setPeriod] = useState<MonthSelection>({year: now.getFullYear(), month: now.getMonth() + 1});
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const period = useMemo(() => {
+        const periodStr = searchParams.get("savingsPeriod");
+        const date = periodStr ? parse(periodStr, "yyyy-MM", new Date()) : now;
+        return {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+        };
+    }, [searchParams]);
+
+    const handlePeriodChange = (newPeriod: MonthSelection) => {
+        setSearchParams({savingsPeriod: `${newPeriod.year}-${String(newPeriod.month).padStart(2, '0')}`});
+    };
+
+    useEffect(() => {
+        if (!searchParams.get("savingsPeriod")) {
+            handlePeriodChange(period);
+        }
+    }, [period]);
+
     const {year, month} = period;
 
     const snapshotQuery = useQuery({
@@ -89,7 +110,7 @@ export function SavingsSnapshotPage() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                 <h1 className="text-2xl font-bold font-serif">Oszczędności</h1>
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-                    <MonthPicker month={period} onChange={setPeriod} endMonth={now} />
+                    <MonthPicker month={period} onChange={handlePeriodChange} endMonth={now} />
                     <Button variant="outline" asChild>
                         <Link to="/savings/accounts">Zarządzaj kontami</Link>
                     </Button>
