@@ -77,6 +77,14 @@ export const transactionsListPresets: DateRangePreset[] = [
         }
     },
     {
+        name: "Ostatnie 90 dni", preset: (now) => {
+            return ({
+                dateFrom: subDays(now, 90),
+                dateTo: now
+            });
+        }
+    },
+    {
         name: "Ostatnie 365 dni", preset: (now) => {
             return ({
                 dateFrom: subDays(now, 365),
