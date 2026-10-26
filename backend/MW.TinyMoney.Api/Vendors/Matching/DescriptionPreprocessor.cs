@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MW.TinyMoney.Api.Vendors.Matching;
@@ -25,7 +27,7 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
 
     public DescriptionPreprocessor(IEnumerable<string> stopTokens, IEnumerable<string> stopPatterns, IEnumerable<string> joinPatterns)
     {
-        var tokens = stopTokens.Select(Regex.Escape).ToList();
+        var tokens = stopTokens.Select(t => Regex.Escape(RemoveDiacritics(t.ToLowerInvariant()))).Distinct().ToList();
         _stopWordsPattern = tokens.Count > 0
             ? new Regex($@"\b({string.Join("|", tokens)})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled, RegexTimeout)
             : null;
@@ -43,7 +45,7 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
 
     public string Preprocess(string text)
     {
-        var s = text.ToLowerInvariant().Trim();
+        var s = RemoveDiacritics(text.ToLowerInvariant()).Trim();
 
         foreach (var pattern in _joinPatterns)
         {
@@ -61,6 +63,20 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
         }
 
         return s.Trim();
+    }
+
+    // Bank statements are inconsistent with Polish characters, so "żabka" must match "zabka".
+    // 'ł' has no Unicode decomposition and is mapped explicitly.
+    private static string RemoveDiacritics(string text)
+    {
+        var decomposed = text.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder(decomposed.Length);
+        foreach (var c in decomposed)
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                sb.Append(c == 'ł' ? 'l' : c);
+        }
+        return sb.ToString().Normalize(NormalizationForm.FormC);
     }
 
     public IReadOnlyCollection<string> Tokenize(string preprocessed)

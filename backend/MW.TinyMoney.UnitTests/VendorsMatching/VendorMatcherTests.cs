@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using FluentAssertions;
 using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
@@ -188,6 +189,17 @@ public class VendorMatcherTests
         result.Should().SatisfyRespectively(
             s => s.Name.Should().Be("Stonka"),
             s => s.Name.Should().Be("StonkaPlus"));
+    }
+
+    [Theory]
+    [InlineData("Żabka", "ZABKA Z1234 WARSZAWA")]
+    [InlineData("Zabka", "ŻABKA Z1234 WARSZAWA")]
+    [InlineData("Łódzka Piekarnia", "LODZKA")]
+    public void MatchesVendorRegardlessOfPolishDiacritics(string vendorName, string description)
+    {
+        var result = new VendorMatcher([MakeVendor(1, vendorName)], [], DescriptionPreprocessor.CreateFromFiles())
+            .Match(description);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be(vendorName));
     }
 
     [Fact]

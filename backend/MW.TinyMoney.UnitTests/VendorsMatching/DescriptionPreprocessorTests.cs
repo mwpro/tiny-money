@@ -14,6 +14,24 @@ public class DescriptionPreprocessorTests
         Preprocessor.Preprocess("STONKA").Should().Be("stonka");
     }
 
+    [Theory]
+    [InlineData("ŻABKA", "zabka")]
+    [InlineData("Żabka", "zabka")]
+    [InlineData("zażółć gęślą jaźń", "zazolc gesla jazn")]
+    [InlineData("ŁÓDŹ ŚRÓDMIEŚCIE", "lodz srodmiescie")]
+    public void Preprocess_RemovesPolishDiacritics(string input, string expected)
+    {
+        Preprocessor.Preprocess(input).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("STONKA PŁATNOŚĆ KARTĄ")]
+    [InlineData("STONKA PLATNOSC KARTA")]
+    public void Preprocess_StripsStopWordsWithAndWithoutDiacritics(string input)
+    {
+        Preprocessor.Preprocess(input).Should().Be("stonka");
+    }
+
     [Fact]
     public void Preprocess_StripsStopWords()
     {
