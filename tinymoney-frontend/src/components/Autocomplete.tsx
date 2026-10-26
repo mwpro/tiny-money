@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { Search, Delete } from 'lucide-react'
 import {cn} from "@/lib/utils.ts";
 
@@ -114,73 +115,79 @@ export default function Autocomplete({ value = '', onChange, fetchSuggestions, c
         }, 200)
     }
 
+    const showAddNew = allowCustomValues && !isLoading && isFocused && !foundLiteralMatch && !!query.trim()
+    const showSuggestions = suggestions.length > 0 && !isLoading && isFocused
+    const isOpen = (isLoading && isFocused) || showSuggestions || showAddNew
+
+    // Suggestions are rendered in a portal so they are not misplaced or clipped by scrollable containers (e.g. dialogs)
     return (
-        <div className={className}>
-            <div className="relative">
-                <Input
-                    type="text"
-                    placeholder={placeholder ?? "Zacznij wpisywać..."}
-                    value={query}
-                    onChange={handleInputChange}
-                    onKeyDown={handleKeyDown}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                    className="pr-10"
-                    aria-label="Search input"
-                    aria-autocomplete="list"
-                    aria-controls="suggestions-list"
-                    aria-expanded={suggestions.length > 0}
-                />
-                <Button
-                    size="icon"
-                    variant="ghost"
-                    className={cn("absolute right-0 top-0 h-full", (deletable && value) ? "text-gray-500" : "")}
-                    tabIndex={-1}
-                    onClick={() => deletable && value && handleSuggestionChosen(undefined) }
-                >
-                    {(deletable && value) ? <Delete className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-                </Button>
-            </div>
-            {isLoading && isFocused && (
-                <div
-                    className="mt-2 p-2 bg-background border rounded-md shadow-sm absolute z-10"
-                    aria-live="polite"
-                >
-                    Loading...
-                </div>
-            )}
-
-            <ul
-                id="suggestions-list"
-                className="mt-2 bg-background border rounded-md shadow-sm absolute z-10"
-                role="listbox"
-            >
-            {suggestions.length > 0 && !isLoading && isFocused 
-                && suggestions.map((suggestion, index) => (
-                        <li
-                            key={suggestion.id}
-                            className={`px-4 py-2 cursor-pointer hover:bg-muted ${
-                                index === selectedIndex ? 'bg-muted' : ''
-                            }`}
-                            onClick={() => handleSuggestionChosen(suggestion)}
-                            role="option"
-                            aria-selected={index === selectedIndex}
+        <Popover open={isOpen}>
+            <div className={className}>
+                <PopoverAnchor asChild>
+                    <div className="relative">
+                        <Input
+                            type="text"
+                            placeholder={placeholder ?? "Zacznij wpisywać..."}
+                            value={query}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            onFocus={handleFocus}
+                            onBlur={handleBlur}
+                            className="pr-10"
+                            aria-label="Search input"
+                            aria-autocomplete="list"
+                            aria-controls="suggestions-list"
+                            aria-expanded={suggestions.length > 0}
+                        />
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            className={cn("absolute right-0 top-0 h-full", (deletable && value) ? "text-gray-500" : "")}
+                            tabIndex={-1}
+                            onClick={() => deletable && value && handleSuggestionChosen(undefined) }
                         >
-                            {suggestion.name}
-                        </li>
-                    ))
-            }
-            {allowCustomValues && !isLoading && isFocused && !foundLiteralMatch 
-                && query.trim() && (
-                <li key="AddNew" className={`px-4 py-2 cursor-pointer hover:bg-muted ${
-                    suggestions.length === selectedIndex ? 'bg-muted' : ''
-                }`}
-                    onClick={() => handleSuggestionChosen(({name: query}))}
-                    role="option"
-                >Dodaj {query}</li>
-            )}
+                            {(deletable && value) ? <Delete className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+                        </Button>
+                    </div>
+                </PopoverAnchor>
+                <PopoverContent
+                    align="start"
+                    sideOffset={8}
+                    className="p-0 w-auto min-w-(--radix-popover-trigger-width) bg-background shadow-sm"
+                    onOpenAutoFocus={e => e.preventDefault()}
+                    onCloseAutoFocus={e => e.preventDefault()}
+                >
+                    {isLoading && isFocused && (
+                        <div className="p-2" aria-live="polite">
+                            Loading...
+                        </div>
+                    )}
 
-            </ul>
-        </div>
+                    <ul id="suggestions-list" role="listbox">
+                        {showSuggestions && suggestions.map((suggestion, index) => (
+                            <li
+                                key={suggestion.id}
+                                className={`px-4 py-2 cursor-pointer hover:bg-muted ${
+                                    index === selectedIndex ? 'bg-muted' : ''
+                                }`}
+                                onClick={() => handleSuggestionChosen(suggestion)}
+                                role="option"
+                                aria-selected={index === selectedIndex}
+                            >
+                                {suggestion.name}
+                            </li>
+                        ))}
+                        {showAddNew && (
+                            <li key="AddNew" className={`px-4 py-2 cursor-pointer hover:bg-muted ${
+                                suggestions.length === selectedIndex ? 'bg-muted' : ''
+                            }`}
+                                onClick={() => handleSuggestionChosen(({name: query}))}
+                                role="option"
+                            >Dodaj {query}</li>
+                        )}
+                    </ul>
+                </PopoverContent>
+            </div>
+        </Popover>
     )
 }
