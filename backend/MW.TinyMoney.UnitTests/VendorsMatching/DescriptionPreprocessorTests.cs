@@ -142,8 +142,42 @@ public class DescriptionPreprocessorTests
     [Fact]
     public void Tokenize_FiltersShortTokens()
     {
-        var tokens = Preprocessor.Tokenize("stonka ab c");
-        tokens.Should().BeEquivalentTo("stonka");
+        var tokens = Preprocessor.Tokenize("stonka 4f c");
+        tokens.Should().BeEquivalentTo("stonka", "4f");
+    }
+
+    [Theory]
+    [InlineData("H&M", "hm")]
+    [InlineData("4F", "4f")]
+    [InlineData("C & A", "ca")]
+    [InlineData("H&M HENNES", "hm", "hennes")]
+    public void Tokenize_KeepsShortNames(string name, params string[] expected)
+    {
+        var tokens = Preprocessor.Tokenize(Preprocessor.Preprocess(name));
+        tokens.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void Preprocess_DoesNotJoinWordsAroundAmpersand()
+    {
+        Preprocessor.Preprocess("Hennes & Mauritz").Should().Be("hennes mauritz");
+    }
+
+    [Theory]
+    [InlineData("STONKA UL DLUGA 5", "stonka", "dluga")]
+    [InlineData("STONKA SP Z O.O. SP.K.", "stonka")]
+    [InlineData("AMAZON DE", "amazon")]
+    public void Tokenize_DropsShortNoiseTokens(string description, params string[] expected)
+    {
+        var tokens = Preprocessor.Tokenize(Preprocessor.Preprocess(description));
+        tokens.Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
+    public void Tokenize_ReturnsEmptyForSingleCharacter()
+    {
+        var tokens = Preprocessor.Tokenize("x");
+        tokens.Should().BeEmpty();
     }
 
     [Fact]

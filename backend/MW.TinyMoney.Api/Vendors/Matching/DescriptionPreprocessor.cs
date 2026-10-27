@@ -17,7 +17,7 @@ public interface IDescriptionPreprocessor
 
 public class DescriptionPreprocessor : IDescriptionPreprocessor
 {
-    private const int MinTokenLength = 3;
+    private const int MinTokenLength = 2;
     private const int MaxShatterPieces = 3;
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(1);
 
