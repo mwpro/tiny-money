@@ -40,16 +40,19 @@ public class VendorMatcher : IVendorMatcher
         }
     }
 
+    private IEnumerable<string> LookupTokens(string preprocessed)
+        => _preprocessor.Tokenize(preprocessed)
+            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed))
+            .Distinct();
+
     public bool MatchesVendor(int vendorId, string description)
     {
         if (string.IsNullOrWhiteSpace(description))
             return false;
 
         var preprocessed = _preprocessor.Preprocess(description);
-        var tokens = _preprocessor.Tokenize(preprocessed)
-            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed));
 
-        foreach (var token in tokens)
+        foreach (var token in LookupTokens(preprocessed))
         {
             if (_index.TryGetValue(token, out var entries) && entries.Any(e => e.vendorId == vendorId))
                 return true;
@@ -66,6 +69,8 @@ public class VendorMatcher : IVendorMatcher
         var scores = new Dictionary<int, int>();
 
         var preprocessed = _preprocessor.Preprocess(description);
+        if (string.IsNullOrWhiteSpace(preprocessed))
+            return [];
 
         if (prefixMatching)
         {
@@ -76,9 +81,7 @@ public class VendorMatcher : IVendorMatcher
                     scores[vendorId] = scores.GetValueOrDefault(vendorId) + 1;
             }
         }
-        var tokens = _preprocessor.Tokenize(preprocessed)
-            .Concat(_preprocessor.GenerateShatteredCombinations(preprocessed));
-        foreach (var token in tokens)
+        foreach (var token in LookupTokens(preprocessed))
         {
             if (!_index.TryGetValue(token, out var entries)) continue;
             foreach (var (vendorId, score) in entries)

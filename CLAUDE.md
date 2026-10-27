@@ -44,7 +44,7 @@ The only config not in the repository is the **database connection string**. The
 
 
 ### Frontend → Backend Communication
-1. On startup, frontend fetches `GET /api/config` to get runtime config (API URL, Auth0 settings)
+1. On startup, frontend fetches `GET /configuration.json` (URL set via `VITE_CONFIGURATION_URL`) to get runtime config (API URL, Auth0 settings)
 2. User authenticates with Auth0, gets JWT access token
 3. All API calls include `Authorization: Bearer <token>`
 4. Backend validates token via Auth0 authority

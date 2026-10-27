@@ -1,1 +1,2 @@
 \b([.-])\b#url like
+(?<=\b\w)\s*&\s*(?=\w\b)#ampersand between single letters (H&M, C & A)

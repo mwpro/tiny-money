@@ -30,8 +30,8 @@ public class MySqlPlanStore : IPlanStore
     private const string GetPlansQuery =
         """
         SELECT p.id, p.title, p.description, p.date_from AS dateFrom, p.date_to AS dateTo,
-               COALESCE(SUM(pt.amount), 0) AS totalBudget,
-               COALESCE(SUM(CASE WHEN t.id IS NOT NULL THEN t.amount ELSE 0 END), 0) AS totalSpent
+               (SELECT COALESCE(SUM(amount), 0) FROM plan_tag WHERE plan_id = p.id) AS totalBudget,
+               COALESCE(SUM(t.amount), 0) AS totalSpent
         FROM plan p
         LEFT JOIN plan_tag pt ON pt.plan_id = p.id
         LEFT JOIN transaction_tag tt ON tt.tag_id = pt.tag_id

@@ -5,7 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Import.Parsers;
+using MW.TinyMoney.Api.Vendors;
 using MW.TinyMoney.Api.Infrastructure;
 using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Vendors.Matching;
@@ -26,17 +28,20 @@ public class ImportService : IImportService
     private readonly Transaction.ITransactionStore _transactionStore;
     private readonly MySqlConnectionFactory _connectionFactory;
     private readonly IVendorMatchingService _vendorMatchingService;
+    private readonly ICategoriesStore _categoriesStore;
 
     public ImportService(
         IEnumerable<IFileImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
         MySqlConnectionFactory connectionFactory,
-        IVendorMatchingService vendorMatchingService)
+        IVendorMatchingService vendorMatchingService,
+        ICategoriesStore categoriesStore)
     {
         _parsers = parsers;
         _transactionStore = transactionStore;
         _connectionFactory = connectionFactory;
         _vendorMatchingService = vendorMatchingService;
+        _categoriesStore = categoriesStore;
     }
 
     public async Task<ICommandResult<int>> ImportSingle(SingleTransactionRequest request, CancellationToken ct)
@@ -49,10 +54,12 @@ public class ImportService : IImportService
 
         if (!string.IsNullOrWhiteSpace(request.Description))
         {
-            var matcher = await _vendorMatchingService.CreateMatcher();
-            var matchedVendor = matcher.Match(request.Description, 1).FirstOrDefault();
+            var matcherTask = _vendorMatchingService.CreateMatcher();
+            var categoriesTask = _categoriesStore.GetCategories();
+            await Task.WhenAll(matcherTask, categoriesTask);
+            var matchedVendor = matcherTask.Result.Match(request.Description, 1).FirstOrDefault();
             vendorId = matchedVendor?.Id;
-            subcategoryId = matchedVendor?.DefaultSubcategoryId;
+            subcategoryId = DefaultSubcategoryFor(categoriesTask.Result, matchedVendor, request.IsExpense);
         }
 
         var transaction = new Transaction.ApiModels.Transaction
@@ -96,7 +103,11 @@ public class ImportService : IImportService
             return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
 
         var now = DateTime.UtcNow;
-        var matcher = await _vendorMatchingService.CreateMatcher();
+        var matcherTask = _vendorMatchingService.CreateMatcher();
+        var categoriesTask = _categoriesStore.GetCategories();
+        await Task.WhenAll(matcherTask, categoriesTask);
+        var matcher = matcherTask.Result;
+        var categories = categoriesTask.Result;
         var transactions = parsed.Select(raw =>
         {
             var matchedVendor = matcher.Match(raw.RawDescription, 1).FirstOrDefault();
@@ -107,7 +118,7 @@ public class ImportService : IImportService
                 TransactionDate = raw.TransactionDate,
                 Description = raw.RawDescription,
                 VendorId = matchedVendor?.Id,
-                SubcategoryId = matchedVendor?.DefaultSubcategoryId,
+                SubcategoryId = DefaultSubcategoryFor(categories, matchedVendor, raw.IsExpense),
                 IsVerified = false,
                 IsPossibleDuplicate = false,
                 CreatedDate = now,
@@ -143,5 +154,15 @@ public class ImportService : IImportService
                 c.isExpense == transaction.IsExpense &&
                 Math.Abs((c.transactionDate - transaction.TransactionDate).TotalDays) <= DuplicateDetectionWindowDays);
         }
+    }
+    
+    // Vendor's default subcategory is used only when its category type (income/expense) matches the transaction direction
+    private static int? DefaultSubcategoryFor(IReadOnlyCollection<Category> categories, Vendor matchedVendor, bool isExpense)
+    {
+        var subcategoryId = matchedVendor?.DefaultSubcategoryId;
+        if (subcategoryId is null)
+            return null;
+        var category = categories.FirstOrDefault(c => c.Subcategories?.Any(s => s.Id == subcategoryId) == true);
+        return category is null || category.IsIncome != isExpense ? subcategoryId : null;
     }
 }

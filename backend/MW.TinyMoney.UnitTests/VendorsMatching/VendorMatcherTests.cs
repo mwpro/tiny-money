@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using MW.TinyMoney.Api.Vendors;
+using MW.TinyMoney.Api.Vendors.Matching;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
@@ -188,6 +190,66 @@ public class VendorMatcherTests
         result.Should().SatisfyRespectively(
             s => s.Name.Should().Be("Stonka"),
             s => s.Name.Should().Be("StonkaPlus"));
+    }
+
+    [Theory]
+    [InlineData("Żabka", "ZABKA Z1234 WARSZAWA")]
+    [InlineData("Zabka", "ŻABKA Z1234 WARSZAWA")]
+    [InlineData("Łódzka Piekarnia", "LODZKA")]
+    public void MatchesVendorRegardlessOfPolishDiacritics(string vendorName, string description)
+    {
+        var result = new VendorMatcher([MakeVendor(1, vendorName)], [], DescriptionPreprocessor.CreateFromFiles())
+            .Match(description);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be(vendorName));
+    }
+
+    [Theory]
+    [InlineData("H&M", "H&M")]
+    [InlineData("H&M", "H&M HENNES MAURITZ GALERIA MOKOTOW")]
+    [InlineData("H&M", "HM POLSKA")]
+    [InlineData("4F", "4F")]
+    [InlineData("4F", "4F SKLEP GALERIA POZNAN")]
+    public void MatchesVendorWithShortName(string vendorName, string description)
+    {
+        var result = new VendorMatcher([MakeVendor(1, vendorName), MakeVendor(2, "Stonka")], [], DescriptionPreprocessor.CreateFromFiles())
+            .Match(description);
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be(vendorName));
+    }
+
+    [Fact]
+    public void MatchesVendorByShortAlias()
+    {
+        var result = new VendorMatcher([MakeVendor(1, "Hennes & Mauritz")], [MakeAlias(1, "H&M")], DescriptionPreprocessor.CreateFromFiles())
+            .Match("H&M 1234");
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Hennes & Mauritz"));
+    }
+
+    [Fact]
+    public void MatchesVendor_ReturnsTrueForShortVendorName()
+    {
+        var result = new VendorMatcher([MakeVendor(1, "4F")], [], DescriptionPreprocessor.CreateFromFiles())
+            .MatchesVendor(1, "4F SKLEP GALERIA");
+        result.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("4f")]
+    [InlineData("H&M")]
+    [InlineData("h&")]
+    public void Autocomplete_FindsVendorWithShortName(string query)
+    {
+        var result = new VendorMatcher([MakeVendor(1, "4F"), MakeVendor(2, "H&M"), MakeVendor(3, "Stonka")], [], DescriptionPreprocessor.CreateFromFiles())
+            .Match(query, 5, prefixMatching: true);
+        result.First().Name.Should().BeOneOf("4F", "H&M");
+        result.Should().NotContain(v => v.Name == "Stonka");
+    }
+
+    [Fact]
+    public void Autocomplete_ReturnsEmpty_WhenQueryIsRemovedByPreprocessing()
+    {
+        var result = new VendorMatcher([MakeVendor(1, "Stonka")], [], DescriptionPreprocessor.CreateFromFiles())
+            .Match("4", 5, prefixMatching: true);
+        result.Should().BeEmpty();
     }
 
     [Fact]

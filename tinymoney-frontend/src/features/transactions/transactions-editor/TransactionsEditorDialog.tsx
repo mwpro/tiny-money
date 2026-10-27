@@ -89,6 +89,16 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
         }
     })
 
+    // Expenses must stay in expense categories and incomes in income ones, so a category not matching the new sign is cleared
+    const setDirection = (isExpense: boolean) => {
+        setValue("isExpense", isExpense, {shouldValidate: true, shouldDirty: true})
+        const subcategoryId = getValues("subcategoryId")
+        const isIncomeCategory = categoriesQuery.data?.find(c => c.subcategories.some(s => s.id === subcategoryId))?.isIncome
+        if (isIncomeCategory === isExpense) {
+            setValue("subcategoryId", 0, {shouldDirty: true})
+        }
+    }
+
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
         if (transactionToEdit) {
@@ -290,7 +300,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                         control={control}
                                         name="isExpense"
                                         render={({field}) => (<InputGroupButton
-                                                onClick={() => field.onChange(!field.value)}
+                                                onClick={() => setDirection(!field.value)}
                                                 tabIndex={-1}
                                             >
                                                 {field.value ? <Minus className={"text-expense"} /> : <Plus className={"text-income"} />}
@@ -302,10 +312,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                 <InputGroupInput placeholder="0.00" type="number" step="0.01" {...register("amount")} onKeyDown={e => {
                                     if (e.key === "-" || e.key === "+") {
                                         e.preventDefault();
-                                        setValue("isExpense", (e.key === "-"), {
-                                            shouldValidate: true,
-                                            shouldDirty: true
-                                        })
+                                        setDirection(e.key === "-")
                                     }
                                 }}  />
                                 <InputGroupAddon align="inline-end">
