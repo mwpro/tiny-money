@@ -181,13 +181,12 @@ public class MySqlTransactionStore : ITransactionStore
         if (transactions.Count == 0) return;
 
         var sql = new StringBuilder();
-        sql.Append("INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id, is_verified, is_possible_duplicate) VALUES ");
-
         var parameters = new DynamicParameters();
         for (var i = 0; i < transactions.Count; i++)
         {
-            if (i > 0) sql.Append(", ");
-            sql.Append($"(@amount{i}, @createdBy{i}, @createdDate{i}, @description{i}, @isExpense{i}, @modifiedDate{i}, @transactionDate{i}, @subcategoryId{i}, @vendorId{i}, @isVerified{i}, @isPossibleDuplicate{i})");
+            sql.Append("INSERT INTO transaction (amount, created_by, created_date, description, is_expense, modified_date, transaction_date, subcategory_id, vendor_id, is_verified, is_possible_duplicate) ");
+            sql.Append($"VALUES (@amount{i}, @createdBy{i}, @createdDate{i}, @description{i}, @isExpense{i}, @modifiedDate{i}, @transactionDate{i}, @subcategoryId{i}, @vendorId{i}, @isVerified{i}, @isPossibleDuplicate{i}); ");
+            sql.Append("SELECT LAST_INSERT_ID(); ");
             var t = transactions[i];
             parameters.Add($"amount{i}", t.Amount);
             parameters.Add($"createdBy{i}", t.CreatedBy);
@@ -201,11 +200,18 @@ public class MySqlTransactionStore : ITransactionStore
             parameters.Add($"isVerified{i}", t.IsVerified);
             parameters.Add($"isPossibleDuplicate{i}", t.IsPossibleDuplicate);
         }
-        sql.Append(";");
 
-        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
-        await connection.ExecuteAsync(sql.ToString(), parameters);
+        await using var dbTransaction = await connection.BeginTransactionAsync();
+
+        await using (var results = await connection.QueryMultipleAsync(sql.ToString(), parameters, dbTransaction))
+        {
+            foreach (var transaction in transactions)
+                transaction.Id = await results.ReadSingleAsync<int>();
+        }
+
+        await dbTransaction.CommitAsync();
     }
 
     public async Task UpdateTransaction(ApiModels.Transaction transaction)

@@ -40,7 +40,7 @@ Both processes must run simultaneously:
 - **Backend**: port 52386
 - **Frontend**: Vite dev server on port 5173 (no proxying — frontend calls backend directly at `http://localhost:52386`)
 
-The only config not in the repository is the **database connection string**. The backend loads `/run/secrets/appsettings.secret.json` as an optional file (see `Program.cs`) — place your connection string override there to configure the local database. Do not connect to any external database servers.
+The only config not in the repository is the **database connection string** and the optional **OpenRouter API key** (`OpenRouter:ApiKey`, enables AI suggestions; leave it empty in `appsettings.json` and never commit it). The backend loads `/run/secrets/appsettings.secret.json` as an optional file (see `Program.cs`) — place your connection string override and the API key there. Do not connect to any external database servers.
 
 
 ### Frontend → Backend Communication

@@ -111,8 +111,15 @@ public class MySqlVendorStore : IVendorStore
         SET vendor_id = @toVendorId
         WHERE vendor_id = @fromVendorId
         """;
-        
-    private const string DeleteVendorAliasesForVendorQuery = 
+
+    private const string MoveAiSuggestionsBetweenVendors =
+        """
+        UPDATE transaction_ai_suggestion
+        SET suggested_vendor_id = @toVendorId
+        WHERE suggested_vendor_id = @fromVendorId
+        """;
+
+    private const string DeleteVendorAliasesForVendorQuery =
         """
         DELETE FROM vendor_alias 
         WHERE vendor_id = @id
@@ -217,6 +224,7 @@ public class MySqlVendorStore : IVendorStore
         if (mergeToVendorId.HasValue)
         {
             await connection.ExecuteAsync(MoveTransactionsBetweenVendors, new { fromVendorId = vendorToDelete.Id, toVendorId = mergeToVendorId.Value }, dbTransaction);
+            await connection.ExecuteAsync(MoveAiSuggestionsBetweenVendors, new { fromVendorId = vendorToDelete.Id, toVendorId = mergeToVendorId.Value }, dbTransaction);
         }
         await connection.ExecuteAsync(DeleteVendorAliasesForVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);
         await connection.ExecuteAsync(DeleteVendorQuery, new { id = vendorToDelete.Id }, dbTransaction);

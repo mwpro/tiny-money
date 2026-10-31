@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using MW.TinyMoney.Api.AiSuggestions;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags;
 using MW.TinyMoney.Api.Tags.ApiModels;
@@ -21,13 +23,19 @@ public class TransactionsController : Controller
     private readonly IVendorStore _vendorStore;
     private readonly ITagStore _tagStore;
     private readonly IVendorMatchingService _vendorMatchingService;
+    private readonly IAiSuggestionStore _aiSuggestionStore;
+    private readonly OpenRouterOptions _openRouterOptions;
 
-    public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore, IVendorMatchingService vendorMatchingService)
+    public TransactionsController(ITransactionStore transactionStore, IVendorStore vendorStore, ITagStore tagStore,
+        IVendorMatchingService vendorMatchingService, IAiSuggestionStore aiSuggestionStore,
+        IOptions<OpenRouterOptions> openRouterOptions)
     {
         _transactionStore = transactionStore;
         _vendorStore = vendorStore;
         _tagStore = tagStore;
         _vendorMatchingService = vendorMatchingService;
+        _aiSuggestionStore = aiSuggestionStore;
+        _openRouterOptions = openRouterOptions.Value;
     }
 
     [HttpGet("")]
@@ -59,6 +67,7 @@ public class TransactionsController : Controller
     }
         
     [HttpGet("{transactionId}")]
+    [ProducesResponseType(typeof(TransactionDetails), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetTransaction([FromRoute] int transactionId)
     {
         var transaction = await _transactionStore.GetTransaction(transactionId);
@@ -68,7 +77,15 @@ public class TransactionsController : Controller
             return NotFound();
         }
 
-        return Ok(transaction);
+        AiSuggestionDto aiSuggestion = null;
+        if (!transaction.IsVerified)
+        {
+            var suggestion = await _aiSuggestionStore.GetLatestSuggestion(transactionId);
+            if (suggestion != null)
+                aiSuggestion = AiSuggestionDto.From(suggestion, _openRouterOptions.MinConfidence);
+        }
+
+        return Ok(TransactionDetails.From(transaction, aiSuggestion));
     }
         
     [HttpPost("{transactionId}")]
@@ -127,6 +144,10 @@ public class TransactionsController : Controller
         transaction.VendorId = updatedTransaction.Vendor.Id.Value;
 
         await _transactionStore.UpdateTransaction(transaction);
+        if (autoVerify)
+        {
+            await _aiSuggestionStore.RecordVerification(transaction.Id, transaction.VendorId, transaction.SubcategoryId);
+        }
 
         response.Transaction = transaction;
 
@@ -233,6 +254,7 @@ public class TransactionsController : Controller
         transaction.ModifiedDate = DateTime.UtcNow;
 
         await _transactionStore.UpdateTransaction(transaction);
+        await _aiSuggestionStore.RecordVerification(transaction.Id, transaction.VendorId, transaction.SubcategoryId);
 
         return Ok(new AddTransactionResponse
         {

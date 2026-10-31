@@ -1,9 +1,10 @@
 import {useEffect, useRef, useState} from "react"
-import {type Control, Controller, useForm} from "react-hook-form"
+import {type Control, Controller, useForm, useWatch} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
 import {z} from "zod"
 import {
+    type AiSuggestion,
     type NewTransaction,
     type SuggestedAlias,
     type Transaction,
@@ -30,7 +31,7 @@ import {
     type WithDescription
 } from "@/features/transactions/transactions-editor/ParsedDescription.tsx";
 import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText} from "@/components/ui/input-group.tsx";
-import {AlertTriangle, Minus, Plus} from "lucide-react";
+import {AlertTriangle, Loader2, Minus, Plus, Sparkles} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
@@ -38,6 +39,14 @@ import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>
+
+function AiSuggestionMarker() {
+    return (
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground" title="Wartość zasugerowana przez AI">
+            <Sparkles className="h-3 w-3"/> Sugestia AI
+        </span>
+    )
+}
 
 interface TransactionEditorDialogProps {
     transactionToEdit?: Transaction,
@@ -51,9 +60,22 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
     const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined)
     const [pendingVendorName, setPendingVendorName] = useState<string>("")
     const lastVendorSuggestions = useRef<VendorSuggestion[]>([])
+    const filledForTransactionId = useRef<number | null>(null)
+    const [requestedAiSuggestion, setRequestedAiSuggestion] = useState<{ transactionId: number, suggestion: AiSuggestion } | null>(null)
     const queryClient = useQueryClient()
     const { transactionsClient, vendorsClient, categoriesClient, tagsClient } = useApiClient();
-    
+
+    const transactionQuery = useQuery({
+        queryKey: ['transaction', transactionToEdit?.id],
+        queryFn: () => transactionsClient.getTransaction(transactionToEdit!.id),
+        enabled: !!transactionToEdit,
+        gcTime: 0,
+        refetchOnWindowFocus: false,
+    })
+    const transaction = transactionToEdit ? transactionQuery.data : undefined
+    const isLoadingTransaction = !!transactionToEdit && !transaction
+    const canUseAiSuggestions = !!transaction && !transaction.isVerified;
+
     useEffect(() => {
         setIsOpen(!!transactionToEdit);
     }, [transactionToEdit]);
@@ -99,27 +121,76 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
         }
     }
 
+    const isConfidentAiSuggestion = (suggestion: AiSuggestion) => !!suggestion.subcategoryId || suggestion.vendorId !== null
+
+    const applyAiSuggestion = (suggestion: AiSuggestion, overwrite: boolean) => {
+        const overwriteVendor = overwrite && suggestion.vendorId !== null
+        if (suggestion.vendorName && (overwriteVendor || !getValues("vendor").name)) {
+            setValue("vendor", {id: suggestion.vendorId ?? undefined, name: suggestion.vendorName}, {shouldValidate: true, shouldDirty: true})
+        }
+        if (suggestion.subcategoryId && (overwrite || !getValues("subcategoryId"))) {
+            setValue("subcategoryId", suggestion.subcategoryId, {shouldValidate: true, shouldDirty: true})
+        }
+    }
+
     useEffect(() => {
-        setIsOpen(!!transactionToEdit);
-        if (transactionToEdit) {
-            setValue("amount", transactionToEdit.amount)
-            setValue("description", transactionToEdit.description ?? "")
-            setValue("isExpense", transactionToEdit.isExpense);
-            setValue("transactionDate", format(transactionToEdit.transactionDate, dateFormat));
-            if (transactionToEdit.subcategoryId !== null) {
-                setValue("subcategoryId", transactionToEdit.subcategoryId);
-            }
-            if (transactionToEdit.vendorId !== null && transactionToEdit.vendorName !== null) {
-                setValue("vendor", { id: transactionToEdit.vendorId, name: transactionToEdit.vendorName });
-            }
-            const selectedTags = tagsQuery.data?.filter(t => transactionToEdit.tags.some(tt => tt.id === t.id));
-            if (selectedTags) {
-                setValue("tags", selectedTags);
-            }
-        } else {
+        if (!transactionToEdit) {
             reset()
+            filledForTransactionId.current = null
         }
     }, [transactionToEdit]);
+
+    useEffect(() => {
+        if (!transaction || filledForTransactionId.current === transaction.id) return
+        filledForTransactionId.current = transaction.id
+
+        setValue("amount", transaction.amount)
+        setValue("description", transaction.description ?? "")
+        setValue("isExpense", transaction.isExpense);
+        setValue("transactionDate", format(transaction.transactionDate, dateFormat));
+        if (transaction.subcategoryId !== null) {
+            setValue("subcategoryId", transaction.subcategoryId);
+        }
+        if (transaction.vendorId !== null && transaction.vendorName !== null) {
+            setValue("vendor", { id: transaction.vendorId, name: transaction.vendorName });
+        }
+        const selectedTags = tagsQuery.data?.filter(t => transaction.tags.some(tt => tt.id === t.id));
+        if (selectedTags) {
+            setValue("tags", selectedTags);
+        }
+
+        if (transaction.aiSuggestion) {
+            applyAiSuggestion(transaction.aiSuggestion, false)
+        }
+    }, [transaction]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const aiSuggestionMutation = useMutation({
+        mutationFn: () => transactionsClient.createAiSuggestion(transactionToEdit!.id),
+        onSuccess: (suggestion: AiSuggestion | null) => {
+            if (suggestion) {
+                setRequestedAiSuggestion({transactionId: transactionToEdit!.id, suggestion})
+            }
+            if (!suggestion || !isConfidentAiSuggestion(suggestion)) {
+                toast.info("AI nie ma pewnej sugestii dla tej transakcji")
+                return
+            }
+            applyAiSuggestion(suggestion, true)
+        },
+        onError: (error) => {
+            toast.error("Błąd: " + error.message)
+        }
+    })
+    const aiRequested = !!transactionToEdit && requestedAiSuggestion?.transactionId === transactionToEdit.id
+    const aiSuggestion = aiRequested ? requestedAiSuggestion!.suggestion : transaction?.aiSuggestion ?? null
+    const vendorValue = useWatch({control, name: "vendor"})
+    const subcategoryValue = useWatch({control, name: "subcategoryId"})
+    const vendorFromAi = canUseAiSuggestions && !!aiSuggestion?.vendorName
+        && vendorValue.name === aiSuggestion.vendorName
+        && (vendorValue.id ?? null) === aiSuggestion.vendorId
+        && (aiRequested || transaction?.vendorId === null)
+    const subcategoryFromAi = canUseAiSuggestions && !!aiSuggestion?.subcategoryId
+        && subcategoryValue === aiSuggestion.subcategoryId
+        && (aiRequested || transaction?.subcategoryId === null)
 
     const mutation = useMutation({
         mutationFn: (newTransaction: NewTransaction) => transactionToEdit
@@ -137,7 +208,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
             if (transactionToEdit) {
                 if (data.suggestedAlias) {
                     setPendingAlias(data.suggestedAlias)
-                    setPendingDescription(transactionToEdit.description)
+                    setPendingDescription(transaction?.description)
                     setPendingVendorName(getValues("vendor").name)
                 }
                 reset();
@@ -178,16 +249,24 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="grid gap-4 -mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
-                            
-                        {transactionToEdit && (!transactionToEdit.isVerified || transactionToEdit.isPossibleDuplicate) && (
+                <form onSubmit={handleSubmit(onSubmit)} className="relative">
+                    {/* The fields stay laid out (just invisible) while loading, so the dialog doesn't change size */}
+                    {isLoadingTransaction && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center text-muted-foreground">
+                            {transactionQuery.isError
+                                ? "Nie udało się wczytać transakcji"
+                                : <Loader2 className="h-6 w-6 animate-spin"/>}
+                        </div>
+                    )}
+                    <div className={`grid gap-4 -mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4 ${isLoadingTransaction ? "invisible" : ""}`}>
+
+                        {transaction && (!transaction.isVerified || transaction.isPossibleDuplicate) && (
                             <Alert variant="default" className="border-amber-400">
                                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                                 <AlertDescription className="text-amber-700">
-                                    {!transactionToEdit.isVerified && transactionToEdit.isPossibleDuplicate
+                                    {!transaction.isVerified && transaction.isPossibleDuplicate
                                         ? "Ta transakcja nie została jeszcze zweryfikowana i może być duplikatem istniejącej transakcji."
-                                        : !transactionToEdit.isVerified
+                                        : !transaction.isVerified
                                             ? "Ta transakcja nie została jeszcze zweryfikowana."
                                             : "Ta transakcja może być duplikatem istniejącej transakcji."
                                     }
@@ -203,7 +282,22 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                         </div>
     
                         <div className="grid gap-2">
-                            <Label>Sprzedawca</Label>
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                    <Label>Sprzedawca</Label>
+                                    {vendorFromAi && <AiSuggestionMarker/>}
+                                </div>
+                                {canUseAiSuggestions && (
+                                    <Button type="button" variant="ghost" size="sm" className="h-6 px-2 text-xs"
+                                            disabled={aiSuggestionMutation.isPending}
+                                            onClick={() => aiSuggestionMutation.mutate()}>
+                                        {aiSuggestionMutation.isPending
+                                            ? <Loader2 className="h-3 w-3 animate-spin"/>
+                                            : <Sparkles className="h-3 w-3"/>}
+                                        Zasugeruj
+                                    </Button>
+                                )}
+                            </div>
                             <Controller
                                 control={control}
                                 name="vendor"
@@ -245,7 +339,10 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                         </div>
     
                         <div className="grid gap-2">
-                            <Label>Kategoria</Label>
+                            <div className="flex items-center gap-2">
+                                <Label>Kategoria</Label>
+                                {subcategoryFromAi && <AiSuggestionMarker/>}
+                            </div>
                             <Controller
                                 control={control}
                                 name="subcategoryId"
@@ -356,7 +453,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
 
                     </div>
                     <DialogFooter className={"mt-4"}>
-                        <Button type="submit" disabled={mutation.isPending}>
+                        <Button type="submit" disabled={mutation.isPending || isLoadingTransaction}>
                             {mutation.isPending ? "Zapisywanie..." : "Zapisz"}
                         </Button>
                     </DialogFooter>

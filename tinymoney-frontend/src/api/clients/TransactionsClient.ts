@@ -1,9 +1,11 @@
 import type {
+    AiSuggestion,
     ImportBankStatementResult,
     MergeTransactionsRequest,
     NewTransaction,
     SplitTransactionRequest,
     TransactionMutationResponse,
+    TransactionDetails,
     TransactionQueryParams,
     TransactionsResponse
 } from "@/api/ApiTypes.ts";
@@ -13,6 +15,7 @@ import {ApiBase} from "@/api/ApiBase.ts";
 
 export interface TransactionsClient {
     getTransactions(params: TransactionQueryParams): Promise<TransactionsResponse>;
+    getTransaction(transactionId: number): Promise<TransactionDetails>;
     addTransaction(newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
     editTransaction(transactionId: number, newTransaction: NewTransaction): Promise<TransactionMutationResponse>;
     verifyTransaction(transactionId: number): Promise<TransactionMutationResponse>;
@@ -21,6 +24,7 @@ export interface TransactionsClient {
     importBankStatementFile(file: File, fileType: string): Promise<ImportBankStatementResult>;
     splitTransaction(transactionId: number, request: SplitTransactionRequest): Promise<void>;
     mergeTransactions(request: MergeTransactionsRequest): Promise<void>;
+    createAiSuggestion(transactionId: number): Promise<AiSuggestion | null>;
 }
 
 export class TransactionsClientImpl extends ApiBase implements TransactionsClient {
@@ -42,6 +46,12 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
 
         const res = await this.request('GET', `/transactions?${queryParams}`);
         if (!res.ok) throw new Error('Błąd pobierania danych');
+        return res.json();
+    }
+
+    async getTransaction(transactionId: number): Promise<TransactionDetails> {
+        const res = await this.request('GET', `/transactions/${transactionId}`);
+        if (!res.ok) throw new Error('Błąd pobierania transakcji');
         return res.json();
     }
 
@@ -97,5 +107,15 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
             const message = await res.text();
             throw new Error(message || 'Błąd podczas łączenia transakcji');
         }
+    }
+
+    async createAiSuggestion(transactionId: number): Promise<AiSuggestion | null> {
+        const res = await this.request('POST', `/transactions/${transactionId}/ai-suggestion`);
+        if (!res.ok) {
+            const message = await res.text();
+            throw new Error(message || 'Błąd podczas generowania sugestii AI');
+        }
+        if (res.status === 204) return null;
+        return res.json();
     }
 }

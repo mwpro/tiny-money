@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
+using MW.TinyMoney.Api.AiSuggestions;
 using MW.TinyMoney.Api.ApiKeys;
 using MW.TinyMoney.Api.Budget;
 using MW.TinyMoney.Api.Categories;
@@ -102,4 +103,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddTransient<IPlanStore, MySqlPlanStore>();
     services.AddTransient<ISavingsStore, MySqlSavingsStore>();
     services.AddTransient<ISavingsReport, SavingsReport>();
+
+    services.AddAiSuggestions(configuration);
 }

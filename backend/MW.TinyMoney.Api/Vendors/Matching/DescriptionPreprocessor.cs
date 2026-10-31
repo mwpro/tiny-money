@@ -11,6 +11,8 @@ namespace MW.TinyMoney.Api.Vendors.Matching;
 public interface IDescriptionPreprocessor
 {
     string Preprocess(string text);
+    string Sanitize(string text);
+
     IReadOnlyCollection<string> Tokenize(string preprocessed);
     IReadOnlyCollection<string> GenerateShatteredCombinations(string preprocessed);
 }
@@ -56,7 +58,16 @@ public class DescriptionPreprocessor : IDescriptionPreprocessor
         {
             s = _stopWordsPattern.Replace(s, " ");
         }
-        
+
+        return Sanitize(s);
+    }
+
+    public string Sanitize(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var s = text.Trim();
         foreach (var pattern in _stopPatterns)
         {
             s = pattern.Replace(s, " ");

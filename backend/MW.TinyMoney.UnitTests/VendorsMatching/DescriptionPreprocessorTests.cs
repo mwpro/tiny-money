@@ -65,9 +65,11 @@ public class DescriptionPreprocessorTests
     [InlineData("12123412341234123412341234")]
     [InlineData("PL12 1234 1234 1234 1234 1234 1234")]
     [InlineData("PL12123412341234123412341234")]
-    public void Preprocess_StripsPlIBAN(string polishBankAccountNumber)
+    [InlineData("DE89 3704 0044 0532 0130 00")]
+    [InlineData("GB29NWBK60161331926819")]
+    public void Preprocess_StripsIBAN(string iban)
     {
-        Preprocessor.Preprocess($"stonka {polishBankAccountNumber}").Should().Be("stonka");
+        Preprocessor.Preprocess($"stonka {iban}").Should().Be("stonka");
     }
 
     [Fact]
@@ -137,6 +139,38 @@ public class DescriptionPreprocessorTests
     {
         var tokens = Preprocessor.Tokenize("stonka poznan");
         tokens.Should().BeEquivalentTo("stonka", "poznan");
+    }
+
+    [Theory]
+    [InlineData("Przelew na rachunek PL61 1090 1014 0000 0712 1981 2874 Czynsz", "Przelew na rachunek Czynsz")]
+    [InlineData("Przelew DE89370400440532013000 Miete", "Przelew Miete")]
+    [InlineData("ZAKUP 4246 **** **** 1234 BIEDRONKA", "ZAKUP BIEDRONKA")]
+    [InlineData("Karta 424242******1234 ZABKA Z1234", "Karta ZABKA Z1234")]
+    [InlineData("Karta XXXX XXXX XXXX 1234 ORLEN", "Karta ORLEN")]
+    [InlineData("BLIK przelew na telefon +48 600 123 456", "BLIK przelew na telefon")]
+    [InlineData("Nr ref. 2026101400123456 ALLEGRO", "Nr ref ALLEGRO")]
+    [InlineData("Data transakcji 2026-10-14 LIDL", "Data transakcji LIDL")]
+    [InlineData("MAXXI PIZZA 45,50 PLN", "MAXXI PIZZA PLN")]
+    public void Sanitize_RemovesNumbersAndPunctuation(string description, string expected)
+    {
+        Preprocessor.Sanitize(description).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("ZABKA Z1234 WARSZAWA")]
+    [InlineData("AB12 Warszawa Marszałkowska")]
+    [InlineData("Zakup przy użyciu karty STONKA")]
+    public void Sanitize_KeepsCasingStopTokensAndCodes(string description)
+    {
+        Preprocessor.Sanitize(description).Should().Be(description);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public void Sanitize_ReturnsEmpty_ForBlankDescription(string description)
+    {
+        Preprocessor.Sanitize(description).Should().BeEmpty();
     }
 
     [Fact]

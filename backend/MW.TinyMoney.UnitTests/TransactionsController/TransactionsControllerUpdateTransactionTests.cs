@@ -7,6 +7,7 @@ using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors.ApiModels;
+using MW.TinyMoney.UnitTests.AiSuggestions;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
@@ -20,7 +21,8 @@ public class TransactionsControllerUpdateTransactionTests
 
     private readonly TransactionStoreStub _transactionStore;
     private readonly VendorMatchingServiceStub _vendorMatchingService;
-    
+    private readonly AiSuggestionStoreStub _aiSuggestionStore = new();
+
     private readonly Api.Transaction.TransactionsController _controller;
 
     public TransactionsControllerUpdateTransactionTests()
@@ -32,7 +34,7 @@ public class TransactionsControllerUpdateTransactionTests
         _vendorMatchingService = new VendorMatchingServiceStub();
         _controller = new Api.Transaction.TransactionsController(
             _transactionStore, vendorStore, tagStore,
-            _vendorMatchingService);
+            _vendorMatchingService, _aiSuggestionStore, OpenRouterTestOptions.Enabled());
     }
 
     private static AddTransactionDto MakeUpdateDto(int vendorId = VendorA, int subcategoryId = RealSubcategoryId) =>
@@ -187,5 +189,26 @@ public class TransactionsControllerUpdateTransactionTests
             .Subject;
 
         response.Transaction.IsVerified.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task AutoVerify_RecordsAiSuggestionOutcome()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: false);
+
+        await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB));
+
+        _aiSuggestionStore.RecordedVerifications.Should().ContainSingle()
+            .Which.Should().Be((_transactionStore.Transaction.Id, (int?)VendorB, (int?)RealSubcategoryId));
+    }
+
+    [Fact]
+    public async Task NoAiSuggestionOutcome_WhenNotAutoVerified()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: VendorA, isVerified: true);
+
+        await _controller.UpdateTransaction(1, MakeUpdateDto(VendorB));
+
+        _aiSuggestionStore.RecordedVerifications.Should().BeEmpty();
     }
 }
