@@ -27,6 +27,25 @@ public class DecisionsClientStub : IDecisionsClient
     }
 }
 
+public class ExtractionsClientStub : IExtractionsClient
+{
+    public Dictionary<string, TextAnswer> Answers { get; set; } = new();
+    public Exception ExceptionToThrow { get; set; }
+    public string LastState { get; private set; }
+    public IReadOnlyDictionary<string, TextField> LastFields { get; private set; }
+    public int CallCount { get; private set; }
+
+    public Task<ExtractionsResponse> Extract(string state, IReadOnlyDictionary<string, TextField> fields, CancellationToken ct)
+    {
+        CallCount++;
+        LastState = state;
+        LastFields = fields;
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
+        return Task.FromResult(new ExtractionsResponse("inception/mercury-decide-20260930", Answers, new ExtractionsUsage(50, 0.000001m)));
+    }
+}
+
 /// <summary>
 /// Returns <see cref="SuggestionToReturn"/> (or an empty suggestion). Fails the first <see cref="FailuresBeforeSuccess"/> calls.
 /// </summary>

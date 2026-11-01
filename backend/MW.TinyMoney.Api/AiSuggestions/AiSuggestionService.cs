@@ -19,19 +19,23 @@ public interface IAiSuggestionService
 public class AiSuggestionService : IAiSuggestionService
 {
     public const string SubcategoryQuestion = "subcategory";
+    public const string VendorNameField = "vendor_name";
 
     private readonly IDecisionsClient _decisionsClient;
+    private readonly IExtractionsClient _extractionsClient;
     private readonly IAiSuggestionStore _suggestionStore;
     private readonly ICategoriesStore _categoriesStore;
     private readonly IDescriptionPreprocessor _descriptionPreprocessor;
     private readonly OpenRouterOptions _options;
     private readonly ILogger<AiSuggestionService> _logger;
 
-    public AiSuggestionService(IDecisionsClient decisionsClient, IAiSuggestionStore suggestionStore,
-        ICategoriesStore categoriesStore, IDescriptionPreprocessor descriptionPreprocessor,
-        IOptions<OpenRouterOptions> options, ILogger<AiSuggestionService> logger)
+    public AiSuggestionService(IDecisionsClient decisionsClient, IExtractionsClient extractionsClient,
+        IAiSuggestionStore suggestionStore, ICategoriesStore categoriesStore,
+        IDescriptionPreprocessor descriptionPreprocessor, IOptions<OpenRouterOptions> options,
+        ILogger<AiSuggestionService> logger)
     {
         _decisionsClient = decisionsClient;
+        _extractionsClient = extractionsClient;
         _suggestionStore = suggestionStore;
         _categoriesStore = categoriesStore;
         _descriptionPreprocessor = descriptionPreprocessor;
@@ -44,15 +48,14 @@ public class AiSuggestionService : IAiSuggestionService
         var description = _descriptionPreprocessor.Sanitize(transaction.Description);
         var subcategories = await GetSubcategoryOptions(transaction.IsExpense);
 
-        var response = await AskModel(transaction, description, subcategories, ct);
+        var responseTask = AskModel(transaction, description, subcategories, ct);
+        var vendorNameTask = ExtractVendorName(transaction, description, ct);
+        var response = await responseTask;
 
-        // The model only classifies the subcategory; the vendor is always proposed as a new one named after the
-        // description. Suggesting an existing vendor would set SuggestedVendorId and VendorConfidence instead,
-        // which the table, DTO, editor and accuracy tracking already support.
         var suggestion = new AiSuggestion
         {
             TransactionId = transaction.Id,
-            SuggestedVendorName = description,
+            SuggestedVendorName = await vendorNameTask,
             Model = response.Model ?? _options.Model,
             CreatedAt = DateTime.UtcNow
         };
@@ -118,5 +121,36 @@ public class AiSuggestionService : IAiSuggestionService
 
         suggestion.SuggestedSubcategoryId = subcategory.Id;
         suggestion.SubcategoryConfidence = answer.Confidence;
+    }
+
+    private async Task<string> ExtractVendorName(Transaction.ApiModels.Transaction transaction, string description,
+        CancellationToken ct)
+    {
+        var fields = new Dictionary<string, TextField>
+        {
+            [VendorNameField] = new(
+                "The merchant or counterparty name as a person would write it, e.g. 'Żabka' for " +
+                "'ZABKA Z1234 K.1 WARSZAWA'. Without store numbers, locations, legal suffixes or payment details.")
+        };
+
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var response = await _extractionsClient.Extract(description, fields, ct);
+            stopwatch.Stop();
+
+            _logger.LogInformation(
+                "AI vendor extraction for transaction {TransactionId} by {Model}: {InputTokens} input tokens, cost {Cost}, {ElapsedMs} ms",
+                transaction.Id, response.Model, response.Usage?.InputTokens, response.Usage?.Cost, stopwatch.ElapsedMilliseconds);
+
+            if (response.Answers.TryGetValue(VendorNameField, out var answer) && !string.IsNullOrWhiteSpace(answer.Value))
+                return answer.Value.Trim();
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            _logger.LogWarning(e, "AI vendor extraction failed for transaction {TransactionId}", transaction.Id);
+        }
+
+        return description;
     }
 }

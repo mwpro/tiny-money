@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,18 +12,21 @@ public static class AiSuggestionsServiceCollectionExtensions
     public static IServiceCollection AddAiSuggestions(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<OpenRouterOptions>(configuration.GetSection(OpenRouterOptions.SectionName));
-        services.AddHttpClient<IDecisionsClient, OpenRouterDecisionsClient>((sp, client) =>
-        {
-            var options = sp.GetRequiredService<IOptions<OpenRouterOptions>>().Value;
-            client.BaseAddress = new Uri(options.BaseUrl);
-            client.Timeout = TimeSpan.FromSeconds(30);
-            if (options.IsEnabled)
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
-        });
+        services.AddHttpClient<IDecisionsClient, OpenRouterDecisionsClient>(ConfigureOpenRouterClient);
+        services.AddHttpClient<IExtractionsClient, OpenRouterExtractionsClient>(ConfigureOpenRouterClient);
         services.AddTransient<IAiSuggestionStore, MySqlAiSuggestionStore>();
         services.AddTransient<IAiSuggestionService, AiSuggestionService>();
         services.AddSingleton<IAiSuggestionQueue, AiSuggestionQueue>();
         services.AddHostedService<AiSuggestionWorker>();
         return services;
+    }
+
+    private static void ConfigureOpenRouterClient(IServiceProvider sp, HttpClient client)
+    {
+        var options = sp.GetRequiredService<IOptions<OpenRouterOptions>>().Value;
+        client.BaseAddress = new Uri(options.BaseUrl);
+        client.Timeout = TimeSpan.FromSeconds(30);
+        if (options.IsEnabled)
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
     }
 }
