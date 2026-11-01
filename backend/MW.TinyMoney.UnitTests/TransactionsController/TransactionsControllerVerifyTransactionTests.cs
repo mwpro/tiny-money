@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Import;
 using MW.TinyMoney.Api.Transaction.ApiModels;
+using MW.TinyMoney.UnitTests.AiSuggestions;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
@@ -14,6 +15,7 @@ public class TransactionsControllerVerifyTransactionTests
 
     private readonly TransactionStoreStub _transactionStore;
     private readonly VendorMatchingServiceStub _vendorMatchingService;
+    private readonly AiSuggestionStoreStub _aiSuggestionStore = new();
     private readonly Api.Transaction.TransactionsController _controller;
 
     public TransactionsControllerVerifyTransactionTests()
@@ -21,7 +23,7 @@ public class TransactionsControllerVerifyTransactionTests
         _transactionStore = new TransactionStoreStub();
         _vendorMatchingService = new VendorMatchingServiceStub();
         _controller = new Api.Transaction.TransactionsController(
-            _transactionStore, new VendorStoreStub(), new TagStoreStub(), _vendorMatchingService);
+            _transactionStore, new VendorStoreStub(), new TagStoreStub(), _vendorMatchingService, _aiSuggestionStore, OpenRouterTestOptions.Enabled());
     }
     
     [Fact]
@@ -42,6 +44,7 @@ public class TransactionsControllerVerifyTransactionTests
         var result = await _controller.VerifyTransaction(1);
 
         result.Should().BeOfType<BadRequestObjectResult>();
+        _aiSuggestionStore.RecordedVerifications.Should().BeEmpty();
     }
 
     [Fact]
@@ -52,6 +55,7 @@ public class TransactionsControllerVerifyTransactionTests
         var result = await _controller.VerifyTransaction(1);
 
         result.Should().BeOfType<BadRequestObjectResult>();
+        _aiSuggestionStore.RecordedVerifications.Should().BeEmpty();
     }
 
     [Fact]
@@ -62,6 +66,7 @@ public class TransactionsControllerVerifyTransactionTests
         var result = await _controller.VerifyTransaction(1);
 
         result.Should().BeOfType<BadRequestObjectResult>();
+        _aiSuggestionStore.RecordedVerifications.Should().BeEmpty();
     }
 
     [Fact]
@@ -120,5 +125,16 @@ public class TransactionsControllerVerifyTransactionTests
             .Subject;
 
         response.SuggestedAlias.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RecordsAiSuggestionOutcome_WithFinalVendorAndSubcategory()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: RealVendorId, subcategoryId: 7);
+
+        await _controller.VerifyTransaction(1);
+
+        _aiSuggestionStore.RecordedVerifications.Should().ContainSingle()
+            .Which.Should().Be((_transactionStore.Transaction.Id, (int?)RealVendorId, (int?)7));
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using MW.TinyMoney.Api.Tags.ApiModels;
 using MW.TinyMoney.Api.Transaction.ApiModels;
 using MW.TinyMoney.Api.Vendors.ApiModels;
+using MW.TinyMoney.UnitTests.AiSuggestions;
 using MW.TinyMoney.UnitTests.Helpers;
 using Xunit;
 
@@ -24,7 +25,8 @@ public class TransactionsControllerMergeTransactionsTests
         _vendorStore = new VendorStoreStub();
         _tagStore = new TagStoreStub();
         _controller = new Api.Transaction.TransactionsController(
-            _transactionStore, _vendorStore, _tagStore, new VendorMatchingServiceStub());
+            _transactionStore, _vendorStore, _tagStore, new VendorMatchingServiceStub(), new AiSuggestionStoreStub(),
+            OpenRouterTestOptions.Enabled());
     }
 
     private static MergeTransactionsDto ValidDto(IEnumerable<int> ids = null) => new()

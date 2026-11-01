@@ -13,6 +13,13 @@ public class DescriptionPreprocessorMock : IDescriptionPreprocessor
         return PreprocessOverride != null ? PreprocessOverride(text) : text;
     }
 
+    public Func<string, string> SanitizeOverride { get; set; } = null;
+
+    public string Sanitize(string text)
+    {
+        return SanitizeOverride != null ? SanitizeOverride(text) : text;
+    }
+
     public Func<string, IReadOnlyCollection<string>> TokenizeOverride { get; set; } = null;
     public IReadOnlyCollection<string> Tokenize(string preprocessed)
     {

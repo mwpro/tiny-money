@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
+using MW.TinyMoney.Api.AiSuggestions;
 using MW.TinyMoney.Api.Categories;
 using MW.TinyMoney.Api.Import.Parsers;
 using MW.TinyMoney.Api.Vendors;
@@ -29,19 +30,22 @@ public class ImportService : IImportService
     private readonly MySqlConnectionFactory _connectionFactory;
     private readonly IVendorMatchingService _vendorMatchingService;
     private readonly ICategoriesStore _categoriesStore;
+    private readonly IAiSuggestionQueue _aiSuggestionQueue;
 
     public ImportService(
         IEnumerable<IFileImportParser> parsers,
         Transaction.ITransactionStore transactionStore,
         MySqlConnectionFactory connectionFactory,
         IVendorMatchingService vendorMatchingService,
-        ICategoriesStore categoriesStore)
+        ICategoriesStore categoriesStore,
+        IAiSuggestionQueue aiSuggestionQueue)
     {
         _parsers = parsers;
         _transactionStore = transactionStore;
         _connectionFactory = connectionFactory;
         _vendorMatchingService = vendorMatchingService;
         _categoriesStore = categoriesStore;
+        _aiSuggestionQueue = aiSuggestionQueue;
     }
 
     public async Task<ICommandResult<int>> ImportSingle(SingleTransactionRequest request, CancellationToken ct)
@@ -78,8 +82,9 @@ public class ImportService : IImportService
             Tags = new List<TagDto>()
         };
 
-        await DetectDuplicates(new[] { transaction });
+        await DetectDuplicates([transaction]);
         _transactionStore.SaveTransaction(transaction);
+        _aiSuggestionQueue.EnqueueUnrecognized([transaction]);
 
         return new CommandSuccess<int>(transaction.Id);
     }
@@ -130,6 +135,7 @@ public class ImportService : IImportService
 
         await DetectDuplicates(transactions);
         await _transactionStore.SaveTransactionsBatch(transactions);
+        _aiSuggestionQueue.EnqueueUnrecognized(transactions);
 
         return new CommandSuccess<ImportResult>(new ImportResult(
             NumberOfImportedTransactions: transactions.Count,

@@ -252,6 +252,16 @@ export type TagUpsert = {
     name: string
 }
 
+export type AiSuggestion = {
+    vendorId: number | null;
+    vendorName: string | null;
+    subcategoryId: number | null;
+    model: string;
+    createdAt: string;
+}
+
+export type TransactionDetails = Transaction & { aiSuggestion: AiSuggestion | null };
+
 export type VendorSuggestion = { vendorId: number; vendorName: string; defaultSubcategoryId: number; defaultSubcategoryName: string; defaultCategoryName: string };
 export type VendorAlias = { id: number; alias: string };
 export type VendorWithAliases = { details: VendorDetails; aliases: VendorAlias[] };
