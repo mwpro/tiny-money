@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
@@ -170,6 +171,32 @@ public class AiSuggestionServiceTests
         suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
         suggestion.SuggestedSubcategoryId.Should().Be(GroceriesId);
         _suggestionStore.SavedSuggestions.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task FallsBackToDescription_WhenVendorNameTimesOut()
+    {
+        _llmClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{GroceriesId}", 0.9m);
+        _llmClient.CompleteException = new TaskCanceledException("HttpClient.Timeout elapsed",
+            new TimeoutException());
+
+        var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
+
+        suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
+        suggestion.SuggestedSubcategoryId.Should().Be(GroceriesId);
+    }
+
+    [Fact]
+    public async Task Throws_WhenCancelledDuringVendorName()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        _llmClient.CompleteException = new OperationCanceledException(cts.Token);
+
+        var act = () => _service.Suggest(Expense(), cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        _suggestionStore.SavedSuggestions.Should().BeEmpty();
     }
 
     [Fact]

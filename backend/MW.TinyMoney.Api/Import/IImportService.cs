@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MW.TinyMoney.Api.Import;
 
-public record ImportResult(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates);
+public record ImportResult(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates, int NumberOfQueuedForAiSuggestion);
 
 public record SingleTransactionRequest(DateTime Date, bool IsExpense, decimal Amount, string Description);
 

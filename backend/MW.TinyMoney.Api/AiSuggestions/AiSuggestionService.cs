@@ -151,7 +151,7 @@ public class AiSuggestionService : IAiSuggestionService
             if (!string.IsNullOrWhiteSpace(result.Answer?.Vendor))
                 return result.Answer.Vendor.Trim();
         }
-        catch (Exception e) when (e is not OperationCanceledException)
+        catch (Exception e) when (!ct.IsCancellationRequested)
         {
             _logger.LogWarning(e, "AI vendor name failed for transaction {TransactionId}", transaction.Id);
         }

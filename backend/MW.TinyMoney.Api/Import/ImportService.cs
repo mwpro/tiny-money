@@ -105,7 +105,7 @@ public class ImportService : IImportService
         ct.ThrowIfCancellationRequested();
         
         if (parsed.Count == 0)
-            return new CommandSuccess<ImportResult>(new ImportResult(0, 0));
+            return new CommandSuccess<ImportResult>(new ImportResult(0, 0, 0));
 
         var now = DateTime.UtcNow;
         var matcherTask = _vendorMatchingService.CreateMatcher();
@@ -135,11 +135,12 @@ public class ImportService : IImportService
 
         await DetectDuplicates(transactions);
         await _transactionStore.SaveTransactionsBatch(transactions);
-        _aiSuggestionQueue.EnqueueUnrecognized(transactions);
+        var numberOfQueuedForAiSuggestion = _aiSuggestionQueue.EnqueueUnrecognized(transactions);
 
         return new CommandSuccess<ImportResult>(new ImportResult(
             NumberOfImportedTransactions: transactions.Count,
-            NumberOfPossibleDuplicates: transactions.Count(t => t.IsPossibleDuplicate)));
+            NumberOfPossibleDuplicates: transactions.Count(t => t.IsPossibleDuplicate),
+            NumberOfQueuedForAiSuggestion: numberOfQueuedForAiSuggestion));
     }
 
     private async Task DetectDuplicates(IReadOnlyList<Transaction.ApiModels.Transaction> transactions)

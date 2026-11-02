@@ -45,21 +45,38 @@ public class AiSuggestionServiceStub : IAiSuggestionService
 {
     public AiSuggestion SuggestionToReturn { get; set; }
     public int FailuresBeforeSuccess { get; set; }
+    public Task Gate { get; set; } = Task.CompletedTask;
     private int _calls;
     private int _successes;
+    private int _inFlight;
+    private int _maxInFlight;
     public int Calls => Volatile.Read(ref _calls);
     public int Successes => Volatile.Read(ref _successes);
+    public int InFlight => Volatile.Read(ref _inFlight);
+    public int MaxInFlight => Volatile.Read(ref _maxInFlight);
 
-    // The worker processes transactions in parallel, so counters must be thread-safe
-    public Task<AiSuggestion> Suggest(Api.Transaction.ApiModels.Transaction transaction, CancellationToken ct)
+    public async Task<AiSuggestion> Suggest(Api.Transaction.ApiModels.Transaction transaction, CancellationToken ct)
     {
         if (Interlocked.Increment(ref _calls) <= FailuresBeforeSuccess)
             throw new HttpRequestException("OpenRouter unavailable");
+
+        var inFlight = Interlocked.Increment(ref _inFlight);
+        int max;
+        while (inFlight > (max = Volatile.Read(ref _maxInFlight)))
+            Interlocked.CompareExchange(ref _maxInFlight, inFlight, max);
+        try
+        {
+            await Gate.WaitAsync(ct);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _inFlight);
+        }
         Interlocked.Increment(ref _successes);
 
         var suggestion = SuggestionToReturn ?? new AiSuggestion();
         suggestion.TransactionId = transaction.Id;
-        return Task.FromResult(suggestion);
+        return suggestion;
     }
 }
 

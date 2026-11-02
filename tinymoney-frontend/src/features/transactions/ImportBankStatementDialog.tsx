@@ -9,6 +9,8 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogF
 import {Label} from "@/components/ui/label.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
+import type {AiSuggestionStatus} from "@/api/ApiTypes.ts";
+import {aiSuggestionStatusQueryKey} from "@/features/transactions/aiSuggestionStatusQueryKey.ts";
 
 const importSchema = z.object({
     fileType: z.string().refine(v => ["ing", "pekao", "velobank", "revolut"].includes(v), { error: "Wybierz typ pliku"}),
@@ -37,6 +39,11 @@ export function ImportBankStatementDialog() {
             transactionsClient.importBankStatementFile(data.file[0], data.fileType),
         onSuccess: (result) => {
             queryClient.invalidateQueries({queryKey: ['transactions']});
+            if (result.numberOfQueuedForAiSuggestion > 0) {
+                queryClient.setQueryData<AiSuggestionStatus>(aiSuggestionStatusQueryKey,
+                    (status) => ({isEnabled: true, pending: Math.max(status?.pending ?? 0, result.numberOfQueuedForAiSuggestion)}));
+                queryClient.invalidateQueries({queryKey: aiSuggestionStatusQueryKey});
+            }
             let message = `Zaimportowano ${result.numberOfImportedTransactions} transakcji`;
             if (result.numberOfPossibleDuplicates > 0) {
                 message += `. W tym ${result.numberOfPossibleDuplicates} możliwych duplikatów — sprawdź przed weryfikacją`;

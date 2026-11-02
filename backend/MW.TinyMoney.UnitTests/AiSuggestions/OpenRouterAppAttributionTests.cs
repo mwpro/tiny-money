@@ -1,4 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using MW.TinyMoney.Api.AiSuggestions;
 using Xunit;
 
@@ -21,5 +28,32 @@ public class OpenRouterAppAttributionTests
     {
         AiSuggestionsServiceCollectionExtensions.AppReferer("Production", "1.0.0+80fed8e")
             .Should().Be("production.tinymoney/1.0.0+80fed8e");
+    }
+
+    [Fact]
+    public void SendsAttributionHeaders_AndHidesApp()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["OpenRouter:ApiKey"] = "test-key", ["OpenRouter:BaseUrl"] = "https://openrouter.ai"
+            })
+            .Build();
+        var services = new ServiceCollection()
+            .AddLogging()
+            .AddSingleton<IHostEnvironment>(new HostingEnvironment
+            {
+                EnvironmentName = "Production", ApplicationName = "MW.TinyMoney.Api"
+            })
+            .AddAiSuggestions(configuration)
+            .BuildServiceProvider();
+
+        var client = services.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(ILLMClient));
+
+        var headers = client.DefaultRequestHeaders;
+        headers.Authorization!.ToString().Should().Be("Bearer test-key");
+        headers.GetValues("HTTP-Referer").Single().Should().StartWith("production.tinymoney/");
+        headers.GetValues("X-OpenRouter-Title").Single().Should().MatchRegex(@"^MW\.TinyMoney\.Api .+ \(Production\)$");
+        headers.GetValues("X-OpenRouter-App-Visibility").Single().Should().Be("hidden");
     }
 }

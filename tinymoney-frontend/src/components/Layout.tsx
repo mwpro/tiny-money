@@ -29,6 +29,7 @@ import {getTransactionsUrl} from "@/lib/utils.ts";
 import {useState} from "react";
 import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet.tsx";
 import {useDarkMode} from "@/lib/UseDarkMode.tsx";
+import {AiSuggestionProgressToast} from "@/features/transactions/AiSuggestionProgressToast.tsx";
 
 export function Layout() {
     const location = useLocation()
@@ -42,6 +43,7 @@ export function Layout() {
 
     return (
         <div className="min-h-dvh bg-background flex flex-col">
+            <AiSuggestionProgressToast/>
             <header className="hidden md:block border-b bg-header-bg text-header-fg">
                 <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
                     <div className="flex items-center gap-8">

@@ -30,7 +30,17 @@ public class AiSuggestionWorker : BackgroundService
     {
         var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrency, CancellationToken = stoppingToken };
         await Parallel.ForEachAsync(_queue.ReadAllAsync(stoppingToken), parallelOptions,
-            async (transactionId, ct) => await Process(transactionId, ct));
+            async (transactionId, ct) =>
+            {
+                try
+                {
+                    await Process(transactionId, ct);
+                }
+                finally
+                {
+                    _queue.MarkProcessed();
+                }
+            });
     }
 
     public async Task Process(int transactionId, CancellationToken ct)

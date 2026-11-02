@@ -240,6 +240,7 @@ export type MergeTransactionsRequest = {
 export type ImportBankStatementResult = {
     numberOfImportedTransactions: number;
     numberOfPossibleDuplicates: number;
+    numberOfQueuedForAiSuggestion: number;
 };
 
 export type VendorUpsert = {
@@ -261,6 +262,11 @@ export type AiSuggestion = {
 }
 
 export type TransactionDetails = Transaction & { aiSuggestion: AiSuggestion | null };
+
+export type AiSuggestionStatus = {
+    isEnabled: boolean;
+    pending: number;
+}
 
 export type VendorSuggestion = { vendorId: number; vendorName: string; defaultSubcategoryId: number; defaultSubcategoryName: string; defaultCategoryName: string };
 export type VendorAlias = { id: number; alias: string };
