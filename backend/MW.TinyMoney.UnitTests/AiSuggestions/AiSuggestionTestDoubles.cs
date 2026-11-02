@@ -8,41 +8,33 @@ using MW.TinyMoney.Api.AiSuggestions;
 
 namespace MW.TinyMoney.UnitTests.AiSuggestions;
 
-public class DecisionsClientStub : IDecisionsClient
+public class LLMClientStub : ILLMClient
 {
     public Dictionary<string, ChoiceAnswer> Answers { get; set; } = new();
-    public Exception ExceptionToThrow { get; set; }
+    public Exception DecideException { get; set; }
     public object LastState { get; private set; }
     public IReadOnlyDictionary<string, ChoiceQuestion> LastQuestions { get; private set; }
-    public int CallCount { get; private set; }
+
+    public object ChatAnswer { get; set; } = new VendorNameAnswer("Żabka");
+    public Exception CompleteException { get; set; }
+    public ChatRequest LastChatRequest { get; private set; }
 
     public Task<DecisionsResponse> Decide(object state, IReadOnlyDictionary<string, ChoiceQuestion> questions, CancellationToken ct)
     {
-        CallCount++;
         LastState = state;
         LastQuestions = questions;
-        if (ExceptionToThrow != null)
-            throw ExceptionToThrow;
+        if (DecideException != null)
+            throw DecideException;
         return Task.FromResult(new DecisionsResponse("typesafe/jev-1.14-20261014", Answers, new DecisionsUsage(100, 0.000004m)));
     }
-}
 
-public class ExtractionsClientStub : IExtractionsClient
-{
-    public Dictionary<string, TextAnswer> Answers { get; set; } = new();
-    public Exception ExceptionToThrow { get; set; }
-    public string LastState { get; private set; }
-    public IReadOnlyDictionary<string, TextField> LastFields { get; private set; }
-    public int CallCount { get; private set; }
-
-    public Task<ExtractionsResponse> Extract(string state, IReadOnlyDictionary<string, TextField> fields, CancellationToken ct)
+    public Task<ChatResult<T>> Complete<T>(ChatRequest request, CancellationToken ct)
     {
-        CallCount++;
-        LastState = state;
-        LastFields = fields;
-        if (ExceptionToThrow != null)
-            throw ExceptionToThrow;
-        return Task.FromResult(new ExtractionsResponse("inception/mercury-decide-20260930", Answers, new ExtractionsUsage(50, 0.000001m)));
+        LastChatRequest = request;
+        if (CompleteException != null)
+            throw CompleteException;
+        return Task.FromResult(new ChatResult<T>("google/gemini-3.8-flash-20260902", (T)ChatAnswer,
+            new ChatUsage(200, 15, 0.0001m)));
     }
 }
 
@@ -53,15 +45,17 @@ public class AiSuggestionServiceStub : IAiSuggestionService
 {
     public AiSuggestion SuggestionToReturn { get; set; }
     public int FailuresBeforeSuccess { get; set; }
-    public int Calls { get; private set; }
-    public int Successes { get; private set; }
+    private int _calls;
+    private int _successes;
+    public int Calls => Volatile.Read(ref _calls);
+    public int Successes => Volatile.Read(ref _successes);
 
+    // The worker processes transactions in parallel, so counters must be thread-safe
     public Task<AiSuggestion> Suggest(Api.Transaction.ApiModels.Transaction transaction, CancellationToken ct)
     {
-        Calls++;
-        if (Calls <= FailuresBeforeSuccess)
+        if (Interlocked.Increment(ref _calls) <= FailuresBeforeSuccess)
             throw new HttpRequestException("OpenRouter unavailable");
-        Successes++;
+        Interlocked.Increment(ref _successes);
 
         var suggestion = SuggestionToReturn ?? new AiSuggestion();
         suggestion.TransactionId = transaction.Id;
@@ -72,7 +66,11 @@ public class AiSuggestionServiceStub : IAiSuggestionService
 public static class OpenRouterTestOptions
 {
     public static IOptions<OpenRouterOptions> Enabled(decimal minConfidence = 0.5m) =>
-        Options.Create(new OpenRouterOptions { ApiKey = "test-key", MinConfidence = minConfidence });
+        Options.Create(new OpenRouterOptions
+        {
+            ApiKey = "test-key", MinConfidence = minConfidence,
+            ChatModel = "google/gemini-3.8-flash:floor", ChatProviderOrder = ["google-ai-studio/flex"]
+        });
 
     public static IOptions<OpenRouterOptions> Disabled() => Options.Create(new OpenRouterOptions());
 }
