@@ -7,6 +7,7 @@ RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS apibuild
 ARG BUILD_CONFIGURATION=Release
+ARG GIT_SHA=""
 WORKDIR /src
 COPY ["backend/MW.TinyMoney.Api/MW.TinyMoney.Api.csproj", "MW.TinyMoney.Api/"]
 COPY ["backend/MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj", "MW.TinyMoney.UnitTests/"]
@@ -15,7 +16,7 @@ RUN dotnet restore
 COPY /backend .
 RUN dotnet test "MW.TinyMoney.UnitTests/MW.TinyMoney.UnitTests.csproj" --no-restore -c Release
 COPY --from=frontbuild /src/dist /src/MW.TinyMoney.Api/wwwroot
-RUN dotnet publish "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "MW.TinyMoney.Api/MW.TinyMoney.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:SourceRevisionId=$GIT_SHA
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled-extra AS base
 WORKDIR /app

@@ -1,5 +1,6 @@
 import type {
     AiSuggestion,
+    AiSuggestionStatus,
     ImportBankStatementResult,
     MergeTransactionsRequest,
     NewTransaction,
@@ -25,6 +26,7 @@ export interface TransactionsClient {
     splitTransaction(transactionId: number, request: SplitTransactionRequest): Promise<void>;
     mergeTransactions(request: MergeTransactionsRequest): Promise<void>;
     createAiSuggestion(transactionId: number): Promise<AiSuggestion | null>;
+    getAiSuggestionStatus(): Promise<AiSuggestionStatus>;
 }
 
 export class TransactionsClientImpl extends ApiBase implements TransactionsClient {
@@ -116,6 +118,12 @@ export class TransactionsClientImpl extends ApiBase implements TransactionsClien
             throw new Error(message || 'Błąd podczas generowania sugestii AI');
         }
         if (res.status === 204) return null;
+        return res.json();
+    }
+
+    async getAiSuggestionStatus(): Promise<AiSuggestionStatus> {
+        const res = await this.request('GET', '/ai-suggestions/status');
+        if (!res.ok) throw new Error('Błąd pobierania statusu sugestii AI');
         return res.json();
     }
 }

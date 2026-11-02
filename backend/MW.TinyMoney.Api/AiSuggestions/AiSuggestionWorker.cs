@@ -11,6 +11,7 @@ namespace MW.TinyMoney.Api.AiSuggestions;
 public class AiSuggestionWorker : BackgroundService
 {
     private const int MaxAttempts = 2;
+    private const int MaxConcurrency = 3;
 
     private readonly IAiSuggestionQueue _queue;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -27,10 +28,19 @@ public class AiSuggestionWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await foreach (var transactionId in _queue.ReadAllAsync(stoppingToken))
-        {
-            await Process(transactionId, stoppingToken);
-        }
+        var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = MaxConcurrency, CancellationToken = stoppingToken };
+        await Parallel.ForEachAsync(_queue.ReadAllAsync(stoppingToken), parallelOptions,
+            async (transactionId, ct) =>
+            {
+                try
+                {
+                    await Process(transactionId, ct);
+                }
+                finally
+                {
+                    _queue.MarkProcessed();
+                }
+            });
     }
 
     public async Task Process(int transactionId, CancellationToken ct)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -65,8 +66,42 @@ public class AiSuggestionQueueTests
     {
         var queue = CreateQueue(OpenRouterTestOptions.Disabled());
 
-        queue.EnqueueUnrecognized([Unrecognized(1), Unrecognized(2)]);
+        var queued = queue.EnqueueUnrecognized([Unrecognized(1), Unrecognized(2)]);
 
         (await ReadForAWhile(queue)).Should().BeEmpty();
+        queued.Should().Be(0);
+        queue.Pending.Should().Be(0);
+    }
+
+    [Fact]
+    public void ReturnsNumberOfQueuedTransactions()
+    {
+        var queue = CreateQueue(OpenRouterTestOptions.Enabled());
+
+        var queued = queue.EnqueueUnrecognized([Unrecognized(1), Unrecognized(2), Unrecognized(3, description: "")]);
+
+        queued.Should().Be(2);
+    }
+
+    [Fact]
+    public void CountsQueuedTransactionsAsPending_UntilProcessed()
+    {
+        var queue = CreateQueue(OpenRouterTestOptions.Enabled());
+        queue.EnqueueUnrecognized([Unrecognized(1), Unrecognized(2)]);
+
+        queue.MarkProcessed();
+
+        queue.Pending.Should().Be(1);
+    }
+
+    [Fact]
+    public void DoesNotCountDroppedTransactions_WhenQueueIsFull()
+    {
+        var queue = CreateQueue(OpenRouterTestOptions.Enabled());
+
+        var queued = queue.EnqueueUnrecognized(Enumerable.Range(1, 1005).Select(id => Unrecognized(id)).ToList());
+
+        queued.Should().Be(1000);
+        queue.Pending.Should().Be(1000);
     }
 }

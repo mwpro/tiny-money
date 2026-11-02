@@ -18,7 +18,8 @@ public class ImportController : Controller
         _importService = importService;
     }
 
-    public record ImportBankStatementResponse(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates);
+    public record ImportBankStatementResponse(int NumberOfImportedTransactions, int NumberOfPossibleDuplicates,
+        int NumberOfQueuedForAiSuggestion);
     public record ImportSingleRequest(DateTime Date, bool IsExpense, decimal Amount, string Description);
     public record ImportSingleResponse(int Id);
 
@@ -46,7 +47,8 @@ public class ImportController : Controller
         return result switch
         {
             CommandSuccess<ImportResult> success => StatusCode(StatusCodes.Status201Created,
-                new ImportBankStatementResponse(success.Result.NumberOfImportedTransactions, success.Result.NumberOfPossibleDuplicates)),
+                new ImportBankStatementResponse(success.Result.NumberOfImportedTransactions,
+                    success.Result.NumberOfPossibleDuplicates, success.Result.NumberOfQueuedForAiSuggestion)),
             InvalidInputResult<ImportResult> invalid => BadRequest(invalid.Reason),
             _ => StatusCode(StatusCodes.Status500InternalServerError)
         };

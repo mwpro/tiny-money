@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -16,7 +18,7 @@ public class AiSuggestionServiceTests
     private const int FuelId = 11;
     private const int SalaryId = 20;
 
-    private readonly DecisionsClientStub _decisionsClient = new();
+    private readonly LLMClientStub _llmClient = new();
     private readonly AiSuggestionStoreStub _suggestionStore = new();
     private readonly DescriptionPreprocessorMock _descriptionPreprocessor = new()
     {
@@ -47,7 +49,7 @@ public class AiSuggestionServiceTests
                 }
             }
         };
-        _service = new AiSuggestionService(_decisionsClient, _suggestionStore, categoriesStore,
+        _service = new AiSuggestionService(_llmClient, _suggestionStore, categoriesStore,
             _descriptionPreprocessor, OpenRouterTestOptions.Enabled(), NullLogger<AiSuggestionService>.Instance);
     }
 
@@ -59,7 +61,7 @@ public class AiSuggestionServiceTests
     {
         await _service.Suggest(Expense(), CancellationToken.None);
 
-        _decisionsClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Should()
+        _llmClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Should()
             .BeEquivalentTo(new Dictionary<string, string>
             {
                 [$"s{GroceriesId}"] = "Jedzenie / Zakupy spożywcze",
@@ -75,16 +77,34 @@ public class AiSuggestionServiceTests
 
         await _service.Suggest(transaction, CancellationToken.None);
 
-        _decisionsClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Keys.Should()
+        _llmClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Keys.Should()
             .BeEquivalentTo([$"s{SalaryId}"]);
     }
 
     [Fact]
-    public async Task SendsSanitizedDescription()
+    public async Task SendsSanitizedDescription_AndSuggestedVendorName_ToCategoryModel()
     {
+        _llmClient.ChatAnswer = new VendorNameAnswer("Biedronka");
+
         await _service.Suggest(Expense("BIEDRONKA"), CancellationToken.None);
 
-        _decisionsClient.LastState.Should().BeEquivalentTo(new { bank_description = "sanitized(BIEDRONKA)", direction = "expense" });
+        _llmClient.LastState.Should().BeEquivalentTo(new
+        {
+            bank_description = "sanitized(BIEDRONKA)", vendor = "Biedronka", direction = "expense"
+        });
+    }
+
+    [Fact]
+    public async Task OmitsVendorFromCategoryState_WhenVendorNameFails()
+    {
+        _llmClient.CompleteException = new HttpRequestException("Chat completions API returned 503");
+
+        await _service.Suggest(Expense("BIEDRONKA"), CancellationToken.None);
+
+        _llmClient.LastState.Should().BeEquivalentTo(new
+        {
+            bank_description = "sanitized(BIEDRONKA)", vendor = (string)null, direction = "expense"
+        });
     }
 
     [Fact]
@@ -92,27 +112,97 @@ public class AiSuggestionServiceTests
     {
         await _service.Suggest(Expense(), CancellationToken.None);
 
-        _decisionsClient.LastQuestions.Keys.Should().BeEquivalentTo([AiSuggestionService.SubcategoryQuestion]);
+        _llmClient.LastQuestions.Keys.Should().BeEquivalentTo([AiSuggestionService.SubcategoryQuestion]);
     }
 
     [Fact]
-    public async Task SuggestsSubcategory_AndProposesNewVendorNamedAfterDescription()
+    public async Task SuggestsSubcategory()
     {
-        _decisionsClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{GroceriesId}", 0.9m);
+        _llmClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{GroceriesId}", 0.9m);
 
         var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
 
-        suggestion.SuggestedVendorId.Should().BeNull();
-        suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
-        suggestion.VendorConfidence.Should().BeNull();
         suggestion.SuggestedSubcategoryId.Should().Be(GroceriesId);
         suggestion.SubcategoryConfidence.Should().Be(0.9m);
     }
 
     [Fact]
+    public async Task AsksChatModel_WithSanitizedDescription()
+    {
+        await _service.Suggest(Expense("JMP S.A. BIEDRONKA 123"), CancellationToken.None);
+
+        _llmClient.LastChatRequest.SystemPrompt.Should().Be(AiSuggestionService.VendorNamePrompt);
+        _llmClient.LastChatRequest.UserMessage.Should().Be("sanitized(JMP S.A. BIEDRONKA 123)");
+    }
+
+    [Fact]
+    public async Task ProposesNewVendor_WithSuggestedName()
+    {
+        _llmClient.ChatAnswer = new VendorNameAnswer(" Biedronka ");
+
+        var suggestion = await _service.Suggest(Expense("JMP S.A. BIEDRONKA 123"), CancellationToken.None);
+
+        suggestion.SuggestedVendorId.Should().BeNull();
+        suggestion.SuggestedVendorName.Should().Be("Biedronka");
+        suggestion.VendorConfidence.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData(null)]
+    public async Task FallsBackToDescription_WhenVendorNameIsMissing(string vendor)
+    {
+        _llmClient.ChatAnswer = new VendorNameAnswer(vendor);
+
+        var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
+
+        suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
+    }
+
+    [Fact]
+    public async Task FallsBackToDescription_WhenVendorNameFails_AndKeepsSubcategory()
+    {
+        _llmClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{GroceriesId}", 0.9m);
+        _llmClient.CompleteException = new HttpRequestException("Chat completions API returned 503");
+
+        var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
+
+        suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
+        suggestion.SuggestedSubcategoryId.Should().Be(GroceriesId);
+        _suggestionStore.SavedSuggestions.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task FallsBackToDescription_WhenVendorNameTimesOut()
+    {
+        _llmClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{GroceriesId}", 0.9m);
+        _llmClient.CompleteException = new TaskCanceledException("HttpClient.Timeout elapsed",
+            new TimeoutException());
+
+        var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
+
+        suggestion.SuggestedVendorName.Should().Be("sanitized(ZABKA WARSZAWA)");
+        suggestion.SuggestedSubcategoryId.Should().Be(GroceriesId);
+    }
+
+    [Fact]
+    public async Task Throws_WhenCancelledDuringVendorName()
+    {
+        using var cts = new CancellationTokenSource();
+        await cts.CancelAsync();
+        _llmClient.CompleteException = new OperationCanceledException(cts.Token);
+
+        var act = () => _service.Suggest(Expense(), cts.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        _suggestionStore.SavedSuggestions.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task IgnoresUnknownSubcategoryChoice()
     {
-        _decisionsClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{SalaryId}", 0.9m);
+        _llmClient.Answers[AiSuggestionService.SubcategoryQuestion] = new ChoiceAnswer($"s{SalaryId}", 0.9m);
 
         var suggestion = await _service.Suggest(Expense(), CancellationToken.None);
 

@@ -8,22 +8,33 @@ using MW.TinyMoney.Api.AiSuggestions;
 
 namespace MW.TinyMoney.UnitTests.AiSuggestions;
 
-public class DecisionsClientStub : IDecisionsClient
+public class LLMClientStub : ILLMClient
 {
     public Dictionary<string, ChoiceAnswer> Answers { get; set; } = new();
-    public Exception ExceptionToThrow { get; set; }
+    public Exception DecideException { get; set; }
     public object LastState { get; private set; }
     public IReadOnlyDictionary<string, ChoiceQuestion> LastQuestions { get; private set; }
-    public int CallCount { get; private set; }
+
+    public object ChatAnswer { get; set; } = new VendorNameAnswer("Żabka");
+    public Exception CompleteException { get; set; }
+    public ChatRequest LastChatRequest { get; private set; }
 
     public Task<DecisionsResponse> Decide(object state, IReadOnlyDictionary<string, ChoiceQuestion> questions, CancellationToken ct)
     {
-        CallCount++;
         LastState = state;
         LastQuestions = questions;
-        if (ExceptionToThrow != null)
-            throw ExceptionToThrow;
+        if (DecideException != null)
+            throw DecideException;
         return Task.FromResult(new DecisionsResponse("typesafe/jev-1.14-20261014", Answers, new DecisionsUsage(100, 0.000004m)));
+    }
+
+    public Task<ChatResult<T>> Complete<T>(ChatRequest request, CancellationToken ct)
+    {
+        LastChatRequest = request;
+        if (CompleteException != null)
+            throw CompleteException;
+        return Task.FromResult(new ChatResult<T>("google/gemini-3.8-flash-20260902", (T)ChatAnswer,
+            new ChatUsage(200, 15, 0.0001m)));
     }
 }
 
@@ -34,26 +45,49 @@ public class AiSuggestionServiceStub : IAiSuggestionService
 {
     public AiSuggestion SuggestionToReturn { get; set; }
     public int FailuresBeforeSuccess { get; set; }
-    public int Calls { get; private set; }
-    public int Successes { get; private set; }
+    public Task Gate { get; set; } = Task.CompletedTask;
+    private int _calls;
+    private int _successes;
+    private int _inFlight;
+    private int _maxInFlight;
+    public int Calls => Volatile.Read(ref _calls);
+    public int Successes => Volatile.Read(ref _successes);
+    public int InFlight => Volatile.Read(ref _inFlight);
+    public int MaxInFlight => Volatile.Read(ref _maxInFlight);
 
-    public Task<AiSuggestion> Suggest(Api.Transaction.ApiModels.Transaction transaction, CancellationToken ct)
+    public async Task<AiSuggestion> Suggest(Api.Transaction.ApiModels.Transaction transaction, CancellationToken ct)
     {
-        Calls++;
-        if (Calls <= FailuresBeforeSuccess)
+        if (Interlocked.Increment(ref _calls) <= FailuresBeforeSuccess)
             throw new HttpRequestException("OpenRouter unavailable");
-        Successes++;
+
+        var inFlight = Interlocked.Increment(ref _inFlight);
+        int max;
+        while (inFlight > (max = Volatile.Read(ref _maxInFlight)))
+            Interlocked.CompareExchange(ref _maxInFlight, inFlight, max);
+        try
+        {
+            await Gate.WaitAsync(ct);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _inFlight);
+        }
+        Interlocked.Increment(ref _successes);
 
         var suggestion = SuggestionToReturn ?? new AiSuggestion();
         suggestion.TransactionId = transaction.Id;
-        return Task.FromResult(suggestion);
+        return suggestion;
     }
 }
 
 public static class OpenRouterTestOptions
 {
     public static IOptions<OpenRouterOptions> Enabled(decimal minConfidence = 0.5m) =>
-        Options.Create(new OpenRouterOptions { ApiKey = "test-key", MinConfidence = minConfidence });
+        Options.Create(new OpenRouterOptions
+        {
+            ApiKey = "test-key", MinConfidence = minConfidence,
+            ChatModel = "google/gemini-3.8-flash:floor", ChatProviderOrder = ["google-ai-studio/flex"]
+        });
 
     public static IOptions<OpenRouterOptions> Disabled() => Options.Create(new OpenRouterOptions());
 }

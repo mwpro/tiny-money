@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -107,5 +108,61 @@ public class AiSuggestionWorkerTests
         await worker.StopAsync(CancellationToken.None);
 
         _suggestionService.Calls.Should().Be(3);
+        queue.Pending.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task MarksQueuedTransactionProcessed_WhenSuggestionKeepsFailing()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null);
+        _suggestionService.FailuresBeforeSuccess = 5;
+        var queue = new AiSuggestionQueue(OpenRouterTestOptions.Enabled(), NullLogger<AiSuggestionQueue>.Instance);
+        var services = new ServiceCollection()
+            .AddSingleton<ITransactionStore>(_transactionStore)
+            .AddSingleton<IAiSuggestionService>(_suggestionService)
+            .BuildServiceProvider();
+        var worker = new AiSuggestionWorker(queue, services.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<AiSuggestionWorker>.Instance) { RetryDelay = TimeSpan.Zero };
+
+        await worker.StartAsync(CancellationToken.None);
+        queue.EnqueueUnrecognized([TransactionsHelper.PrepareTransaction(vendorId: null)]);
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (queue.Pending > 0 && DateTime.UtcNow < deadline)
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        await worker.StopAsync(CancellationToken.None);
+
+        _suggestionService.Calls.Should().Be(2);
+        queue.Pending.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ProcessesQueuedTransactionsInParallel_UpToThreeAtOnce()
+    {
+        _transactionStore.Transaction = TransactionsHelper.PrepareTransaction(vendorId: null);
+        var gate = new TaskCompletionSource();
+        _suggestionService.Gate = gate.Task;
+        var queue = new AiSuggestionQueue(OpenRouterTestOptions.Enabled(), NullLogger<AiSuggestionQueue>.Instance);
+        var services = new ServiceCollection()
+            .AddSingleton<ITransactionStore>(_transactionStore)
+            .AddSingleton<IAiSuggestionService>(_suggestionService)
+            .BuildServiceProvider();
+        var worker = new AiSuggestionWorker(queue, services.GetRequiredService<IServiceScopeFactory>(),
+            NullLogger<AiSuggestionWorker>.Instance);
+
+        await worker.StartAsync(CancellationToken.None);
+        queue.EnqueueUnrecognized(Enumerable.Range(0, 5)
+            .Select(_ => TransactionsHelper.PrepareTransaction(vendorId: null)).ToList());
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (_suggestionService.InFlight < 3 && DateTime.UtcNow < deadline)
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        var inFlightWhileBlocked = _suggestionService.InFlight;
+        gate.SetResult();
+        while (_suggestionService.Successes < 5 && DateTime.UtcNow < deadline)
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        await worker.StopAsync(CancellationToken.None);
+
+        inFlightWhileBlocked.Should().Be(3);
+        _suggestionService.MaxInFlight.Should().Be(3);
+        _suggestionService.Successes.Should().Be(5);
     }
 }
