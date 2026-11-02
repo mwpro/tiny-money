@@ -48,5 +48,5 @@ public static class AiSuggestionsServiceCollectionExtensions
     }
 
     public static string AppReferer(string environmentName, string version) =>
-        $"{environmentName.ToLowerInvariant()}.tinymoney/{version}";
+        $"https://{environmentName.ToLowerInvariant()}.tinymoney/{version}";
 }

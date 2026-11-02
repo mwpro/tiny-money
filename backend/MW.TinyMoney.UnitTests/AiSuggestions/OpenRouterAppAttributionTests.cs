@@ -27,7 +27,7 @@ public class OpenRouterAppAttributionTests
     public void BuildsRefererFromEnvironmentAndVersion()
     {
         AiSuggestionsServiceCollectionExtensions.AppReferer("Production", "1.0.0+80fed8e")
-            .Should().Be("production.tinymoney/1.0.0+80fed8e");
+            .Should().Be("https://production.tinymoney/1.0.0+80fed8e");
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class OpenRouterAppAttributionTests
 
         var headers = client.DefaultRequestHeaders;
         headers.Authorization!.ToString().Should().Be("Bearer test-key");
-        headers.GetValues("HTTP-Referer").Single().Should().StartWith("production.tinymoney/");
+        headers.GetValues("HTTP-Referer").Single().Should().StartWith("https://production.tinymoney/");
         headers.GetValues("X-OpenRouter-Title").Single().Should().MatchRegex(@"^MW\.TinyMoney\.Api .+ \(Production\)$");
         headers.GetValues("X-OpenRouter-App-Visibility").Single().Should().Be("hidden");
     }
