@@ -43,8 +43,8 @@ public class SummaryReport : ISummaryReport
                             DATE_FORMAT(DATE_SUB(STR_TO_DATE(CONCAT(p.period_name, '-01'), '%Y-%m-%d'), INTERVAL 1 YEAR), '%Y-%m'),
                             DATE_FORMAT(DATE_SUB(STR_TO_DATE(CONCAT(p.period_name, '-01-01'), '%Y-%m-%d'), INTERVAL 1 YEAR), '%Y')
                         ) AS yoy_period_name,
-                        c.id AS catId, c.is_income AS isIncome, c.name AS catName,
-                        s.id AS subId, s.name AS subName
+                        c.id AS catId, c.is_income AS isIncome, c.name AS catName, c.sort_order AS catSortOrder,
+                        s.id AS subId, s.name AS subName, s.sort_order AS subSortOrder
                     FROM periods p
                     CROSS JOIN category c
                     JOIN subcategory s ON s.parent_category_id = c.id
@@ -76,7 +76,7 @@ public class SummaryReport : ISummaryReport
                 FROM all_combinations ac
                 LEFT JOIN monthly_sums ms  ON ac.period_name     = ms.period_name  AND ac.subId = ms.subcategory_id
                 LEFT JOIN yoy_sums yoy     ON ac.yoy_period_name = yoy.period_name AND ac.subId = yoy.subcategory_id
-                ORDER BY period, categoryId, subcategoryId;";
+                ORDER BY ac.period_name, ac.catSortOrder, ac.catId, ac.subSortOrder, ac.subId;";
 
     private class SummaryReportQueryResult
     {

@@ -31,7 +31,8 @@ public class BudgetStore : IBudgetStore
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
-            GROUP BY c.id, c.name, s.id, s.name, b.amount, b.notes
+            GROUP BY c.id, c.name, c.sort_order, s.id, s.name, s.sort_order, b.amount, b.notes
+            ORDER BY c.sort_order, c.id, s.sort_order, s.id
         """;
 
     private const string SetBudgetQuery =
