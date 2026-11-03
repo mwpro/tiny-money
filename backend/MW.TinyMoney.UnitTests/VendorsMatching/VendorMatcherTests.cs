@@ -68,10 +68,45 @@ public class VendorMatcherTests
                 MakeVendor(5, "market wielobranżowy"), MakeVendor(6, "sklep")]
         ).Match("Stonka sklep wielobranżowy", 3);
         
+        // 3 matched words first; then 2 matched words, fully covered name before partially covered one
         result.Should().SatisfyRespectively(
             s => s.Name.Should().Be("Stonka sklep wielobranżowy"),
-            s => s.Name.Should().Be("Stonka sklep zoologiczny"),
-            s => s.Name.Should().Be("sklep wielobranżowy"));
+            s => s.Name.Should().Be("sklep wielobranżowy"),
+            s => s.Name.Should().Be("Stonka sklep zoologiczny"));
+    }
+
+    [Theory]
+    [InlineData(1, 2)]
+    [InlineData(2, 1)]
+    public void PrefersVendorWhoseNameIsFullyCovered_RegardlessOfOrder(int carrefourId, int expressId)
+    {
+        var vendors = new[] { MakeVendor(carrefourId, "Carrefour"), MakeVendor(expressId, "Carrefour Express") }
+            .OrderBy(v => v.Id).ToList();
+        var result = new VendorMatcher(vendors, [], DescriptionPreprocessor.CreateFromFiles())
+            .Match("CARREFOUR BLABLA");
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Carrefour"));
+    }
+
+    [Fact]
+    public void ManyAliasesSharingAWord_DoNotOutweighBetterCoveredVendor()
+    {
+        var result = new VendorMatcher(
+                [MakeVendor(1, "Carrefour"), MakeVendor(2, "Carrefour Express")],
+                [MakeAlias(2, "Carrefour Express Warszawa"), MakeAlias(2, "Carrefour Express Poznan"), MakeAlias(2, "Carrefour Express Krakow")],
+                DescriptionPreprocessor.CreateFromFiles())
+            .Match("CARREFOUR BLABLA");
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Carrefour"));
+    }
+
+    [Fact]
+    public void MoreMatchedWordsWin_OverBetterCoverage()
+    {
+        var result = new VendorMatcher(
+                [MakeVendor(1, "Carrefour"), MakeVendor(2, "Carrefour Express")],
+                [MakeAlias(2, "Carrefour Express Warszawa")],
+                DescriptionPreprocessor.CreateFromFiles())
+            .Match("CARREFOUR EXPRESS WARSZAWA UL MARSZALKOWSKA");
+        result.Should().SatisfyRespectively(s => s.Name.Should().Be("Carrefour Express"));
     }
     
     [Fact]
