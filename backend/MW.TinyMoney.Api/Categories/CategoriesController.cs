@@ -104,6 +104,20 @@ public class CategoriesController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("{categoryId}/subcategories/{id}/hide")]
+    public Task<IActionResult> HideSubcategory(int categoryId, int id) => SetSubcategoryHidden(id, true);
+
+    [HttpPost("{categoryId}/subcategories/{id}/unhide")]
+    public Task<IActionResult> UnhideSubcategory(int categoryId, int id) => SetSubcategoryHidden(id, false);
+
+    private async Task<IActionResult> SetSubcategoryHidden(int id, bool isHidden)
+    {
+        var subcategory = await _categoriesStore.GetSubcategoryById(id);
+        if (subcategory == null) return NotFound();
+        await _categoriesStore.SetSubcategoryHidden(id, isHidden);
+        return Ok();
+    }
+
     [HttpPost("{categoryId}/subcategories/{id}/move-up")]
     public async Task<IActionResult> MoveSubcategoryUp(int categoryId, int id)
     {
