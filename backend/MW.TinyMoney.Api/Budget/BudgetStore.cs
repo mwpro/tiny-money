@@ -78,6 +78,15 @@ public class BudgetStore : IBudgetStore
 
         UNION ALL
 
+        SELECT s.id AS `subcategoryId`, 'Średnie wydatki za 12 ostatnich mc' AS 'suggestionName', COALESCE(SUM(t.amount), 0) / 12 AS 'suggestedAmount'
+        FROM category c
+        LEFT JOIN subcategory s ON s.parent_category_id = c.id
+        LEFT JOIN transaction t ON t.subcategory_id = s.id AND t.is_expense = 1 AND t.transaction_date BETWEEN @last12mPeriodStart AND @last12mPeriodEnd
+        WHERE c.is_income = 0
+        GROUP BY s.id
+
+        UNION ALL
+
         SELECT s.id AS `subcategoryId`, 'Ten miesiąc rok temu - wydatki' AS 'suggestionName', COALESCE(SUM(t.amount), 0) AS 'suggestedAmount'
         FROM category c
         LEFT JOIN subcategory s ON s.parent_category_id = c.id
@@ -172,10 +181,11 @@ public class BudgetStore : IBudgetStore
         await connection.OpenAsync();
             
         var dateFromPeriod = new DateTime(year, month, 1);
+        var dayBeforeThisPeriodStart = dateFromPeriod.AddDays(-1);
         var previousPeriod = dateFromPeriod.AddMonths(-1);
         var thisPeriodLastYear = dateFromPeriod.AddYears(-1);
         var last3mPeriodStart = dateFromPeriod.AddMonths(-3);
-        var last3mPeriodEnd = dateFromPeriod.AddDays(-1);
+        var last12mPeriodStart = dateFromPeriod.AddMonths(-12);
 
         var suggestionsResult = new Dictionary<int, ICollection<BudgetSuggestion>>();
         await connection.QueryAsync<SubcategoryBudgetSuggestions, BudgetSuggestion, SubcategoryBudgetSuggestions>(
@@ -199,7 +209,8 @@ public class BudgetStore : IBudgetStore
             {
                 previousPeriodYear = previousPeriod.Year, previousPeriodMonth = previousPeriod.Month,
                 thisPeriodLastYearYear = thisPeriodLastYear.Year, thisPeriodLastYearMonth = thisPeriodLastYear.Month,
-                last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd
+                last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = dayBeforeThisPeriodStart,
+                last12mPeriodStart = last12mPeriodStart, last12mPeriodEnd = dayBeforeThisPeriodStart
             },
             splitOn: "suggestionName");
             
