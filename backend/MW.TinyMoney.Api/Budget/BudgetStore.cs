@@ -181,10 +181,10 @@ public class BudgetStore : IBudgetStore
         await connection.OpenAsync();
             
         var dateFromPeriod = new DateTime(year, month, 1);
+        var dayBeforeThisPeriodStart = dateFromPeriod.AddDays(-1);
         var previousPeriod = dateFromPeriod.AddMonths(-1);
         var thisPeriodLastYear = dateFromPeriod.AddYears(-1);
         var last3mPeriodStart = dateFromPeriod.AddMonths(-3);
-        var last3mPeriodEnd = dateFromPeriod.AddDays(-1);
         var last12mPeriodStart = dateFromPeriod.AddMonths(-12);
 
         var suggestionsResult = new Dictionary<int, ICollection<BudgetSuggestion>>();
@@ -209,8 +209,8 @@ public class BudgetStore : IBudgetStore
             {
                 previousPeriodYear = previousPeriod.Year, previousPeriodMonth = previousPeriod.Month,
                 thisPeriodLastYearYear = thisPeriodLastYear.Year, thisPeriodLastYearMonth = thisPeriodLastYear.Month,
-                last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = last3mPeriodEnd,
-                last12mPeriodStart = last12mPeriodStart, last12mPeriodEnd = last3mPeriodEnd
+                last3mPeriodStart = last3mPeriodStart, last3mPeriodEnd = dayBeforeThisPeriodStart,
+                last12mPeriodStart = last12mPeriodStart, last12mPeriodEnd = dayBeforeThisPeriodStart
             },
             splitOn: "suggestionName");
             
