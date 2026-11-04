@@ -13,7 +13,29 @@ public interface IVendorMatcher
 
 public class VendorMatcher : IVendorMatcher
 {
-    private readonly Dictionary<string, List<(int vendorId, int score)>> _index;
+    // A single vendor name or alias, tokenized. Vendors are scored by their best entry,
+    // so having many aliases that share a word does not inflate a vendor's score.
+    private sealed record Entry(int VendorId, bool IsAlias, IReadOnlyCollection<string> Tokens);
+
+    // Compared lexicographically: more matched words wins; on a tie, a prefix hit (autocomplete),
+    // then the entry whose words are covered more completely ("carrefour" fully covers vendor
+    // "Carrefour" but only half of "Carrefour Express"), then aliases over vendor names.
+    private readonly record struct EntryScore(int MatchedTokens, bool PrefixHit, double Coverage, bool IsAlias)
+        : IComparable<EntryScore>
+    {
+        public int CompareTo(EntryScore other)
+        {
+            var c = MatchedTokens.CompareTo(other.MatchedTokens);
+            if (c != 0) return c;
+            c = PrefixHit.CompareTo(other.PrefixHit);
+            if (c != 0) return c;
+            c = Coverage.CompareTo(other.Coverage);
+            if (c != 0) return c;
+            return IsAlias.CompareTo(other.IsAlias);
+        }
+    }
+
+    private readonly Dictionary<string, List<Entry>> _index;
     private readonly Dictionary<int, Vendor> _vendorById;
     private readonly IDescriptionPreprocessor _preprocessor;
 
@@ -21,22 +43,26 @@ public class VendorMatcher : IVendorMatcher
     {
         _preprocessor = preprocessor;
         _vendorById = vendors.ToDictionary(v => v.Id);
-        _index = new Dictionary<string, List<(int vendorId, int score)>>(StringComparer.Ordinal);
+        _index = new Dictionary<string, List<Entry>>(StringComparer.Ordinal);
 
-        // Alias tokens score 3 (explicit user mapping), vendor name tokens score 2 (implicit)
         foreach (var alias in aliases)
-            AddToIndex(alias.Alias, alias.VendorId, 3);
+            AddToIndex(alias.Alias, alias.VendorId, isAlias: true);
         foreach (var vendor in vendors)
-            AddToIndex(vendor.Name, vendor.Id, 2);
+            AddToIndex(vendor.Name, vendor.Id, isAlias: false);
     }
 
-    private void AddToIndex(string text, int vendorId, int score)
+    private void AddToIndex(string text, int vendorId, bool isAlias)
     {
-        foreach (var token in _preprocessor.Tokenize(_preprocessor.Preprocess(text)))
+        var tokens = _preprocessor.Tokenize(_preprocessor.Preprocess(text)).Distinct().ToList();
+        if (tokens.Count == 0)
+            return;
+
+        var entry = new Entry(vendorId, isAlias, tokens);
+        foreach (var token in tokens)
         {
             if (!_index.TryGetValue(token, out var list))
-                _index[token] = list = new List<(int, int)>();
-            list.Add((vendorId, score));
+                _index[token] = list = new List<Entry>();
+            list.Add(entry);
         }
     }
 
@@ -54,7 +80,7 @@ public class VendorMatcher : IVendorMatcher
 
         foreach (var token in LookupTokens(preprocessed))
         {
-            if (_index.TryGetValue(token, out var entries) && entries.Any(e => e.vendorId == vendorId))
+            if (_index.TryGetValue(token, out var entries) && entries.Any(e => e.VendorId == vendorId))
                 return true;
         }
 
@@ -66,30 +92,45 @@ public class VendorMatcher : IVendorMatcher
         if (string.IsNullOrWhiteSpace(description))
             return [];
 
-        var scores = new Dictionary<int, int>();
-
         var preprocessed = _preprocessor.Preprocess(description);
         if (string.IsNullOrWhiteSpace(preprocessed))
             return [];
 
+        var matchedTokens = new Dictionary<Entry, int>(ReferenceEqualityComparer.Instance);
+        foreach (var token in LookupTokens(preprocessed))
+        {
+            if (!_index.TryGetValue(token, out var entries)) continue;
+            foreach (var entry in entries)
+                matchedTokens[entry] = matchedTokens.GetValueOrDefault(entry) + 1;
+        }
+
+        var prefixHits = new HashSet<Entry>(ReferenceEqualityComparer.Instance);
         if (prefixMatching)
         {
             foreach (var (token, entries) in _index)
             {
                 if (!token.StartsWith(preprocessed, StringComparison.OrdinalIgnoreCase)) continue;
-                foreach (var (vendorId, score) in entries)
-                    scores[vendorId] = scores.GetValueOrDefault(vendorId) + 1;
+                prefixHits.UnionWith(entries);
             }
         }
-        foreach (var token in LookupTokens(preprocessed))
+
+        var bestByVendor = new Dictionary<int, EntryScore>();
+        foreach (var entry in matchedTokens.Keys.Concat(prefixHits).Distinct(ReferenceEqualityComparer.Instance).Cast<Entry>())
         {
-            if (!_index.TryGetValue(token, out var entries)) continue;
-            foreach (var (vendorId, score) in entries)
-                scores[vendorId] = scores.GetValueOrDefault(vendorId) + score;
+            var matched = matchedTokens.GetValueOrDefault(entry);
+            var score = new EntryScore(
+                matched,
+                prefixHits.Contains(entry),
+                (double)matched / entry.Tokens.Count,
+                entry.IsAlias);
+
+            if (!bestByVendor.TryGetValue(entry.VendorId, out var best) || score.CompareTo(best) > 0)
+                bestByVendor[entry.VendorId] = score;
         }
 
-        return scores
+        return bestByVendor
             .OrderByDescending(kv => kv.Value)
+            .ThenBy(kv => kv.Key)
             .Select(kv => _vendorById.GetValueOrDefault(kv.Key))
             .Where(v => v != null)
             .Take(limit)
