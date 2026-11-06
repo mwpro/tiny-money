@@ -34,6 +34,7 @@ import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGro
 import {AlertTriangle, Loader2, Minus, Plus, Sparkles} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
+import {isSubcategoryIdHiddenOn, visibleCategories} from "@/lib/categories.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
@@ -184,6 +185,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
     const aiSuggestion = aiRequested ? requestedAiSuggestion!.suggestion : transaction?.aiSuggestion ?? null
     const vendorValue = useWatch({control, name: "vendor"})
     const subcategoryValue = useWatch({control, name: "subcategoryId"})
+    const transactionDateValue = useWatch({control, name: "transactionDate"})
     const vendorFromAi = canUseAiSuggestions && !!aiSuggestion?.vendorName
         && vendorValue.name === aiSuggestion.vendorName
         && (vendorValue.id ?? null) === aiSuggestion.vendorId
@@ -317,7 +319,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
 
                                                       if (value?.id) {
                                                           const suggestion = lastVendorSuggestions.current.find(s => s.vendorId === value.id)
-                                                          if (suggestion?.defaultSubcategoryId) {
+                                                          if (suggestion?.defaultSubcategoryId
+                                                              && !isSubcategoryIdHiddenOn(categoriesQuery.data, suggestion.defaultSubcategoryId, getValues("transactionDate") || new Date())) {
                                                               setValue("subcategoryId", suggestion.defaultSubcategoryId, {
                                                                   shouldValidate: true,
                                                                   shouldDirty: true
@@ -373,7 +376,7 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
                                         </SelectTrigger>
                                         
                                         <SelectContent>
-                                            {categoriesQuery.data && categoriesQuery.data.map(category => (
+                                            {categoriesQuery.data && visibleCategories(categoriesQuery.data, field.value, transactionDateValue || new Date()).map(category => (
                                                 <SelectGroup key={category.id}>
                                                     <SelectLabel>{category.name}</SelectLabel>
                                                     {category.subcategories.map(subcategory => (

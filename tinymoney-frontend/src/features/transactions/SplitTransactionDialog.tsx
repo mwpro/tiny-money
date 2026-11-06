@@ -151,6 +151,7 @@ export function SplitTransactionDialog({transaction, onClose}: SplitTransactionD
                                 setValue={setValue}
                                 remove={remove}
                                 canRemove={fields.length > 2}
+                                transactionDate={transaction?.transactionDate}
                             />
                         ))}
 

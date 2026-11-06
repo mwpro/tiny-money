@@ -8,7 +8,7 @@ import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog"
-import {ChevronDown, ChevronUp, List, Pencil, Store, Trash2} from "lucide-react"
+import {ChevronDown, ChevronUp, Eye, EyeOff, List, Pencil, Store, Trash2} from "lucide-react"
 import {toast} from "sonner"
 import {getTransactionsUrl} from "@/lib/utils.ts"
 import {SubcategoryEditorDialog} from "@/features/settings/categories/SubcategoryEditorDialog.tsx"
@@ -44,10 +44,31 @@ export function SubcategoryRow({subcategory, categoryId, isFirst, isLast, catego
         onError: (e) => toast.error("Błąd: " + e.message)
     })
 
+    const isHidden = !!subcategory.hiddenFrom
+
+    const toggleHiddenMutation = useMutation({
+        mutationFn: () => categoriesClient.setSubcategoryHidden(categoryId, subcategory.id, !isHidden),
+        onSuccess: onMutated,
+        onError: (e) => toast.error("Błąd: " + e.message)
+    })
+
     return (
         <div className="flex items-center justify-between py-1.5 pl-8 pr-2">
-            <span className="text-sm">{subcategory.name}</span>
+            <span className={`text-sm ${isHidden ? "text-muted-foreground" : ""}`}>
+                {subcategory.name}
+                {isHidden && <span className="ml-2 text-xs">(ukryta od {subcategory.hiddenFrom!.slice(0, 10)})</span>}
+            </span>
             <div className="flex items-center gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    title={isHidden ? "Ukryta — kliknij, aby pokazać" : "Widoczna — kliknij, aby ukryć od dziś (dane historyczne zostaną zachowane)"}
+                    disabled={toggleHiddenMutation.isPending}
+                    onClick={() => toggleHiddenMutation.mutate()}
+                >
+                    {isHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </Button>
                 <Button variant="ghost" size="icon" className="h-7 w-7" title="Transakcje" asChild>
                     <Link to={getTransactionsUrl({subcategoryId: subcategory.id})} target="_blank">
                         <List className="h-3.5 w-3.5" />

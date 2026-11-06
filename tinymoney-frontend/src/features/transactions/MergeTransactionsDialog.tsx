@@ -1,5 +1,5 @@
 import {useEffect, useRef} from "react"
-import {Controller, useForm} from "react-hook-form"
+import {Controller, useForm, useWatch} from "react-hook-form"
 import {zodResolver} from "@hookform/resolvers/zod"
 import {z} from "zod"
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query"
@@ -15,6 +15,7 @@ import {DatePicker} from "@/components/DatePicker.tsx"
 import {Curr, formatCurrencyAsString} from "@/components/Curr.tsx"
 import {format} from "date-fns"
 import {dateFormat} from "@/lib/utils.ts"
+import {isSubcategoryIdHiddenOn, visibleCategories} from "@/lib/categories.ts"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
 import {toast} from "sonner"
 
@@ -117,6 +118,8 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
         onError: (error: Error) => toast.error("Błąd: " + error.message)
     })
 
+    const transactionDateValue = useWatch({control, name: "transactionDate"})
+
     const filteredCategories = categoriesQuery.data?.filter(c =>
         isExpenseResult ? !c.isIncome : c.isIncome
     ) ?? []
@@ -188,7 +191,7 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
                                                     const category = categoriesQuery.data?.find(c =>
                                                         c.subcategories.some(s => s.id === suggestion.defaultSubcategoryId))
                                                     const matchesType = category && (isExpenseResult ? !category.isIncome : category.isIncome)
-                                                    if (matchesType) {
+                                                    if (matchesType && !isSubcategoryIdHiddenOn(categoriesQuery.data, suggestion.defaultSubcategoryId, transactionDateValue || new Date())) {
                                                         setValue("subcategoryId", suggestion.defaultSubcategoryId)
                                                     }
                                                 }
@@ -223,7 +226,7 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
                                             </SelectValue>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {filteredCategories.map(category => (
+                                            {visibleCategories(filteredCategories, f.value, transactionDateValue || new Date()).map(category => (
                                                 <SelectGroup key={category.id}>
                                                     <SelectLabel>{category.name}</SelectLabel>
                                                     {category.subcategories.map(sub => (

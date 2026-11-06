@@ -282,9 +282,9 @@ export type VendorDetails = {
     lastTransactionDate: string | undefined
 };
 export type Category = { id: number, name: string, isIncome: boolean, subcategories: Subcategory[] };
-export type Subcategory = { id: number; name: string };
+export type Subcategory = { id: number; name: string; hiddenFrom: string | null };
 export type DetailedCategory = { id: number, name: string, isIncome: boolean, subcategories: DetailedSubcategory[] };
-export type DetailedSubcategory = { id: number; name: string; hasUsages: boolean };
+export type DetailedSubcategory = { id: number; name: string; hiddenFrom: string | null; hasUsages: boolean };
 export type Tag = { id: number; name: string; numberOfTransactions: number; numberOfPlans: number };
 
 export type DailyExpense = { day: number; amount: number, budgetLeft: number };

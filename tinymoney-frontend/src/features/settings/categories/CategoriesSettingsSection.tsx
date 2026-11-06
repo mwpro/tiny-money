@@ -15,7 +15,7 @@ export function CategoriesSettingsSection() {
         queryFn: () => categoriesClient.getCategoriesDetailed()
     })
 
-    const invalidate = () => queryClient.invalidateQueries({queryKey: ['categories', 'detailed']})
+    const invalidate = () => queryClient.invalidateQueries({queryKey: ['categories']})
 
     const categories = categoriesQuery.data ?? []
 

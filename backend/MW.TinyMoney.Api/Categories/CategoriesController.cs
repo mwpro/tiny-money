@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -101,6 +102,20 @@ public class CategoriesController : ControllerBase
         if (await _categoriesStore.SubcategoryHasUsages(id))
             return Conflict("Subcategory has usages. Move transactions and vendor defaults first.");
         await _categoriesStore.DeleteSubcategory(id);
+        return Ok();
+    }
+
+    [HttpPost("{categoryId}/subcategories/{id}/hide")]
+    public Task<IActionResult> HideSubcategory(int categoryId, int id) => SetSubcategoryHidden(id, DateTime.Today);
+
+    [HttpPost("{categoryId}/subcategories/{id}/unhide")]
+    public Task<IActionResult> UnhideSubcategory(int categoryId, int id) => SetSubcategoryHidden(id, null);
+
+    private async Task<IActionResult> SetSubcategoryHidden(int id, DateTime? hiddenFrom)
+    {
+        var subcategory = await _categoriesStore.GetSubcategoryById(id);
+        if (subcategory == null) return NotFound();
+        await _categoriesStore.SetSubcategoryHidden(id, hiddenFrom);
         return Ok();
     }
 

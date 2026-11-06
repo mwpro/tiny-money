@@ -25,6 +25,7 @@ import {
     SelectValue
 } from "@/components/ui/select.tsx";
 import {useSearchParams} from "react-router-dom";
+import {visibleCategories} from "@/lib/categories.ts";
 import {TransactionsTable} from "@/features/transactions/TransactionsTable.tsx";
 import Autocomplete from "@/components/Autocomplete.tsx";
 import {Input} from "@/components/ui/input.tsx";
@@ -286,7 +287,7 @@ export function TransactionsPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="__NONE__">Wszystkie</SelectItem>
-                        {categoriesQuery.data && categoriesQuery.data
+                        {categoriesQuery.data && visibleCategories(categoriesQuery.data, queryParams.subcategoryIdFilter, queryParams.dateFrom ?? new Date(0))
                             .filter(c => (queryParams.isExpenseFilter === undefined || queryParams.isExpenseFilter == !c.isIncome))
                             .map(category => (
                             <SelectGroup key={category.id}>

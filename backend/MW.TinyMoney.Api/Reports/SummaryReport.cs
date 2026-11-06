@@ -48,6 +48,15 @@ public class SummaryReport : ISummaryReport
                     FROM periods p
                     CROSS JOIN category c
                     JOIN subcategory s ON s.parent_category_id = c.id
+                    WHERE s.hidden_from IS NULL
+                       OR @dateFrom IS NULL OR s.hidden_from > @dateFrom
+                       OR EXISTS (
+                        SELECT 1 FROM transaction t
+                        WHERE t.subcategory_id = s.id
+                          AND (@dateFrom IS NULL OR t.transaction_date >= @dateFrom)
+                          AND (@dateTo IS NULL OR t.transaction_date <= @dateTo)
+                          AND t.is_verified = 1
+                    )
                 ),
                 monthly_sums AS (
                     SELECT DATE_FORMAT(transaction_date, @periodPattern) AS period_name,

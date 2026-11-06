@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MW.TinyMoney.Api.Categories;
@@ -40,6 +41,9 @@ public class CategoriesStoreStub : ICategoriesStore
     public int LastMovedSubcategoryCategoryId { get; private set; }
     public int LastMovedSubcategoryId { get; private set; }
     public bool LastMovedSubcategoryUp { get; private set; }
+
+    public int? LastHiddenSubcategoryId { get; private set; }
+    public DateTime? LastHiddenSubcategoryHiddenFrom { get; private set; }
 
     public Task<IReadOnlyCollection<Category>> GetCategories() =>
         Task.FromResult(Categories);
@@ -98,6 +102,13 @@ public class CategoriesStoreStub : ICategoriesStore
     public Task DeleteSubcategory(int id)
     {
         LastDeletedSubcategoryId = id;
+        return Task.CompletedTask;
+    }
+
+    public Task SetSubcategoryHidden(int id, DateTime? hiddenFrom)
+    {
+        LastHiddenSubcategoryId = id;
+        LastHiddenSubcategoryHiddenFrom = hiddenFrom;
         return Task.CompletedTask;
     }
 
