@@ -95,7 +95,7 @@ public class AiSuggestionService : IAiSuggestionService
     {
         var subcategories = (await _categoriesStore.GetCategories())
             .Where(c => c.IsIncome != transaction.IsExpense)
-            .SelectMany(c => c.Subcategories.Select(s => new SubcategoryOption(c, s)))
+            .SelectMany(c => c.Subcategories.Where(s => !s.IsHiddenOn(transaction.TransactionDate)).Select(s => new SubcategoryOption(c, s)))
             .ToList();
         var questions = new Dictionary<string, ChoiceQuestion>
         {

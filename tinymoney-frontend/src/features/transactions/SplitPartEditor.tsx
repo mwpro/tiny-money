@@ -10,6 +10,7 @@ import {InputGroup, InputGroupAddon, InputGroupInput, InputGroupText} from "@/co
 import {Trash2} from "lucide-react"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
 import type {VendorSuggestion} from "@/api/ApiTypes.ts"
+import {visibleCategories} from "@/lib/categories.ts"
 import type {SplitFormValues} from "@/features/transactions/SplitTransactionDialog.tsx"
 
 interface SplitPartEditorProps {
@@ -19,9 +20,10 @@ interface SplitPartEditorProps {
     setValue: UseFormSetValue<SplitFormValues>
     remove: UseFieldArrayRemove
     canRemove: boolean
+    transactionDate?: string
 }
 
-export const SplitPartEditor = memo(function SplitPartEditor({index, control, register, setValue, remove, canRemove}: SplitPartEditorProps) {
+export const SplitPartEditor = memo(function SplitPartEditor({index, control, register, setValue, remove, canRemove, transactionDate}: SplitPartEditorProps) {
     const {vendorsClient, categoriesClient, tagsClient} = useApiClient()
     const lastVendorSuggestions = useRef<VendorSuggestion[]>([])
 
@@ -123,7 +125,7 @@ export const SplitPartEditor = memo(function SplitPartEditor({index, control, re
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                                {categoriesQuery.data?.map(category => (
+                                {visibleCategories(categoriesQuery.data ?? [], f.value, transactionDate ?? new Date()).map(category => (
                                     <SelectGroup key={category.id}>
                                         <SelectLabel>{category.name}</SelectLabel>
                                         {category.subcategories.map(sub => (

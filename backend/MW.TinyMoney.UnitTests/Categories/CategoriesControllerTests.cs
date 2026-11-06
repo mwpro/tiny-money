@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -236,6 +237,41 @@ public class CategoriesControllerTests
         _store.LastMovedSubcategoryCategoryId.Should().Be(3);
         _store.LastMovedSubcategoryId.Should().Be(12);
         _store.LastMovedSubcategoryUp.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HideSubcategory_SetsHiddenFromToToday()
+    {
+        _store.SubcategoryToReturn = new Subcategory { Id = 12, Name = "Burek", ParentCategoryId = 3 };
+
+        var result = await _controller.HideSubcategory(3, 12);
+
+        result.Should().BeOfType<OkResult>();
+        _store.LastHiddenSubcategoryId.Should().Be(12);
+        _store.LastHiddenSubcategoryHiddenFrom.Should().Be(DateTime.Today);
+    }
+
+    [Fact]
+    public async Task UnhideSubcategory_ClearsHiddenFrom()
+    {
+        _store.SubcategoryToReturn = new Subcategory { Id = 12, Name = "Burek", ParentCategoryId = 3, HiddenFrom = new DateTime(2026, 10, 15) };
+
+        var result = await _controller.UnhideSubcategory(3, 12);
+
+        result.Should().BeOfType<OkResult>();
+        _store.LastHiddenSubcategoryId.Should().Be(12);
+        _store.LastHiddenSubcategoryHiddenFrom.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task HideSubcategory_ReturnsNotFound_WhenSubcategoryNotFound()
+    {
+        _store.SubcategoryToReturn = null;
+
+        var result = await _controller.HideSubcategory(3, 12);
+
+        result.Should().BeOfType<NotFoundResult>();
+        _store.LastHiddenSubcategoryId.Should().BeNull();
     }
 
     [Fact]

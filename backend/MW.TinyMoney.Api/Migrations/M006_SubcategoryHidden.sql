@@ -1,2 +1,2 @@
 ALTER TABLE subcategory
-    ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN hidden_from DATE NULL;

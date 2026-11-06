@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select.tsx";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {X} from "lucide-react";
+import {visibleCategories} from "@/lib/categories.ts";
 
 interface VendorEditorDialogProps {
     vendorToEdit?: VendorDetails,
@@ -176,7 +177,7 @@ export function VendorEditorDialog({vendorToEdit, onClose}: VendorEditorDialogPr
                                     </SelectTrigger>
 
                                     <SelectContent>
-                                        {categoriesQuery.data && categoriesQuery.data.map(category => (
+                                        {categoriesQuery.data && visibleCategories(categoriesQuery.data, field.value).map(category => (
                                             <SelectGroup key={category.id}>
                                                 <SelectLabel>{category.name}</SelectLabel>
                                                 {category.subcategories.map(subcategory => (

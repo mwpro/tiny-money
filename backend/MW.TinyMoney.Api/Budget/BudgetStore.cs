@@ -47,8 +47,10 @@ public class BudgetStore : IBudgetStore
         """
         DELETE FROM budget WHERE year = @yearTo AND month = @monthTo;
         INSERT INTO budget (year, month, subcategory_id, amount, notes, created_date, modified_date)
-             SELECT @yearTo, @monthTo, f.subcategory_id, f.amount, f.notes, @modifiedDate, @modifiedDate FROM budget f 
-             WHERE f.year = @yearFrom AND f.month = @monthFrom;
+             SELECT @yearTo, @monthTo, f.subcategory_id, f.amount, f.notes, @modifiedDate, @modifiedDate FROM budget f
+             JOIN subcategory s ON s.id = f.subcategory_id
+             WHERE f.year = @yearFrom AND f.month = @monthFrom
+               AND (s.hidden_from IS NULL OR s.hidden_from > @monthToStart);
         """;
 
     private const string SubcategoryBudgetSuggestionsQuery = 
@@ -171,6 +173,7 @@ public class BudgetStore : IBudgetStore
                 monthFrom = monthFrom,
                 yearTo = yearTo,
                 monthTo = monthTo,
+                monthToStart = new DateTime(yearTo, monthTo, 1),
                 modifiedDate = DateTime.UtcNow
             });
         }

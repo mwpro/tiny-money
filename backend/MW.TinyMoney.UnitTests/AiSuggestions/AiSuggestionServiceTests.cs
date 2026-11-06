@@ -16,7 +16,9 @@ public class AiSuggestionServiceTests
 {
     private const int GroceriesId = 10;
     private const int FuelId = 11;
+    private const int HiddenId = 12;
     private const int SalaryId = 20;
+    private static readonly DateTime HiddenFrom = new(2026, 10, 15);
 
     private readonly LLMClientStub _llmClient = new();
     private readonly AiSuggestionStoreStub _suggestionStore = new();
@@ -40,7 +42,11 @@ public class AiSuggestionServiceTests
                 new()
                 {
                     Id = 2, Name = "Samochód", IsIncome = false,
-                    Subcategories = new List<Subcategory> { new() { Id = FuelId, Name = "Paliwo" } }
+                    Subcategories = new List<Subcategory>
+                    {
+                        new() { Id = FuelId, Name = "Paliwo" },
+                        new() { Id = HiddenId, Name = "Stary samochód", HiddenFrom = HiddenFrom }
+                    }
                 },
                 new()
                 {
@@ -53,8 +59,12 @@ public class AiSuggestionServiceTests
             _descriptionPreprocessor, OpenRouterTestOptions.Enabled(), NullLogger<AiSuggestionService>.Instance);
     }
 
-    private static Api.Transaction.ApiModels.Transaction Expense(string description = "ZABKA WARSZAWA") =>
-        TransactionsHelper.PrepareTransaction(vendorId: null, subcategoryId: null, description: description);
+    private static Api.Transaction.ApiModels.Transaction Expense(string description = "ZABKA WARSZAWA")
+    {
+        var transaction = TransactionsHelper.PrepareTransaction(vendorId: null, subcategoryId: null, description: description);
+        transaction.TransactionDate = HiddenFrom.AddDays(1);
+        return transaction;
+    }
 
     [Fact]
     public async Task OffersOnlyExpenseSubcategories_ForExpense()
@@ -67,6 +77,30 @@ public class AiSuggestionServiceTests
                 [$"s{GroceriesId}"] = "Jedzenie / Zakupy spożywcze",
                 [$"s{FuelId}"] = "Samochód / Paliwo"
             });
+    }
+
+    [Fact]
+    public async Task DoesNotOfferHiddenSubcategories_ForTransactionOnOrAfterHiddenDate()
+    {
+        var transaction = Expense();
+        transaction.TransactionDate = HiddenFrom;
+
+        await _service.Suggest(transaction, CancellationToken.None);
+
+        _llmClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Keys.Should()
+            .NotContain($"s{HiddenId}");
+    }
+
+    [Fact]
+    public async Task OffersHiddenSubcategories_ForTransactionBeforeHiddenDate()
+    {
+        var transaction = Expense();
+        transaction.TransactionDate = HiddenFrom.AddDays(-1);
+
+        await _service.Suggest(transaction, CancellationToken.None);
+
+        _llmClient.LastQuestions[AiSuggestionService.SubcategoryQuestion].Criteria.Keys.Should()
+            .Contain($"s{HiddenId}");
     }
 
     [Fact]

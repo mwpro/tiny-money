@@ -1,3 +1,4 @@
+using System;
 using Dapper;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ public class Category
             {
                 Id = s.Id,
                 Name = s.Name,
+                HiddenFrom = s.HiddenFrom,
             })
         };
     }
@@ -41,6 +43,7 @@ public class Category
             {
                 Id = s.Id,
                 Name = s.Name,
+                HiddenFrom = s.HiddenFrom,
                 HasUsages = s.HasUsages
             })
         };
@@ -53,7 +56,10 @@ public class Subcategory
     public string Name { get; set; }
     public int SortOrder { get; set; }
     public int ParentCategoryId { get; set; }
+    public DateTime? HiddenFrom { get; set; }
     public bool HasUsages { get; set; }
+
+    public bool IsHiddenOn(DateTime date) => HiddenFrom.HasValue && HiddenFrom.Value.Date <= date.Date;
 }
 
 public interface ICategoriesStore
@@ -71,6 +77,7 @@ public interface ICategoriesStore
     Task UpdateSubcategory(Subcategory subcategory);
     Task DeleteSubcategory(int id);
     Task MoveSubcategory(int categoryId, int id, bool up);
+    Task SetSubcategoryHidden(int id, DateTime? hiddenFrom);
     Task<bool> SubcategoryHasUsages(int id);
 }
 
@@ -86,7 +93,8 @@ public class MySqlCategoriesStore : ICategoriesStore
     private const string GetCategoriesQuery =
         """
         SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder',
-               s.id, s.name, s.sort_order AS 'sortOrder', s.parent_category_id AS 'parentCategoryId'
+               s.id, s.name, s.sort_order AS 'sortOrder', s.parent_category_id AS 'parentCategoryId',
+               s.hidden_from AS 'hiddenFrom'
         FROM category c
         LEFT JOIN subcategory s ON c.id = s.parent_category_id
         ORDER BY c.sort_order, s.sort_order
@@ -96,6 +104,7 @@ public class MySqlCategoriesStore : ICategoriesStore
         """
         SELECT c.id, c.name, c.is_income AS 'isIncome', c.sort_order AS 'sortOrder',
                s.id, s.name, s.sort_order AS 'sortOrder', s.parent_category_id AS 'parentCategoryId',
+               s.hidden_from AS 'hiddenFrom',
                CASE WHEN s.id IS NOT NULL AND (
                               EXISTS(SELECT 1 FROM `transaction` WHERE subcategory_id = s.id) OR
                               EXISTS(SELECT 1 FROM vendor WHERE default_subcategory_id = s.id)
@@ -109,7 +118,7 @@ public class MySqlCategoriesStore : ICategoriesStore
         "SELECT id, name, is_income AS 'isIncome', sort_order AS 'sortOrder' FROM category WHERE id = @id";
 
     private const string GetSubcategoryByIdQuery =
-        "SELECT id, name, sort_order AS 'sortOrder', parent_category_id AS 'parentCategoryId' FROM subcategory WHERE id = @id";
+        "SELECT id, name, sort_order AS 'sortOrder', parent_category_id AS 'parentCategoryId', hidden_from AS 'hiddenFrom' FROM subcategory WHERE id = @id";
 
     private const string CreateCategoryQuery =
         """
@@ -159,6 +168,9 @@ public class MySqlCategoriesStore : ICategoriesStore
 
     private const string UpdateSubcategoryQuery =
         "UPDATE subcategory SET name = @name, parent_category_id = @parentCategoryId WHERE id = @id";
+
+    private const string SetSubcategoryHiddenQuery =
+        "UPDATE subcategory SET hidden_from = @hiddenFrom WHERE id = @id";
 
     private const string CheckSubcategoryUsageQuery =
         """
@@ -301,6 +313,13 @@ public class MySqlCategoriesStore : ICategoriesStore
         using var connection = _mySqlConnectionFactory.CreateConnection();
         await connection.OpenAsync();
         await connection.ExecuteAsync(HardDeleteSubcategoryQuery, new { id });
+    }
+
+    public async Task SetSubcategoryHidden(int id, DateTime? hiddenFrom)
+    {
+        using var connection = _mySqlConnectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        await connection.ExecuteAsync(SetSubcategoryHiddenQuery, new { id, hiddenFrom });
     }
 
     public async Task<bool> SubcategoryHasUsages(int id)

@@ -14,6 +14,7 @@ export interface CategoriesClient {
     deleteSubcategory(categoryId: number, id: number): Promise<void>;
     moveSubcategoryUp(categoryId: number, id: number): Promise<void>;
     moveSubcategoryDown(categoryId: number, id: number): Promise<void>;
+    setSubcategoryHidden(categoryId: number, id: number, isHidden: boolean): Promise<void>;
 }
 
 export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
@@ -77,5 +78,10 @@ export class CategoriesClientImpl extends ApiBase implements CategoriesClient {
     async moveSubcategoryDown(categoryId: number, id: number): Promise<void> {
         const res = await this.request('POST', `/categories/${categoryId}/subcategories/${id}/move-down`);
         if (!res.ok) throw new Error('Błąd przesuwania podkategorii');
+    }
+
+    async setSubcategoryHidden(categoryId: number, id: number, isHidden: boolean): Promise<void> {
+        const res = await this.request('POST', `/categories/${categoryId}/subcategories/${id}/${isHidden ? 'hide' : 'unhide'}`);
+        if (!res.ok) throw new Error(isHidden ? 'Błąd ukrywania podkategorii' : 'Błąd przywracania podkategorii');
     }
 }
