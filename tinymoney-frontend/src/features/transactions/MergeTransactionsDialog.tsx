@@ -15,7 +15,7 @@ import {DatePicker} from "@/components/DatePicker.tsx"
 import {Curr, formatCurrencyAsString} from "@/components/Curr.tsx"
 import {format} from "date-fns"
 import {dateFormat} from "@/lib/utils.ts"
-import {visibleCategories} from "@/lib/categories.ts"
+import {isSubcategoryIdHiddenOn, visibleCategories} from "@/lib/categories.ts"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
 import {toast} from "sonner"
 
@@ -191,7 +191,7 @@ export function MergeTransactionsDialog({open, selectedIds, transactions, onClos
                                                     const category = categoriesQuery.data?.find(c =>
                                                         c.subcategories.some(s => s.id === suggestion.defaultSubcategoryId))
                                                     const matchesType = category && (isExpenseResult ? !category.isIncome : category.isIncome)
-                                                    if (matchesType) {
+                                                    if (matchesType && !isSubcategoryIdHiddenOn(categoriesQuery.data, suggestion.defaultSubcategoryId, transactionDateValue || new Date())) {
                                                         setValue("subcategoryId", suggestion.defaultSubcategoryId)
                                                     }
                                                 }

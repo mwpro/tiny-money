@@ -31,7 +31,9 @@ public class BudgetStore : IBudgetStore
             LEFT JOIN budget b ON b.year = @year AND b.month = @month AND b.subcategory_id = s.id
             LEFT JOIN transaction t ON YEAR(t.transaction_date) = @year AND MONTH(t.transaction_date) = @month AND t.subcategory_id = s.id AND t.is_expense = 1 AND t.is_verified = 1
             WHERE c.is_income = 0
-            GROUP BY c.id, c.name, c.sort_order, s.id, s.name, s.sort_order, b.amount, b.notes
+            GROUP BY c.id, c.name, c.sort_order, s.id, s.name, s.sort_order, s.hidden_from, b.amount, b.notes
+            HAVING s.hidden_from IS NULL OR s.hidden_from > @monthStart
+                OR COALESCE(b.amount, 0) <> 0 OR COALESCE(SUM(t.amount), 0) <> 0
             ORDER BY c.sort_order, c.id, s.sort_order, s.id
         """;
 
@@ -127,7 +129,7 @@ public class BudgetStore : IBudgetStore
                         
                 return categoryEntry;
             },
-            new { year = year, month = month },
+            new { year = year, month = month, monthStart = new DateTime(year, month, 1) },
             splitOn: "subcategoryId");
             
         foreach (var (_, categoryBudget) in categoryBudgets)

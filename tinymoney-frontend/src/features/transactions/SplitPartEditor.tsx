@@ -10,7 +10,7 @@ import {InputGroup, InputGroupAddon, InputGroupInput, InputGroupText} from "@/co
 import {Trash2} from "lucide-react"
 import {useApiClient} from "@/api/ApiClientProvider.tsx"
 import type {VendorSuggestion} from "@/api/ApiTypes.ts"
-import {visibleCategories} from "@/lib/categories.ts"
+import {isSubcategoryIdHiddenOn, visibleCategories} from "@/lib/categories.ts"
 import type {SplitFormValues} from "@/features/transactions/SplitTransactionDialog.tsx"
 
 interface SplitPartEditorProps {
@@ -74,7 +74,8 @@ export const SplitPartEditor = memo(function SplitPartEditor({index, control, re
                                 f.onChange(value ? {...value} : {id: undefined, name: ""})
                                 if (value?.id) {
                                     const suggestion = lastVendorSuggestions.current.find(s => s.vendorId === value.id)
-                                    if (suggestion?.defaultSubcategoryId && !currentSubcategoryId) {
+                                    if (suggestion?.defaultSubcategoryId && !currentSubcategoryId
+                                        && !isSubcategoryIdHiddenOn(categoriesQuery.data, suggestion.defaultSubcategoryId, transactionDate ?? new Date())) {
                                         setValue(`splits.${index}.subcategoryId`, suggestion.defaultSubcategoryId)
                                         const isIncomeCategory = categoriesQuery.data?.find(c =>
                                             c.subcategories.some(s => s.id === suggestion.defaultSubcategoryId))?.isIncome

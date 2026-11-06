@@ -8,6 +8,11 @@ export function isSubcategoryHiddenOn(subcategory: Subcategory, date: Date | str
     return subcategory.hiddenFrom.slice(0, 10) <= day;
 }
 
+export function isSubcategoryIdHiddenOn(categories: Category[] | undefined, subcategoryId: number, date: Date | string): boolean {
+    const subcategory = categories?.flatMap(c => c.subcategories).find(s => s.id === subcategoryId);
+    return !!subcategory && isSubcategoryHiddenOn(subcategory, date);
+}
+
 // Subcategories hidden as of the given date (e.g. the transaction date) are left out of pickers,
 // except the one currently selected, so existing values still display.
 export function visibleCategories(categories: Category[], selectedSubcategoryId?: number | null, date: Date | string = new Date()): Category[] {

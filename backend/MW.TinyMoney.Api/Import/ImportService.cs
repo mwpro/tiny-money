@@ -63,7 +63,7 @@ public class ImportService : IImportService
             await Task.WhenAll(matcherTask, categoriesTask);
             var matchedVendor = matcherTask.Result.Match(request.Description, 1).FirstOrDefault();
             vendorId = matchedVendor?.Id;
-            subcategoryId = DefaultSubcategoryFor(categoriesTask.Result, matchedVendor, request.IsExpense);
+            subcategoryId = DefaultSubcategoryFor(categoriesTask.Result, matchedVendor, request.IsExpense, request.Date);
         }
 
         var transaction = new Transaction.ApiModels.Transaction
@@ -123,7 +123,7 @@ public class ImportService : IImportService
                 TransactionDate = raw.TransactionDate,
                 Description = raw.RawDescription,
                 VendorId = matchedVendor?.Id,
-                SubcategoryId = DefaultSubcategoryFor(categories, matchedVendor, raw.IsExpense),
+                SubcategoryId = DefaultSubcategoryFor(categories, matchedVendor, raw.IsExpense, raw.TransactionDate),
                 IsVerified = false,
                 IsPossibleDuplicate = false,
                 CreatedDate = now,
@@ -164,12 +164,16 @@ public class ImportService : IImportService
     }
     
     // Vendor's default subcategory is used only when its category type (income/expense) matches the transaction direction
-    private static int? DefaultSubcategoryFor(IReadOnlyCollection<Category> categories, Vendor matchedVendor, bool isExpense)
+    // and the subcategory exists and is not hidden as of the transaction date
+    public static int? DefaultSubcategoryFor(IReadOnlyCollection<Category> categories, Vendor matchedVendor, bool isExpense, DateTime transactionDate)
     {
         var subcategoryId = matchedVendor?.DefaultSubcategoryId;
         if (subcategoryId is null)
             return null;
         var category = categories.FirstOrDefault(c => c.Subcategories?.Any(s => s.Id == subcategoryId) == true);
-        return category is null || category.IsIncome != isExpense ? subcategoryId : null;
+        var subcategory = category?.Subcategories.First(s => s.Id == subcategoryId);
+        if (subcategory is null || category.IsIncome == isExpense || subcategory.IsHiddenOn(transactionDate))
+            return null;
+        return subcategoryId;
     }
 }

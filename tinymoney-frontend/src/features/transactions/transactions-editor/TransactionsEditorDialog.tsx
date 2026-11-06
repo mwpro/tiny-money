@@ -34,7 +34,7 @@ import {InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGro
 import {AlertTriangle, Loader2, Minus, Plus, Sparkles} from "lucide-react";
 import {DatePicker} from "@/components/DatePicker.tsx";
 import {dateFormat} from "@/lib/utils.ts";
-import {visibleCategories} from "@/lib/categories.ts";
+import {isSubcategoryIdHiddenOn, visibleCategories} from "@/lib/categories.ts";
 import {useApiClient} from "@/api/ApiClientProvider.tsx";
 import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {AliasProposalDialog} from "@/features/transactions/transactions-editor/AliasProposalDialog.tsx";
@@ -319,7 +319,8 @@ export function TransactionsEditorDialog({transactionToEdit, onClose, onTransact
 
                                                       if (value?.id) {
                                                           const suggestion = lastVendorSuggestions.current.find(s => s.vendorId === value.id)
-                                                          if (suggestion?.defaultSubcategoryId) {
+                                                          if (suggestion?.defaultSubcategoryId
+                                                              && !isSubcategoryIdHiddenOn(categoriesQuery.data, suggestion.defaultSubcategoryId, getValues("transactionDate") || new Date())) {
                                                               setValue("subcategoryId", suggestion.defaultSubcategoryId, {
                                                                   shouldValidate: true,
                                                                   shouldDirty: true
